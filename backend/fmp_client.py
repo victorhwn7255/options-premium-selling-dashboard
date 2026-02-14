@@ -10,6 +10,11 @@ from database import get_cached_earnings, store_cached_earnings
 logger = logging.getLogger(__name__)
 BASE = "https://financialmodelingprep.com"
 
+# Tickers where FMP uses a different symbol than MarketData.app
+_FMP_ALIASES = {
+    "GOOG": "GOOGL",
+}
+
 
 async def get_next_earnings(ticker: str, api_key: str) -> Optional[str]:
     """
@@ -22,8 +27,10 @@ async def get_next_earnings(ticker: str, api_key: str) -> Optional[str]:
         logger.debug(f"{ticker}: Using cached earnings date {cached}")
         return cached
 
-    # Fetch fresh data
+    # Fetch fresh data (try alias if primary ticker fails)
     result = await _fetch_earnings(ticker, api_key)
+    if result is None and ticker in _FMP_ALIASES:
+        result = await _fetch_earnings(_FMP_ALIASES[ticker], api_key)
     if result:
         store_cached_earnings(ticker, result)
     return result

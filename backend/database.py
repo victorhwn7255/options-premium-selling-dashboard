@@ -216,6 +216,27 @@ def get_latest_scan() -> Optional[dict]:
     }
 
 
+def update_latest_scan_earnings(earnings: dict[str, int | None]) -> None:
+    """Patch earnings_dte in the most recent cached scan result."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT id, tickers FROM scan_results ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    if not row:
+        conn.close()
+        return
+    scan_id, tickers_json = row[0], json.loads(row[1])
+    for t in tickers_json:
+        if t["ticker"] in earnings:
+            t["earnings_dte"] = earnings[t["ticker"]]
+    conn.execute(
+        "UPDATE scan_results SET tickers = ? WHERE id = ?",
+        (json.dumps(tickers_json), scan_id),
+    )
+    conn.commit()
+    conn.close()
+
+
 def get_scan_history(limit: int = 10) -> list[dict]:
     """Return metadata for recent scans (no full payloads)."""
     conn = get_connection()

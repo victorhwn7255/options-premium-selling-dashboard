@@ -36,7 +36,7 @@ from scorer import score_opportunity, ScoringParams
 from database import (
     store_daily_iv, get_historical_ivs, get_historical_series, log_scan,
     store_scan_result, get_latest_scan, get_scan_history,
-    clear_earnings_cache,
+    clear_earnings_cache, update_latest_scan_earnings,
 )
 from models import (
     ScanResponse, TickerResult, RegimeSummary,
@@ -626,6 +626,7 @@ async def refresh_earnings():
             earn_date = datetime.strptime(earnings_date_str, "%Y-%m-%d").date()
             earnings_dte = (earn_date - date.today()).days
         results[ticker] = earnings_dte
+    update_latest_scan_earnings(results)
     return {"earnings": results, "remaining": remaining}
 
 
