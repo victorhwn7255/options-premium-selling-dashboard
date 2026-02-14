@@ -1,0 +1,356 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Fonts ──────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* General Sans is commercial — fallback chain handles it gracefully */
+
+/* ── Theme tokens ──────────────────────────────────── */
+:root {
+  --color-bg: #FAF7F4;
+  --color-bg-alt: #F5F0EB;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F0EAE2;
+  --color-surface-raised: #FFFFFF;
+
+  --color-primary: #C47B5A;
+  --color-primary-hover: #B06A4A;
+  --color-primary-active: #9C5D3F;
+  --color-primary-subtle: rgba(196, 123, 90, 0.12);
+
+  --color-secondary: #7D8C6E;
+  --color-secondary-hover: #6B7A5D;
+  --color-secondary-active: #5A6A4E;
+  --color-secondary-subtle: rgba(125, 140, 110, 0.12);
+
+  --color-accent: #8B8FC7;
+  --color-accent-hover: #7A7EB8;
+  --color-accent-active: #6B6FA9;
+  --color-accent-subtle: rgba(139, 143, 199, 0.12);
+
+  --color-txt: #2D2824;
+  --color-txt-secondary: #6B5F54;
+  --color-txt-tertiary: #9A8E82;
+  --color-txt-inverse: #FAF7F4;
+
+  --color-border: #E8E0D5;
+  --color-border-strong: #D1C7B8;
+  --color-border-subtle: #F0EAE2;
+
+  --color-success: #6B8C5A;
+  --color-success-subtle: rgba(107, 140, 90, 0.12);
+  --color-warning: #C49A5A;
+  --color-warning-subtle: rgba(196, 154, 90, 0.12);
+  --color-error: #C45A5A;
+  --color-error-subtle: rgba(196, 90, 90, 0.12);
+
+  --color-chart-1: #C47B5A;
+  --color-chart-2: #7D8C6E;
+  --color-chart-3: #8B8FC7;
+  --color-chart-4: #C49A5A;
+  --color-chart-5: #9B8B7A;
+  --color-chart-6: #4A5A3E;
+
+  /* Badge text colors */
+  --color-badge-sell: #4A6B3A;
+  --color-badge-conditional: #9C5D3F;
+  --color-badge-reduce: #8B6B3A;
+  --color-badge-avoid: #9C3A3A;
+
+  /* Row hover */
+  --color-row-hover: rgba(196, 123, 90, 0.04);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(45, 40, 36, 0.05);
+  --shadow-md: 0 2px 8px rgba(45, 40, 36, 0.06), 0 1px 2px rgba(45, 40, 36, 0.04);
+  --shadow-lg: 0 4px 16px rgba(45, 40, 36, 0.08), 0 2px 4px rgba(45, 40, 36, 0.04);
+  --shadow-xl: 0 8px 32px rgba(45, 40, 36, 0.1), 0 4px 8px rgba(45, 40, 36, 0.04);
+  --shadow-focus: 0 0 0 3px rgba(196, 123, 90, 0.2);
+
+  /* Grain */
+  --grain-opacity: 0.035;
+  --grain-blend: multiply;
+
+  /* Tooltip */
+  --color-tooltip-bg: #2D2824;
+  --color-tooltip-text: #FAF7F4;
+  --color-tooltip-label: #B8ADA2;
+
+  /* Scrollbar */
+  --color-scrollbar-thumb: #D1C7B8;
+  --color-scrollbar-thumb-hover: #9A8E82;
+
+  /* Focus ring */
+  --color-focus-ring: #C47B5A;
+
+  /* Selection */
+  --color-selection-bg: rgba(196, 123, 90, 0.2);
+  --color-selection-text: #2D2824;
+
+  /* Range slider */
+  --color-range-track: #D1C7B8;
+  --color-range-thumb: #C47B5A;
+  --color-range-thumb-border: white;
+}
+
+[data-theme="dark"] {
+  --color-bg: #1A1714;
+  --color-bg-alt: #211E1A;
+  --color-surface: #2B2621;
+  --color-surface-alt: #342E28;
+  --color-surface-raised: #3D362F;
+
+  --color-primary: #D4956F;
+  --color-primary-hover: #DFA882;
+  --color-primary-active: #C88660;
+  --color-primary-subtle: rgba(212, 149, 111, 0.10);
+
+  --color-secondary: #92A87E;
+  --color-secondary-hover: #A3B890;
+  --color-secondary-active: #7E9568;
+  --color-secondary-subtle: rgba(146, 168, 126, 0.10);
+
+  --color-accent: #A3A4D4;
+  --color-accent-hover: #B4B5E2;
+  --color-accent-active: #9293C4;
+  --color-accent-subtle: rgba(163, 164, 212, 0.10);
+
+  --color-txt: #EDE8E3;
+  --color-txt-secondary: #B5A99D;
+  --color-txt-tertiary: #988C82;
+  --color-txt-inverse: #1A1714;
+
+  --color-border: rgba(237, 232, 227, 0.08);
+  --color-border-strong: rgba(237, 232, 227, 0.15);
+  --color-border-subtle: rgba(237, 232, 227, 0.05);
+
+  --color-success: #82B86E;
+  --color-success-subtle: rgba(130, 184, 110, 0.12);
+  --color-warning: #D4AE6E;
+  --color-warning-subtle: rgba(212, 174, 110, 0.12);
+  --color-error: #D47272;
+  --color-error-subtle: rgba(212, 114, 114, 0.12);
+
+  --color-chart-1: #D4956F;
+  --color-chart-2: #92A87E;
+  --color-chart-3: #A3A4D4;
+  --color-chart-4: #D4AE6E;
+  --color-chart-5: #B8A898;
+  --color-chart-6: #7A9066;
+
+  /* Badge text colors */
+  --color-badge-sell: #82B86E;
+  --color-badge-conditional: #D4956F;
+  --color-badge-reduce: #D4AE6E;
+  --color-badge-avoid: #D47272;
+
+  /* Row hover */
+  --color-row-hover: rgba(212, 149, 111, 0.06);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(10, 8, 6, 0.25);
+  --shadow-md: 0 2px 8px rgba(10, 8, 6, 0.30), 0 1px 2px rgba(10, 8, 6, 0.20);
+  --shadow-lg: 0 4px 16px rgba(10, 8, 6, 0.35), 0 2px 4px rgba(10, 8, 6, 0.20);
+  --shadow-xl: 0 8px 32px rgba(10, 8, 6, 0.40), 0 4px 8px rgba(10, 8, 6, 0.20);
+  --shadow-focus: 0 0 0 3px rgba(212, 149, 111, 0.25);
+
+  /* Grain */
+  --grain-opacity: 0.04;
+  --grain-blend: soft-light;
+
+  /* Tooltip */
+  --color-tooltip-bg: #3D362F;
+  --color-tooltip-text: #EDE8E3;
+  --color-tooltip-label: #988C82;
+
+  /* Scrollbar */
+  --color-scrollbar-thumb: rgba(237, 232, 227, 0.10);
+  --color-scrollbar-thumb-hover: rgba(237, 232, 227, 0.20);
+
+  /* Focus ring */
+  --color-focus-ring: #D4956F;
+
+  /* Selection */
+  --color-selection-bg: rgba(212, 149, 111, 0.18);
+  --color-selection-text: #EDE8E3;
+
+  /* Range slider */
+  --color-range-track: rgba(237, 232, 227, 0.12);
+  --color-range-thumb: #D4956F;
+  --color-range-thumb-border: #2B2621;
+}
+
+/* ── Base layer ─────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-bg font-primary text-txt text-sm leading-normal;
+  }
+
+  /* Grain overlay — risograph / paper texture */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    mix-blend-mode: var(--grain-blend);
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: var(--color-selection-bg);
+    color: var(--color-selection-text);
+  }
+}
+
+/* ── Component utilities ────────────────────────────── */
+@layer components {
+  .label-text {
+    @apply font-primary text-xs font-medium tracking-wider text-txt-secondary uppercase;
+  }
+
+  .data-value {
+    @apply font-mono text-2xl font-medium leading-none;
+  }
+
+  .caption {
+    @apply font-primary text-2xs leading-normal tracking-wide text-txt-tertiary;
+  }
+
+  .heading-serif {
+    @apply font-secondary tracking-tighter leading-tight;
+  }
+}
+
+/* ── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-thumb-hover);
+}
+
+/* ── Focus visible ──────────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* ── Range slider ───────────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-range-track);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-range-thumb);
+  cursor: pointer;
+  border: 2px solid var(--color-range-thumb-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-range-thumb);
+  cursor: pointer;
+  border: 2px solid var(--color-range-thumb-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+/* ── Reduced motion ────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  body::after {
+    display: none;
+  }
+}
+
+/* ── Staggered animation delays ─────────────────────── */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+
+/* ── Recharts tooltip override ──────────────────────── */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: var(--color-tooltip-bg) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
+}
+.recharts-tooltip-wrapper .recharts-tooltip-item {
+  color: var(--color-tooltip-text) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px !important;
+}
+.recharts-tooltip-wrapper .recharts-tooltip-label {
+  color: var(--color-tooltip-label) !important;
+  font-size: 11px !important;
+}
+
+/* ── color-mix utility classes (opacity modifier workaround) ── */
+@layer utilities {
+  .border-success-30 {
+    border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
+  }
+  .border-primary-30 {
+    border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  }
+  .border-warning-30 {
+    border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+  }
+  .border-error-30 {
+    border-color: color-mix(in srgb, var(--color-error) 30%, transparent);
+  }
+  .border-primary-20 {
+    border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  }
+  .border-error-20 {
+    border-color: color-mix(in srgb, var(--color-error) 20%, transparent);
+  }
+  .text-txt-tertiary-60 {
+    color: color-mix(in srgb, var(--color-txt-tertiary) 60%, transparent);
+  }
+  .border-secondary-30 {
+    border-color: color-mix(in srgb, var(--color-secondary) 30%, transparent);
+  }
+  .border-txt-inverse-30 {
+    border-color: color-mix(in srgb, var(--color-txt-inverse) 30%, transparent);
+  }
+}
