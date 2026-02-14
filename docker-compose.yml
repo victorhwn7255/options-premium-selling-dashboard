@@ -6,6 +6,7 @@ services:
     environment:
       - MARKETDATA_TOKEN=${MARKETDATA_TOKEN}
       - FMP_API_KEY=${FMP_API_KEY}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
     volumes:
       - ./backend/data:/app/data
     restart: unless-stopped
@@ -15,3 +16,23 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://backend:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - frontend
+    restart: unless-stopped

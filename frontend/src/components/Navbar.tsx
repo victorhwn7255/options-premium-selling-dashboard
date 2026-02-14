@@ -9,13 +9,14 @@ interface NavbarProps {
   onToggleTheme: () => void;
   onRefresh: () => void;
   refreshing: boolean;
+  scanProgress: string | null;
   onRefreshEarnings: () => void;
   earningsRefreshing: boolean;
   earningsRemaining: number;
   scannedAt: string | null;
 }
 
-export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, onRefreshEarnings, earningsRefreshing, earningsRemaining, scannedAt }: NavbarProps) {
+export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, scanProgress, onRefreshEarnings, earningsRefreshing, earningsRemaining, scannedAt }: NavbarProps) {
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
   });
@@ -75,22 +76,27 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, on
             </span>
           </span>
         ) : (
-          <button
-            onClick={onRefresh}
-            disabled={refreshing}
-            className="p-1.5 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
-            title="Refresh scan"
-          >
-            <svg
-              className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+          <span className="flex items-center gap-1.5">
+            <button
+              onClick={onRefresh}
+              disabled={refreshing}
+              className="p-1.5 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
+              title="Refresh scan"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </button>
+              <svg
+                className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+            {refreshing && scanProgress && (
+              <span className="font-mono text-2xs text-txt-tertiary">{scanProgress}</span>
+            )}
+          </span>
         )}
         <span className="relative group">
           <button

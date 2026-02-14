@@ -87,6 +87,8 @@ UNIVERSE = {
 client: MarketDataClient = None
 fmp_api_key: str = None
 _scheduler_task: asyncio.Task = None
+_scan_task: asyncio.Task = None
+_scan_progress: dict = {"status": "idle", "current": 0, "total": 0, "ticker": ""}
 
 
 async def _cron_loop():
@@ -157,14 +159,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_cors_origins = [
+    "http://localhost:3000",   # Next.js dev server
+    "http://localhost:8000",
+    "http://localhost:8030",   # Docker backend mapped port
+    "http://127.0.0.1:3000",
+]
+# Add extra origins from CORS_ORIGINS env var (comma-separated)
+_extra = os.environ.get("CORS_ORIGINS", "")
+if _extra:
+    _cors_origins.extend(o.strip() for o in _extra.split(",") if o.strip())
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",   # Next.js dev server
-        "http://localhost:8000",
-        "http://localhost:8030",   # Docker backend mapped port
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -277,10 +285,19 @@ async def run_full_scan() -> ScanResponse:
 
     # Scan tickers with concurrency limit (avoid rate limit storms)
     semaphore = asyncio.Semaphore(1)
+    total_tickers = len(UNIVERSE)
+    scanned_count = 0
 
     async def _scan_with_limit(ticker, meta):
+        nonlocal scanned_count
         async with semaphore:
-            return ticker, await scan_single_ticker(ticker, meta)
+            _scan_progress["ticker"] = ticker
+            result = ticker, await scan_single_ticker(ticker, meta)
+            scanned_count += 1
+            _scan_progress["current"] = scanned_count
+            return result
+
+    _scan_progress.update({"status": "scanning", "current": 0, "total": total_tickers, "ticker": ""})
 
     tasks = [_scan_with_limit(t, m) for t, m in UNIVERSE.items()]
     scan_results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -486,9 +503,11 @@ def _is_scanned_today(scanned_at: str) -> bool:
     return scan_dt.astimezone(et).date() == datetime.now(tz=et).date()
 
 
-@app.post("/api/scan", response_model=ScanResponse)
+@app.post("/api/scan")
 async def trigger_scan():
-    """Manually trigger a full scan (limited to once per day)."""
+    """Manually trigger a full scan (limited to once per day). Runs in background."""
+    global _scan_task
+
     cached = get_latest_scan()
     if cached and cached.get("scanned_at") and _is_scanned_today(cached["scanned_at"]):
         # Already scanned today — return cached result
@@ -506,7 +525,32 @@ async def trigger_scan():
             scanned_at=cached["scanned_at"],
             cached=True,
         )
-    return await run_full_scan()
+
+    # If a scan is already running, return status
+    if _scan_task and not _scan_task.done():
+        return JSONResponse({"status": "scanning", **_scan_progress})
+
+    # Start scan in background
+    async def _background_scan():
+        try:
+            await run_full_scan()
+            _scan_progress["status"] = "completed"
+            logger.info("Background scan completed successfully")
+        except Exception as e:
+            _scan_progress["status"] = "error"
+            _scan_progress["error"] = str(e)
+            logger.error(f"Background scan failed: {e}")
+
+    _scan_task = asyncio.create_task(_background_scan())
+    return JSONResponse({"status": "scanning", "current": 0, "total": len(UNIVERSE), "ticker": ""})
+
+
+@app.get("/api/scan/status")
+async def scan_status():
+    """Check current scan progress."""
+    if _scan_task and not _scan_task.done():
+        return _scan_progress
+    return {"status": _scan_progress.get("status", "idle"), **_scan_progress}
 
 
 @app.get("/api/scan/history")
