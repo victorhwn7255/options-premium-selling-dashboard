@@ -17,6 +17,9 @@ out/
 .env
 .env.local
 
+# OS
+.DS_Store
+
 # IDE
 .vscode/
 .idea/
