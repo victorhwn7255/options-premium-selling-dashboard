@@ -11,7 +11,33 @@ export async function fetchLatestScan(): Promise<ScanResponse> {
 export async function triggerScan(): Promise<ScanResponse> {
   const res = await fetch(`${API_BASE}/api/scan`, { method: 'POST' });
   if (!res.ok) throw new Error(`Scan failed: ${res.status}`);
+  const data = await res.json();
+
+  // If backend returned full results (cached), return immediately
+  if (data.tickers) return data as ScanResponse;
+
+  // Backend started async scan — poll until complete
+  return pollForScanResults();
+}
+
+export async function fetchScanStatus(): Promise<{ status: string; current: number; total: number; ticker: string }> {
+  const res = await fetch(`${API_BASE}/api/scan/status`);
+  if (!res.ok) throw new Error(`Status check failed: ${res.status}`);
   return res.json();
+}
+
+async function pollForScanResults(): Promise<ScanResponse> {
+  const maxAttempts = 200; // ~16 minutes at 5s intervals
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    const status = await fetchScanStatus();
+    if (status.status === 'error') throw new Error('Scan failed on server');
+    if (status.status === 'completed' || status.status === 'idle') {
+      // Scan finished — fetch the cached results
+      return fetchLatestScan();
+    }
+  }
+  throw new Error('Scan timed out');
 }
 
 export async function fetchHealth(): Promise<HealthResponse> {

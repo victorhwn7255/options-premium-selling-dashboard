@@ -7,7 +7,7 @@ import Leaderboard from '@/components/Leaderboard';
 import DetailPanel from '@/components/DetailPanel';
 import { useTheme } from '@/hooks/useTheme';
 import { buildScoredData } from '@/lib/scoring';
-import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining } from '@/lib/api';
+import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus } from '@/lib/api';
 import type { ScanResponse } from '@/lib/types';
 
 export default function Home() {
@@ -16,6 +16,7 @@ export default function Home() {
   const [apiData, setApiData] = useState<ScanResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [scanProgress, setScanProgress] = useState<string | null>(null);
   const [earningsRefreshing, setEarningsRefreshing] = useState(false);
   const [earningsRemaining, setEarningsRemaining] = useState<number>(3);
 
@@ -65,8 +66,23 @@ export default function Home() {
     setSelectedTicker(prev => prev === sym ? null : sym);
   }, []);
 
+  // Poll scan progress while refreshing
+  useEffect(() => {
+    if (!refreshing) { setScanProgress(null); return; }
+    const interval = setInterval(async () => {
+      try {
+        const status = await fetchScanStatus();
+        if (status.status === 'scanning' && status.total > 0) {
+          setScanProgress(`${status.current}/${status.total} — ${status.ticker}`);
+        }
+      } catch { /* ignore */ }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [refreshing]);
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    setScanProgress(null);
     try {
       const fresh = await triggerScan();
       if (fresh.tickers?.length > 0) {
@@ -106,6 +122,7 @@ export default function Home() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onRefresh={handleRefresh}
+        scanProgress={scanProgress}
         refreshing={refreshing}
         onRefreshEarnings={handleEarningsRefresh}
         earningsRefreshing={earningsRefreshing}
