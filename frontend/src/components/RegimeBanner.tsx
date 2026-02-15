@@ -6,7 +6,7 @@ interface RegimeBannerProps {
   data: DashboardTicker[];
 }
 
-function computeRegime(data: DashboardTicker[]) {
+export function computeRegime(data: DashboardTicker[]) {
   // Exclude earnings-gated tickers — their event-driven IV contaminates regime metrics
   const eligible = data.filter(d => d.action !== 'SKIP');
   if (eligible.length === 0) {
@@ -68,15 +68,15 @@ export default function RegimeBanner({ data }: RegimeBannerProps) {
   ];
 
   return (
-    <div className={`bg-surface rounded-lg border border-border border-l-4 ${r.borderClass} p-5 px-6`}>
-      <div className="flex justify-between items-center flex-wrap gap-4">
+    <div className={`bg-surface rounded-lg border border-border border-l-4 ${r.borderClass} p-4 sm:p-5 sm:px-6`}>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         {/* Left: regime info */}
         <div className="flex items-baseline gap-4">
           <div>
             <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
               Market Regime
             </span>
-            <div className={`font-secondary text-[26px] font-medium ${r.colorClass} leading-tight mt-1.5`}>
+            <div className={`font-secondary text-xl sm:text-[26px] font-medium ${r.colorClass} leading-tight mt-1.5`}>
               {r.regime}
             </div>
           </div>
@@ -87,9 +87,9 @@ export default function RegimeBanner({ data }: RegimeBannerProps) {
         </div>
 
         {/* Right: aggregate metrics */}
-        <div className="flex gap-7 items-start">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:flex sm:gap-7 sm:items-start">
           {metrics.map(m => (
-            <div key={m.label} className="text-right">
+            <div key={m.label} className="text-left sm:text-right">
               <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
                 {m.label}
               </span>
@@ -110,6 +110,7 @@ export default function RegimeBanner({ data }: RegimeBannerProps) {
           No premium selling today. Let&apos;s be disciplined and wait for better days.
         </div>
       )}
+
     </div>
   );
 }

@@ -41,7 +41,7 @@ from main import UNIVERSE
 
 logger = logging.getLogger("backfill")
 
-RISK_FREE_RATE = 0.043  # ~4.3% Fed funds rate (2026 estimate)
+RISK_FREE_RATE = float(os.environ.get("RISK_FREE_RATE", "0.043"))
 
 
 # ── Black-Scholes IV solver ───────────────────────────────
