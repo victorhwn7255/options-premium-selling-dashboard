@@ -1,0 +1,41 @@
+{
+  "description": "US stock market holidays (NYSE/NASDAQ) — dates the market is closed",
+  "source": "Official NYSE holiday schedule",
+  "years": {
+    "2026": [
+      { "date": "2026-01-01", "holiday": "New Year's Day" },
+      { "date": "2026-01-19", "holiday": "Martin Luther King, Jr. Day" },
+      { "date": "2026-02-16", "holiday": "Washington's Birthday" },
+      { "date": "2026-04-03", "holiday": "Good Friday" },
+      { "date": "2026-05-25", "holiday": "Memorial Day" },
+      { "date": "2026-06-19", "holiday": "Juneteenth National Independence Day" },
+      { "date": "2026-07-03", "holiday": "Independence Day (observed)" },
+      { "date": "2026-09-07", "holiday": "Labor Day" },
+      { "date": "2026-11-26", "holiday": "Thanksgiving Day" },
+      { "date": "2026-12-25", "holiday": "Christmas Day" }
+    ],
+    "2027": [
+      { "date": "2027-01-01", "holiday": "New Year's Day" },
+      { "date": "2027-01-18", "holiday": "Martin Luther King, Jr. Day" },
+      { "date": "2027-02-15", "holiday": "Washington's Birthday" },
+      { "date": "2027-03-26", "holiday": "Good Friday" },
+      { "date": "2027-05-31", "holiday": "Memorial Day" },
+      { "date": "2027-06-18", "holiday": "Juneteenth National Independence Day (observed)" },
+      { "date": "2027-07-05", "holiday": "Independence Day (observed)" },
+      { "date": "2027-09-06", "holiday": "Labor Day" },
+      { "date": "2027-11-25", "holiday": "Thanksgiving Day" },
+      { "date": "2027-12-24", "holiday": "Christmas Day (observed)" }
+    ],
+    "2028": [
+      { "date": "2028-01-17", "holiday": "Martin Luther King, Jr. Day" },
+      { "date": "2028-02-21", "holiday": "Washington's Birthday" },
+      { "date": "2028-04-14", "holiday": "Good Friday" },
+      { "date": "2028-05-29", "holiday": "Memorial Day" },
+      { "date": "2028-06-19", "holiday": "Juneteenth National Independence Day" },
+      { "date": "2028-07-04", "holiday": "Independence Day" },
+      { "date": "2028-09-04", "holiday": "Labor Day" },
+      { "date": "2028-11-23", "holiday": "Thanksgiving Day" },
+      { "date": "2028-12-25", "holiday": "Christmas Day" }
+    ]
+  }
+}

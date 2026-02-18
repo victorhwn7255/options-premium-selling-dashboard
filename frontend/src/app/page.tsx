@@ -2,9 +2,9 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
-import RegimeBanner from '@/components/RegimeBanner';
+import RegimeBanner, { computeRegime } from '@/components/RegimeBanner';
+import RegimeGuideModal from '@/components/RegimeGuideModal';
 import Leaderboard from '@/components/Leaderboard';
-import DetailPanel from '@/components/DetailPanel';
 import { useTheme } from '@/hooks/useTheme';
 import { buildScoredData } from '@/lib/scoring';
 import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus } from '@/lib/api';
@@ -18,7 +18,8 @@ export default function Home() {
   const [refreshing, setRefreshing] = useState(false);
   const [scanProgress, setScanProgress] = useState<string | null>(null);
   const [earningsRefreshing, setEarningsRefreshing] = useState(false);
-  const [earningsRemaining, setEarningsRemaining] = useState<number>(3);
+  const [earningsRemaining, setEarningsRemaining] = useState<number>(1);
+  const [regimeGuideOpen, setRegimeGuideOpen] = useState(false);
 
   // Fetch earnings remaining count on mount
   useEffect(() => {
@@ -56,6 +57,7 @@ export default function Home() {
   }, []);
 
   const scoredData = useMemo(() => buildScoredData(apiData), [apiData]);
+  const currentRegime = useMemo(() => computeRegime(scoredData).regime, [scoredData]);
 
   const selectedData = useMemo(
     () => scoredData.find(d => d.sym === selectedTicker) ?? null,
@@ -128,9 +130,10 @@ export default function Home() {
         earningsRefreshing={earningsRefreshing}
         earningsRemaining={earningsRemaining}
         scannedAt={apiData?.scanned_at ?? null}
+        onOpenRegimeGuide={() => setRegimeGuideOpen(true)}
       />
 
-      <main className="max-w-[1200px] mx-auto px-6 py-5 pb-16">
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-5 pb-16">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -143,14 +146,14 @@ export default function Home() {
             <div className="text-center">
               <p className="text-sm text-txt-secondary mb-2">No scan data available</p>
               <p className="text-xs text-txt-tertiary mb-4">
-                The scanner runs automatically at 6:30 PM ET, or you can trigger a scan manually.
+                Data is fetched automatically at 6:30 PM ET, or you can fetch it manually.
               </p>
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
                 className="px-4 py-2 text-xs font-medium rounded-md bg-primary text-white hover:bg-primary-hover transition-colors disabled:opacity-50"
               >
-                {refreshing ? 'Scanning...' : 'Run Scan Now'}
+                {refreshing ? 'Fetching...' : 'Fetch Latest Data'}
               </button>
             </div>
           </div>
@@ -161,18 +164,13 @@ export default function Home() {
               <RegimeBanner data={scoredData} />
             </div>
 
-            {/* Zone 2: Opportunity Leaderboard */}
+            {/* Zone 2: Opportunity Leaderboard (detail expands inline) */}
             <div className="mb-5">
-              <Leaderboard data={scoredData} selected={selectedTicker} onSelect={handleSelect} />
-            </div>
-
-            {/* Zone 3: Detail Panel */}
-            <div className="mb-8">
-              <DetailPanel ticker={selectedData} />
+              <Leaderboard data={scoredData} selected={selectedTicker} onSelect={handleSelect} selectedData={selectedData} />
             </div>
 
             {/* Methodology Footer */}
-            <div className="px-5 py-4 bg-surface-alt rounded-lg border border-border-subtle">
+            <div className="px-4 sm:px-5 py-4 bg-surface-alt rounded-lg border border-border-subtle">
               <div className="text-xs text-txt-tertiary leading-loose">
                 <strong className="text-txt-secondary">Scoring:</strong>{' '}
                 VRP magnitude (0-40) + Term structure (0-25) + IV percentile (0-20) &minus; RV acceleration penalty (0-15).
@@ -185,6 +183,10 @@ export default function Home() {
           </>
         )}
       </main>
+
+      {regimeGuideOpen && (
+        <RegimeGuideModal currentRegime={currentRegime} onClose={() => setRegimeGuideOpen(false)} />
+      )}
     </div>
   );
 }

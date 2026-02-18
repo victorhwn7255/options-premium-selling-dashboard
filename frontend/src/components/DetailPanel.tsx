@@ -195,11 +195,11 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
       style={{ borderTop: `3px solid ${isSkipped ? colors.error : colors.primary}` }}
     >
       {/* Header */}
-      <div className="px-6 py-5 border-b border-border-subtle">
+      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
         <div className="flex justify-between items-start flex-wrap gap-3">
           <div>
             <div className="flex items-baseline gap-2.5">
-              <span className="font-secondary text-[22px] font-medium text-txt">{ticker.sym}</span>
+              <span className="font-secondary text-lg sm:text-[22px] font-medium text-txt">{ticker.sym}</span>
               <span className="text-sm text-txt-tertiary">{ticker.name}</span>
             </div>
             <div className="flex gap-2 mt-2 flex-wrap items-center">
@@ -210,7 +210,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
               </span>
             </div>
           </div>
-          <span className="font-mono text-[26px] font-semibold text-txt">
+          <span className="font-mono text-xl sm:text-[26px] font-semibold text-txt">
             ${ticker.price.toFixed(2)}
           </span>
         </div>
@@ -218,14 +218,19 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
 
       {/* 2x4 metrics grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 border-b border-border-subtle">
-        {metricsGrid.map((m, i) => (
+        {metricsGrid.map((m, i) => {
+          // Mobile (2-col): right border on left column, bottom border except last row
+          // Desktop (4-col): right border except every 4th, bottom border first row only
+          const borderCls = [
+            i % 2 === 0 ? 'border-r' : '',
+            i % 2 !== 0 && i % 4 !== 3 ? 'md:border-r' : '',
+            i < 6 ? 'border-b' : '',
+            i >= 4 && i < 6 ? 'md:border-b-0' : '',
+          ].filter(Boolean).join(' ');
+          return (
           <div
             key={m.label}
-            className="px-5 py-4"
-            style={{
-              borderRight: (i % 4 !== 3) ? `1px solid var(--color-border-subtle)` : 'none',
-              borderBottom: i < 4 ? `1px solid var(--color-border-subtle)` : 'none',
-            }}
+            className={`px-3 sm:px-5 py-3 sm:py-4 border-border-subtle ${borderCls}`}
           >
             <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
               {m.label}
@@ -245,12 +250,13 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
               {m.sub}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Position Construction -- only if actionable */}
       {!isSkipped && ticker.action !== 'NO EDGE' && (
-        <div className="px-6 py-5 border-b border-border-subtle">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
           <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block mb-3">
             Position Construction
           </span>
@@ -286,7 +292,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
 
       {/* Skip reason */}
       {isSkipped && (
-        <div className="px-6 py-5 border-b border-border-subtle">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
           <div className="px-4 py-3.5 bg-error-subtle rounded-md border border-error-20 text-xs leading-normal"
             style={{ color: 'var(--color-error)' }}>
             <p><strong>Skipped:</strong> {ticker.actionReason}. No premium selling recommended for this ticker.</p>
@@ -307,7 +313,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
             <span className="font-secondary text-sm font-medium text-txt">IV vs RV — 120 Day</span>
           </div>
           {volHistory.length > 0 ? (
-            <div className="w-full h-[180px]">
+            <div className="w-full h-[150px] sm:h-[180px]">
               <ResponsiveContainer>
                 <ComposedChart data={volHistory} margin={{ top: 5, right: 8, left: -15, bottom: 0 }}>
                   <defs>
@@ -328,7 +334,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="w-full h-[180px] flex items-center justify-center">
+            <div className="w-full h-[150px] sm:h-[180px] flex items-center justify-center">
               <p className="text-xs text-txt-tertiary">Collecting history — chart available after first scan</p>
             </div>
           )}
@@ -349,7 +355,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
             </span>
           </div>
           {termStructure.length > 0 ? (
-            <div className="w-full h-[180px]">
+            <div className="w-full h-[150px] sm:h-[180px]">
               <ResponsiveContainer>
                 <AreaChart data={termStructure} margin={{ top: 5, right: 8, left: -15, bottom: 0 }}>
                   <defs>
@@ -375,7 +381,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="w-full h-[180px] flex items-center justify-center">
+            <div className="w-full h-[150px] sm:h-[180px] flex items-center justify-center">
               <p className="text-xs text-txt-tertiary">No term structure data available</p>
             </div>
           )}

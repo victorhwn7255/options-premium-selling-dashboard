@@ -103,8 +103,8 @@ async def _cron_loop():
         candidate = now.replace(hour=target_hour, minute=target_minute, second=0, microsecond=0)
         if candidate <= now:
             candidate += timedelta(days=1)
-        # Skip weekends (5=Sat, 6=Sun)
-        while candidate.weekday() >= 5:
+        # Skip weekends and US market holidays
+        while not _is_trading_day(candidate.date()):
             candidate += timedelta(days=1)
 
         wait_secs = (candidate - now).total_seconds()
@@ -503,10 +503,118 @@ def _is_scanned_today(scanned_at: str) -> bool:
     return scan_dt.astimezone(et).date() == datetime.now(tz=et).date()
 
 
+def _us_market_holidays(year: int) -> set[date]:
+    """Return all NYSE-closed dates for a given year. Pure datetime math, no deps."""
+
+    def _observe(d: date) -> date:
+        """Fri if Sat, Mon if Sun."""
+        if d.weekday() == 5:
+            return d - timedelta(days=1)
+        if d.weekday() == 6:
+            return d + timedelta(days=1)
+        return d
+
+    def _nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
+        """Return the nth occurrence of weekday in month (1-indexed)."""
+        first = date(year, month, 1)
+        offset = (weekday - first.weekday()) % 7
+        return first + timedelta(days=offset + 7 * (n - 1))
+
+    def _last_weekday(year: int, month: int, weekday: int) -> date:
+        """Return the last occurrence of weekday in month."""
+        if month == 12:
+            last_day = date(year + 1, 1, 1) - timedelta(days=1)
+        else:
+            last_day = date(year, month + 1, 1) - timedelta(days=1)
+        offset = (last_day.weekday() - weekday) % 7
+        return last_day - timedelta(days=offset)
+
+    def _easter(year: int) -> date:
+        """Anonymous Gregorian algorithm for Easter Sunday."""
+        a = year % 19
+        b, c = divmod(year, 100)
+        d, e = divmod(b, 4)
+        f = (b + 8) // 25
+        g = (b - f + 1) // 3
+        h = (19 * a + b - d - g + 15) % 30
+        i, k = divmod(c, 4)
+        l = (32 + 2 * e + 2 * i - h - k) % 7  # noqa: E741
+        m = (a + 11 * h + 22 * l) // 451
+        month = (h + l - 7 * m + 114) // 31
+        day = ((h + l - 7 * m + 114) % 31) + 1
+        return date(year, month, day)
+
+    holidays = set()
+    holidays.add(_observe(date(year, 1, 1)))                   # New Year's Day
+    holidays.add(_nth_weekday(year, 1, 0, 3))                  # MLK Day (3rd Mon Jan)
+    holidays.add(_nth_weekday(year, 2, 0, 3))                  # Presidents' Day (3rd Mon Feb)
+    holidays.add(_easter(year) - timedelta(days=2))             # Good Friday
+    holidays.add(_last_weekday(year, 5, 0))                     # Memorial Day (last Mon May)
+    holidays.add(_observe(date(year, 6, 19)))                   # Juneteenth
+    holidays.add(_observe(date(year, 7, 4)))                    # Independence Day
+    holidays.add(_nth_weekday(year, 9, 0, 1))                   # Labor Day (1st Mon Sep)
+    holidays.add(_nth_weekday(year, 11, 3, 4))                  # Thanksgiving (4th Thu Nov)
+    holidays.add(_observe(date(year, 12, 25)))                  # Christmas
+    return holidays
+
+
+def _is_trading_day(d: date) -> bool:
+    """True if d is a weekday and not a US market holiday."""
+    if d.weekday() >= 5:
+        return False
+    return d not in _us_market_holidays(d.year)
+
+
 @app.post("/api/scan")
 async def trigger_scan():
     """Manually trigger a full scan (limited to once per day). Runs in background."""
     global _scan_task
+    from zoneinfo import ZoneInfo
+    et = ZoneInfo("America/New_York")
+    today_et = datetime.now(tz=et).date()
+
+    # Block scans on non-trading days (weekends + holidays)
+    if not _is_trading_day(today_et):
+        cached = get_latest_scan()
+        if cached and cached.get("scanned_at"):
+            for t in cached["tickers"]:
+                if t.get("ticker") in UNIVERSE:
+                    t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
+            return ScanResponse(
+                timestamp=cached["scanned_at"],
+                regime=RegimeSummary(**cached["regime"]),
+                tickers=[TickerResult(**t) for t in cached["tickers"]],
+                historical={
+                    k: [HistoricalPoint(**p) for p in v]
+                    for k, v in cached["historical"].items()
+                },
+                scanned_at=cached["scanned_at"],
+                cached=True,
+                message="Market is closed today. Showing last available scan.",
+            )
+        return JSONResponse({"status": "closed", "message": "Market is closed today"})
+
+    # Block scans before 6:30 PM ET (market closes 4 PM, data settles by ~6:30 PM)
+    now_et = datetime.now(tz=et)
+    if now_et.hour < 18 or (now_et.hour == 18 and now_et.minute < 30):
+        cached = get_latest_scan()
+        if cached and cached.get("scanned_at"):
+            for t in cached["tickers"]:
+                if t.get("ticker") in UNIVERSE:
+                    t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
+            return ScanResponse(
+                timestamp=cached["scanned_at"],
+                regime=RegimeSummary(**cached["regime"]),
+                tickers=[TickerResult(**t) for t in cached["tickers"]],
+                historical={
+                    k: [HistoricalPoint(**p) for p in v]
+                    for k, v in cached["historical"].items()
+                },
+                scanned_at=cached["scanned_at"],
+                cached=True,
+                message="Scan available after 6:30 PM ET.",
+            )
+        return JSONResponse({"status": "waiting", "message": "Scan available after 6:30 PM ET"})
 
     cached = get_latest_scan()
     if cached and cached.get("scanned_at") and _is_scanned_today(cached["scanned_at"]):
@@ -581,7 +689,7 @@ async def get_universe():
     }
 
 
-_EARNINGS_REFRESH_LIMIT = 3
+_EARNINGS_REFRESH_LIMIT = 1
 _earnings_refresh_tracker: dict = {"date": None, "count": 0}
 
 
@@ -601,6 +709,13 @@ async def earnings_remaining():
 @app.post("/api/earnings/refresh")
 async def refresh_earnings():
     """Clear earnings cache and re-fetch from FMP (max 3x/day)."""
+    from zoneinfo import ZoneInfo
+    et = ZoneInfo("America/New_York")
+    today_et = datetime.now(tz=et).date()
+    if not _is_trading_day(today_et):
+        return {"earnings": {}, "remaining": _get_earnings_remaining(),
+                "message": "Market is closed today"}
+
     if not fmp_api_key:
         raise HTTPException(400, "FMP_API_KEY not configured")
 
