@@ -37,12 +37,12 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
   })();
 
   // Check if today is a non-trading day in ET (weekend or US market holiday)
-  const isMarketClosed = (() => {
+  // Non-trading day: weekends + holidays (clock icon)
+  const isNonTradingDay = (() => {
     const now = new Date();
     const etStr = now.toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit' });
     const weekday = etStr.split(',')[0];
     if (weekday === 'Sat' || weekday === 'Sun') return true;
-    // Check US market holidays (ET date)
     const etDate = new Date(now.toLocaleDateString('en-US', { timeZone: 'America/New_York' }));
     const y = etDate.getFullYear(), m = etDate.getMonth(), d = etDate.getDate();
     const nthWeekday = (month: number, wday: number, n: number) => {
@@ -62,7 +62,6 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
       if (dow === 0) return { m: month, d: day + 1 };
       return { m: month, d: day };
     };
-    // Easter (anonymous Gregorian algorithm) → Good Friday
     const a = y % 19, b = Math.floor(y / 100), c = y % 100;
     const dd = Math.floor(b / 4), e = b % 4;
     const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
@@ -88,6 +87,25 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
     return holidays.some(h => h.m === m && h.d === d);
   })();
 
+  // Market closed: non-trading day OR outside market hours (for badge display)
+  const isMarketClosed = (() => {
+    if (isNonTradingDay) return true;
+    const now = new Date();
+    const etTime = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false, hour: '2-digit', minute: '2-digit' });
+    const [hours, minutes] = etTime.split(':').map(Number);
+    const minutesSinceMidnight = hours * 60 + minutes;
+    return minutesSinceMidnight < 570 || minutesSinceMidnight >= 960; // 9:30=570, 16:00=960
+  })();
+
+  // Check if scan window is open (trading day, after 6:30 PM ET)
+  const isScanWindowOpen = (() => {
+    if (isNonTradingDay) return false;
+    const now = new Date();
+    const etTime = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false, hour: '2-digit', minute: '2-digit' });
+    const [hours, minutes] = etTime.split(':').map(Number);
+    return hours > 18 || (hours === 18 && minutes >= 30);
+  })();
+
   const scannedAtFormatted = scannedAt
     ? new Intl.DateTimeFormat('en-US', {
         month: 'short', day: 'numeric', year: 'numeric',
@@ -108,16 +126,16 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
       {/* Content-aligned container */}
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
         {/* Left: Explain buttons (desktop only) */}
-        <div className="hidden sm:flex items-center gap-2">
+        <div className="hidden sm:flex items-center gap-2 ml-44 2xl:ml-0">
           <button
             onClick={onOpenRegimeGuide}
-            className="font-primary text-xs font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-1.5 rounded-md transition-colors duration-fast"
+            className="font-primary text-sm font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-1.5 rounded-md transition-colors duration-fast"
           >
             Explain Market Regime
           </button>
           <button
             onClick={() => setMetricsModalOpen(true)}
-            className="font-primary text-xs font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-1.5 rounded-md transition-colors duration-fast"
+            className="font-primary text-sm font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-1.5 rounded-md transition-colors duration-fast"
           >
             Explain Metrics
           </button>
@@ -125,23 +143,23 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
 
         {/* Right side */}
         <div className="ml-auto flex items-center gap-2 sm:gap-3.5">
-          {/* Live Data badge (desktop only) */}
-          <span className="font-mono text-2xs font-medium px-2.5 py-1 rounded-full text-secondary bg-secondary-subtle hidden sm:inline-flex items-center gap-1.5">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-secondary" />
+          {/* Market status badge (desktop only) */}
+          <span className={`font-mono text-xs font-medium px-2.5 py-1 rounded-full hidden sm:inline-flex items-center gap-1.5 ${
+            isMarketClosed ? 'text-error bg-error-subtle' : 'text-secondary bg-secondary-subtle'
+          }`}>
+            <span className="relative flex h-2 w-2">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isMarketClosed ? 'bg-error' : 'bg-secondary'}`} />
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${isMarketClosed ? 'bg-error' : 'bg-secondary'}`} />
             </span>
-            Live Data
+            {isMarketClosed ? 'Market Closed' : 'Live Data'}
           </span>
 
           {/* Scan status (desktop only) */}
           <div className="hidden sm:block">
-            {isMarketClosed && !refreshing ? (
-              <span className="relative group p-1.5 rounded-md cursor-default" style={{ color: '#d4768a', backgroundColor: 'rgba(212,118,138,0.12)' }}>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <text x="3" y="18" fontSize="16" fontWeight="bold" fontFamily="monospace" fill="currentColor" stroke="none">z</text>
-                  <text x="10" y="13" fontSize="12" fontWeight="bold" fontFamily="monospace" fill="currentColor" stroke="none">z</text>
-                  <text x="16" y="9" fontSize="9" fontWeight="bold" fontFamily="monospace" fill="currentColor" stroke="none">z</text>
+            {isNonTradingDay && !refreshing ? (
+              <span className="relative group p-1.5 cursor-default" style={{ color: '#d4768a' }}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
                 {/* Tooltip */}
                 <span
@@ -158,7 +176,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
               </span>
             ) : isFresh && !refreshing ? (
               <span className="relative group p-1.5 rounded-md text-secondary cursor-default">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
                 {/* Tooltip */}
@@ -177,16 +195,34 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                   </span>
                 </span>
               </span>
+            ) : !isScanWindowOpen && !refreshing ? (
+              <span className="relative group p-1.5 rounded-md cursor-default text-txt-tertiary">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                {/* Tooltip */}
+                <span
+                  className="pointer-events-none absolute right-0 top-full mt-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 origin-top-right z-50"
+                  style={{ background: 'var(--color-tooltip-bg)', color: 'var(--color-tooltip-text)' }}
+                >
+                  <span className="flex items-start gap-2.5 rounded-lg px-3.5 py-2.5 shadow-lg whitespace-nowrap" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
+                    <span className="flex flex-col gap-0.5">
+                      <span className="text-2xs font-medium" style={{ color: 'var(--color-tooltip-text)' }}>Fetch available after 6:30 PM ET</span>
+                      {scannedAtFormatted && <span className="text-2xs" style={{ color: 'var(--color-tooltip-label)' }}>Showing data from {scannedAtFormatted}</span>}
+                    </span>
+                  </span>
+                </span>
+              </span>
             ) : (
               <span className="flex items-center gap-1.5">
                 <button
                   onClick={onRefresh}
                   disabled={refreshing}
                   className="p-1.5 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
-                  title="Refresh scan"
+                  title="Fetch latest data"
                 >
                   <svg
-                    className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`}
+                    className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -196,7 +232,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                   </svg>
                 </button>
                 {refreshing && scanProgress && (
-                  <span className="font-mono text-2xs text-txt-tertiary">{scanProgress}</span>
+                  <span className="font-mono text-xs text-txt-tertiary">{scanProgress}</span>
                 )}
               </span>
             )}
@@ -210,7 +246,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
               className="p-1.5 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
             >
               <svg
-                className={`w-3.5 h-3.5 ${earningsRefreshing ? 'animate-spin' : ''}`}
+                className={`w-5 h-5 ${earningsRefreshing ? 'animate-spin' : ''}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -239,7 +275,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
           </span>
 
           {/* Date (desktop only) */}
-          <span className="font-mono text-xs text-txt-tertiary hidden sm:block">
+          <span className="font-mono text-sm text-txt-tertiary hidden sm:block">
             {today}
           </span>
 
@@ -284,20 +320,20 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
           </div>
           {/* Row 2: Status + actions */}
           <div className="flex items-center justify-between">
-            <span className="font-mono text-2xs font-medium px-2.5 py-1 rounded-full text-secondary bg-secondary-subtle inline-flex items-center gap-1.5">
+            <span className={`font-mono text-2xs font-medium px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 ${
+              isMarketClosed ? 'text-error bg-error-subtle' : 'text-secondary bg-secondary-subtle'
+            }`}>
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-secondary" />
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isMarketClosed ? 'bg-error' : 'bg-secondary'}`} />
+                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isMarketClosed ? 'bg-error' : 'bg-secondary'}`} />
               </span>
-              Live Data
+              {isMarketClosed ? 'Market Closed' : 'Live Data'}
             </span>
             <div className="flex items-center gap-2">
-              {isMarketClosed && !refreshing ? (
-                <span className="p-2 rounded-md cursor-default" style={{ color: '#d4768a', backgroundColor: 'rgba(212,118,138,0.12)' }}>
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <text x="3" y="18" fontSize="16" fontWeight="bold" fontFamily="monospace" fill="currentColor" stroke="none">z</text>
-                    <text x="10" y="13" fontSize="12" fontWeight="bold" fontFamily="monospace" fill="currentColor" stroke="none">z</text>
-                    <text x="16" y="9" fontSize="9" fontWeight="bold" fontFamily="monospace" fill="currentColor" stroke="none">z</text>
+              {isNonTradingDay && !refreshing ? (
+                <span className="p-2 cursor-default" style={{ color: '#d4768a' }}>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
                 </span>
               ) : isFresh && !refreshing ? (
@@ -306,13 +342,19 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </span>
+              ) : !isScanWindowOpen && !refreshing ? (
+                <span className="p-2 rounded-md cursor-default text-txt-tertiary">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </span>
               ) : (
                 <span className="flex items-center gap-1.5">
                   <button
                     onClick={() => { onRefresh(); setMenuOpen(false); }}
                     disabled={refreshing}
                     className="p-2 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
-                    title="Refresh scan"
+                    title="Fetch latest data"
                   >
                     <svg
                       className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`}

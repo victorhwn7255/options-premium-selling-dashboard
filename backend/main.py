@@ -594,6 +594,28 @@ async def trigger_scan():
             )
         return JSONResponse({"status": "closed", "message": "Market is closed today"})
 
+    # Block scans before 6:30 PM ET (market closes 4 PM, data settles by ~6:30 PM)
+    now_et = datetime.now(tz=et)
+    if now_et.hour < 18 or (now_et.hour == 18 and now_et.minute < 30):
+        cached = get_latest_scan()
+        if cached and cached.get("scanned_at"):
+            for t in cached["tickers"]:
+                if t.get("ticker") in UNIVERSE:
+                    t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
+            return ScanResponse(
+                timestamp=cached["scanned_at"],
+                regime=RegimeSummary(**cached["regime"]),
+                tickers=[TickerResult(**t) for t in cached["tickers"]],
+                historical={
+                    k: [HistoricalPoint(**p) for p in v]
+                    for k, v in cached["historical"].items()
+                },
+                scanned_at=cached["scanned_at"],
+                cached=True,
+                message="Scan available after 6:30 PM ET.",
+            )
+        return JSONResponse({"status": "waiting", "message": "Scan available after 6:30 PM ET"})
+
     cached = get_latest_scan()
     if cached and cached.get("scanned_at") and _is_scanned_today(cached["scanned_at"]):
         # Already scanned today — return cached result

@@ -226,7 +226,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
               Opportunity Leaderboard
             </h2>
             <p className="text-2xs sm:text-xs md:text-sm text-txt-tertiary mt-0.5">
-              Ranked by VRP — select a row for trade construction
+              Ranked by composite score — select a row for trade construction
             </p>
           </div>
           <span className="font-mono text-2xs sm:text-xs md:text-sm text-txt-tertiary">

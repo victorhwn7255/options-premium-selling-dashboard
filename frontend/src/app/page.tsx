@@ -146,14 +146,14 @@ export default function Home() {
             <div className="text-center">
               <p className="text-sm text-txt-secondary mb-2">No scan data available</p>
               <p className="text-xs text-txt-tertiary mb-4">
-                The scanner runs automatically at 6:30 PM ET, or you can trigger a scan manually.
+                Data is fetched automatically at 6:30 PM ET, or you can fetch it manually.
               </p>
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
                 className="px-4 py-2 text-xs font-medium rounded-md bg-primary text-white hover:bg-primary-hover transition-colors disabled:opacity-50"
               >
-                {refreshing ? 'Scanning...' : 'Run Scan Now'}
+                {refreshing ? 'Fetching...' : 'Fetch Latest Data'}
               </button>
             </div>
           </div>
