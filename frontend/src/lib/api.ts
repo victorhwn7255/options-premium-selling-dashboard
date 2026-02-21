@@ -1,4 +1,4 @@
-import type { ScanResponse, HealthResponse } from './types';
+import type { ScanResponse, HealthResponse, VerificationResult, EarningsVerificationResult } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -68,4 +68,21 @@ export async function fetchEarningsRemaining(): Promise<{ remaining: number }> {
   const res = await fetch(`${API_BASE}/api/earnings/remaining`);
   if (!res.ok) throw new Error(`Earnings remaining check failed: ${res.status}`);
   return res.json();
+}
+
+export async function fetchVerificationLatest(): Promise<VerificationResult | null> {
+  const res = await fetch(`${API_BASE}/api/verify/latest`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  // If no verification yet, API returns { message: "..." } without id
+  if (!data.id) return null;
+  return data as VerificationResult;
+}
+
+export async function fetchEarningsVerificationLatest(): Promise<EarningsVerificationResult | null> {
+  const res = await fetch(`${API_BASE}/api/verify/earnings/latest`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!data.id) return null;
+  return data as EarningsVerificationResult;
 }

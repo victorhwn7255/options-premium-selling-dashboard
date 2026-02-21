@@ -9,6 +9,7 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-}
     volumes:
       - ./backend/data:/app/data
+      - ./utils:/app/utils
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/api/health')"]

@@ -66,6 +66,30 @@ def init_db():
             earnings_date TEXT NOT NULL,
             fetched_at TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS verification_results (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            scanned_at TEXT NOT NULL,
+            verified_at TEXT NOT NULL,
+            total_checks INTEGER NOT NULL,
+            pass_count INTEGER NOT NULL,
+            warn_count INTEGER NOT NULL,
+            fail_count INTEGER NOT NULL,
+            failures TEXT NOT NULL,
+            warnings TEXT NOT NULL,
+            full_report TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS earnings_verification_results (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            scanned_at TEXT NOT NULL,
+            verified_at TEXT NOT NULL,
+            total_checks INTEGER NOT NULL,
+            pass_count INTEGER NOT NULL,
+            fail_count INTEGER NOT NULL,
+            skip_count INTEGER NOT NULL,
+            checks TEXT NOT NULL
+        );
     """)
     conn.commit()
     conn.close()
@@ -295,6 +319,108 @@ def store_cached_earnings(ticker: str, earnings_date: str):
     )
     conn.commit()
     conn.close()
+
+
+def store_verification_result(report_dict: dict):
+    """Store a verification report. Prunes to most recent 50 rows."""
+    conn = get_connection()
+    conn.execute(
+        """
+        INSERT INTO verification_results
+            (scanned_at, verified_at, total_checks, pass_count, warn_count, fail_count,
+             failures, warnings, full_report)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            report_dict["scan_timestamp"],
+            datetime.now().isoformat(),
+            report_dict["total_checks"],
+            report_dict["pass_count"],
+            report_dict["warn_count"],
+            report_dict["fail_count"],
+            json.dumps(report_dict["failures"]),
+            json.dumps(report_dict["warnings"]),
+            json.dumps(report_dict),
+        ),
+    )
+    conn.execute(
+        "DELETE FROM verification_results WHERE id NOT IN "
+        "(SELECT id FROM verification_results ORDER BY id DESC LIMIT 50)"
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_latest_verification() -> Optional[dict]:
+    """Fetch the most recent verification result, or None."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT id, scanned_at, verified_at, total_checks, pass_count, warn_count, "
+        "fail_count, failures, warnings FROM verification_results ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {
+        "id": row[0],
+        "scanned_at": row[1],
+        "verified_at": row[2],
+        "total_checks": row[3],
+        "pass_count": row[4],
+        "warn_count": row[5],
+        "fail_count": row[6],
+        "failures": json.loads(row[7]),
+        "warnings": json.loads(row[8]),
+    }
+
+
+def store_earnings_verification(report_dict: dict):
+    """Store an earnings verification report. Prunes to most recent 50 rows."""
+    conn = get_connection()
+    conn.execute(
+        """
+        INSERT INTO earnings_verification_results
+            (scanned_at, verified_at, total_checks, pass_count, fail_count, skip_count, checks)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            report_dict["scan_timestamp"],
+            datetime.now().isoformat(),
+            report_dict["total_checks"],
+            report_dict["pass_count"],
+            report_dict["fail_count"],
+            report_dict["skip_count"],
+            json.dumps(report_dict["checks"]),
+        ),
+    )
+    conn.execute(
+        "DELETE FROM earnings_verification_results WHERE id NOT IN "
+        "(SELECT id FROM earnings_verification_results ORDER BY id DESC LIMIT 50)"
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_latest_earnings_verification() -> Optional[dict]:
+    """Fetch the most recent earnings verification result, or None."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT id, scanned_at, verified_at, total_checks, pass_count, fail_count, "
+        "skip_count, checks FROM earnings_verification_results ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {
+        "id": row[0],
+        "scanned_at": row[1],
+        "verified_at": row[2],
+        "total_checks": row[3],
+        "pass_count": row[4],
+        "fail_count": row[5],
+        "skip_count": row[6],
+        "checks": json.loads(row[7]),
+    }
 
 
 # Initialize on import

@@ -136,3 +136,37 @@ export interface HealthResponse {
   historical_data_points: number;
 }
 
+export interface VerificationResult {
+  id: number;
+  scanned_at: string;
+  verified_at: string;
+  total_checks: number;
+  pass_count: number;
+  warn_count: number;
+  fail_count: number;
+  failures: { ticker: string; name: string; status: string; ours?: string; ref?: string; diff?: string; note?: string }[];
+  warnings: { ticker: string; name: string; status: string; ours?: string; ref?: string; diff?: string; note?: string }[];
+}
+
+export interface EarningsCheck {
+  ticker: string;
+  status: string;
+  our_dte: number | null;
+  our_date: string | null;
+  yahoo_dte: number | null;
+  yahoo_date: string | null;
+  diff_days: number | null;
+  note: string | null;
+}
+
+export interface EarningsVerificationResult {
+  id: number;
+  scanned_at: string;
+  verified_at: string;
+  total_checks: number;
+  pass_count: number;
+  fail_count: number;
+  skip_count: number;
+  checks: EarningsCheck[];
+}
+
