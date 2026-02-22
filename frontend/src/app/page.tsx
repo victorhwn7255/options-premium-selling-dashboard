@@ -7,8 +7,8 @@ import RegimeGuideModal from '@/components/RegimeGuideModal';
 import Leaderboard from '@/components/Leaderboard';
 import { useTheme } from '@/hooks/useTheme';
 import { buildScoredData } from '@/lib/scoring';
-import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus } from '@/lib/api';
-import type { ScanResponse } from '@/lib/types';
+import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus, fetchVerificationLatest, fetchEarningsVerificationLatest } from '@/lib/api';
+import type { ScanResponse, VerificationResult, EarningsVerificationResult } from '@/lib/types';
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
@@ -20,10 +20,14 @@ export default function Home() {
   const [earningsRefreshing, setEarningsRefreshing] = useState(false);
   const [earningsRemaining, setEarningsRemaining] = useState<number>(1);
   const [regimeGuideOpen, setRegimeGuideOpen] = useState(false);
+  const [verification, setVerification] = useState<VerificationResult | null>(null);
+  const [earningsVerification, setEarningsVerification] = useState<EarningsVerificationResult | null>(null);
 
-  // Fetch earnings remaining count on mount
+  // Fetch earnings remaining count + verification status on mount
   useEffect(() => {
     fetchEarningsRemaining().then(r => setEarningsRemaining(r.remaining)).catch(() => {});
+    fetchVerificationLatest().then(v => setVerification(v)).catch(() => {});
+    fetchEarningsVerificationLatest().then(v => setEarningsVerification(v)).catch(() => {});
   }, []);
 
   // Fetch real data on mount
@@ -90,6 +94,25 @@ export default function Home() {
       if (fresh.tickers?.length > 0) {
         setApiData(fresh);
       }
+      // Verification runs as background task after scan — poll for it
+      setTimeout(async () => {
+        let metricsFound = false;
+        let earningsFound = false;
+        for (let i = 0; i < 12; i++) {
+          await new Promise(r => setTimeout(r, 10000));
+          try {
+            if (!metricsFound) {
+              const v = await fetchVerificationLatest();
+              if (v && v.scanned_at === fresh.scanned_at) { setVerification(v); metricsFound = true; }
+            }
+            if (!earningsFound) {
+              const ev = await fetchEarningsVerificationLatest();
+              if (ev && ev.scanned_at === fresh.scanned_at) { setEarningsVerification(ev); earningsFound = true; }
+            }
+            if (metricsFound && earningsFound) break;
+          } catch { /* ignore */ }
+        }
+      }, 5000);
     } catch {
       // refresh failed — keep existing data
     }
@@ -130,6 +153,8 @@ export default function Home() {
         earningsRefreshing={earningsRefreshing}
         earningsRemaining={earningsRemaining}
         scannedAt={apiData?.scanned_at ?? null}
+        verification={verification}
+        earningsVerification={earningsVerification}
         onOpenRegimeGuide={() => setRegimeGuideOpen(true)}
       />
 

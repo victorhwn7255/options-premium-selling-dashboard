@@ -37,6 +37,8 @@ from database import (
     store_daily_iv, get_historical_ivs, get_historical_series, log_scan,
     store_scan_result, get_latest_scan, get_scan_history,
     clear_earnings_cache, update_latest_scan_earnings,
+    store_verification_result, get_latest_verification,
+    store_earnings_verification, get_latest_earnings_verification,
 )
 from models import (
     ScanResponse, TickerResult, RegimeSummary,
@@ -113,14 +115,19 @@ async def _cron_loop():
 
         logger.info("Scheduler: starting daily scan")
         try:
-            await run_full_scan()
+            scan_response = await run_full_scan()
             logger.info("Scheduler: daily scan completed successfully")
+            # Fire-and-forget verification
+            tickers_data = [t.model_dump() for t in scan_response.tickers]
+            asyncio.create_task(run_post_scan_verification(scan_response.scanned_at, tickers_data))
         except Exception as e:
             logger.error(f"Scheduler: scan failed — {e}. Retrying in 5 minutes...")
             await asyncio.sleep(300)
             try:
-                await run_full_scan()
+                retry_response = await run_full_scan()
                 logger.info("Scheduler: retry scan completed successfully")
+                retry_data = [t.model_dump() for t in retry_response.tickers]
+                asyncio.create_task(run_post_scan_verification(retry_response.scanned_at, retry_data))
             except Exception as e2:
                 logger.error(f"Scheduler: retry also failed — {e2}")
 
@@ -144,6 +151,22 @@ async def lifespan(app: FastAPI):
     fmp_api_key = os.environ.get("FMP_API_KEY")
     if fmp_api_key:
         logger.info("FMP API key loaded for earnings data")
+
+    # Run verification against latest cached scan if none exists yet
+    cached = get_latest_scan()
+    if cached and cached.get("tickers"):
+        latest_verif = get_latest_verification()
+        latest_earn_verif = get_latest_earnings_verification()
+        needs_run = (
+            not latest_verif or latest_verif["scanned_at"] != cached["scanned_at"]
+            or not latest_earn_verif or latest_earn_verif["scanned_at"] != cached["scanned_at"]
+        )
+        if needs_run:
+            logger.info("Startup: running verification against latest cached scan")
+            asyncio.create_task(
+                run_post_scan_verification(cached["scanned_at"], cached["tickers"])
+            )
+
     yield
     if _scheduler_task:
         _scheduler_task.cancel()
@@ -444,6 +467,74 @@ async def run_full_scan() -> ScanResponse:
     return response
 
 
+# ── Post-Scan Verification ──────────────────────────────
+async def run_post_scan_verification(scanned_at: str, tickers_data: list[dict]):
+    """Run metrics verification after a scan completes. Non-blocking, non-critical."""
+    try:
+        # Add utils/ to sys.path so we can import verify_metrics
+        # In Docker: /app/utils (sibling to main.py), locally: ../utils (parent of backend/)
+        app_dir = Path(__file__).resolve().parent
+        candidates = [app_dir / "utils", app_dir.parent / "utils"]
+        for candidate in candidates:
+            utils_dir = str(candidate)
+            if candidate.exists() and utils_dir not in sys.path:
+                sys.path.insert(0, utils_dir)
+                break
+        from verify_metrics import fetch_yahoo_bars, fetch_vix, verify_all
+
+        ticker_symbols = [t["ticker"] for t in tickers_data]
+
+        # Fetch Yahoo data (blocking I/O, run in executor)
+        loop = asyncio.get_running_loop()
+        yahoo_data = await loop.run_in_executor(None, fetch_yahoo_bars, ticker_symbols)
+
+        vix_close = None
+        if "SPY" in ticker_symbols:
+            vix_close = await loop.run_in_executor(None, fetch_vix)
+
+        # Run metrics verification
+        report = verify_all(tickers_data, yahoo_data, vix_close, scan_timestamp=scanned_at)
+        report_dict = report.to_dict()
+
+        # Store in database
+        store_verification_result(report_dict)
+
+        logger.info(
+            f"Metrics verification: {report.total_pass}/{report.total_checks} PASS, "
+            f"{report.total_fail} FAIL, {report.total_warn} WARN"
+        )
+
+        # Run earnings verification (separate from metrics)
+        try:
+            from verify_metrics import fetch_yahoo_earnings, verify_earnings
+
+            non_etf = [t["ticker"] for t in tickers_data if not t.get("is_etf", False)]
+            yahoo_earnings = await loop.run_in_executor(
+                None, fetch_yahoo_earnings, non_etf, scanned_at
+            )
+            earnings_report = verify_earnings(tickers_data, yahoo_earnings, scan_timestamp=scanned_at)
+            store_earnings_verification(earnings_report)
+
+            logger.info(
+                f"Earnings verification: {earnings_report['pass_count']}/{earnings_report['total_checks']} PASS, "
+                f"{earnings_report['fail_count']} FAIL, {earnings_report['skip_count']} SKIP"
+            )
+
+            # Backfill missing FMP earnings dates from Yahoo
+            yahoo_fills = {}
+            for check in earnings_report["checks"]:
+                if check.get("note") == "Filled from Yahoo (FMP missing)" and check.get("yahoo_dte") is not None:
+                    yahoo_fills[check["ticker"]] = check["yahoo_dte"]
+            if yahoo_fills:
+                update_latest_scan_earnings(yahoo_fills)
+                logger.info(f"Filled {len(yahoo_fills)} missing earnings from Yahoo: {', '.join(sorted(yahoo_fills))}")
+        except Exception as e:
+            logger.warning(f"Earnings verification failed (non-critical): {e}")
+
+    except Exception as e:
+        logger.warning(f"Post-scan verification failed (non-critical): {e}")
+
+
 # ── API Endpoints ───────────────────────────────────────
 
 @app.get("/api/health", response_model=HealthResponse)
@@ -641,9 +732,12 @@ async def trigger_scan():
     # Start scan in background
     async def _background_scan():
         try:
-            await run_full_scan()
+            scan_response = await run_full_scan()
             _scan_progress["status"] = "completed"
             logger.info("Background scan completed successfully")
+            # Fire-and-forget verification
+            tickers_data = [t.model_dump() for t in scan_response.tickers]
+            asyncio.create_task(run_post_scan_verification(scan_response.scanned_at, tickers_data))
         except Exception as e:
             _scan_progress["status"] = "error"
             _scan_progress["error"] = str(e)
@@ -741,8 +835,29 @@ async def refresh_earnings():
             earn_date = datetime.strptime(earnings_date_str, "%Y-%m-%d").date()
             earnings_dte = (earn_date - date.today()).days
         results[ticker] = earnings_dte
-    update_latest_scan_earnings(results)
+    # Only update non-None values so Yahoo-filled dates survive FMP refresh
+    non_none = {k: v for k, v in results.items() if v is not None}
+    if non_none:
+        update_latest_scan_earnings(non_none)
     return {"earnings": results, "remaining": remaining}
+
+
+@app.get("/api/verify/latest")
+async def get_latest_verification_endpoint():
+    """Return the most recent verification result."""
+    result = get_latest_verification()
+    if not result:
+        return {"message": "No verification results yet. Run a scan first."}
+    return result
+
+
+@app.get("/api/verify/earnings/latest")
+async def get_latest_earnings_verification_endpoint():
+    """Return the most recent earnings verification result."""
+    result = get_latest_earnings_verification()
+    if not result:
+        return {"message": "No earnings verification results yet. Run a scan first."}
+    return result
 
 
 # ── Run directly ────────────────────────────────────────
