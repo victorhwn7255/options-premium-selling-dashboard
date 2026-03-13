@@ -55,6 +55,10 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
       bgClass: 'bg-surface-alt', colorStyle: 'var(--color-txt-tertiary)',
       borderClass: 'border-border-subtle', label: 'NO EDGE',
     },
+    AVOID: {
+      bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
+      borderClass: 'border-error-20', label: 'AVOID',
+    },
     SKIP: {
       bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
       borderClass: 'border-error-20', label: reason || 'SKIP',
@@ -142,6 +146,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
   }
 
   const isSkipped = ticker.action === 'SKIP';
+  const isAvoided = ticker.action === 'AVOID';
 
   // Trade construction from API
   const suggestDelta = ticker.suggestedDelta
@@ -192,7 +197,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
   return (
     <div
       className="bg-surface rounded-lg border border-border overflow-hidden"
-      style={{ borderTop: `3px solid ${isSkipped ? colors.error : colors.primary}` }}
+      style={{ borderTop: `3px solid ${isSkipped || isAvoided ? colors.error : colors.primary}` }}
     >
       {/* Header */}
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
@@ -205,6 +210,18 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
             <div className="flex gap-2 mt-2 flex-wrap items-center">
               <ActionChip action={ticker.action} reason={ticker.actionReason} />
               <SizingChip sizing={ticker.sizing} />
+              {ticker.regime !== 'NORMAL' && (
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-primary text-2xs font-semibold tracking-wide border ${
+                    ticker.regime === 'DANGER'
+                      ? 'bg-error-subtle border-error-20'
+                      : 'bg-warning-subtle border-warning-30'
+                  }`}
+                  style={{ color: ticker.regime === 'DANGER' ? 'var(--color-error)' : 'var(--color-warning)' }}
+                >
+                  {ticker.regime}
+                </span>
+              )}
               <span className="text-2xs text-txt-tertiary px-2.5 py-0.5 rounded-full bg-bg-alt border border-border-subtle">
                 {ticker.sector}
               </span>
@@ -255,7 +272,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
       </div>
 
       {/* Position Construction -- only if actionable */}
-      {!isSkipped && ticker.action !== 'NO EDGE' && (
+      {!isSkipped && !isAvoided && ticker.action !== 'NO EDGE' && (
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
           <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block mb-3">
             Position Construction
@@ -302,6 +319,25 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
               </p>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Avoid warning */}
+      {isAvoided && (
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
+          <div className="px-4 py-3.5 bg-error-subtle rounded-md border border-error-20 text-xs leading-normal"
+            style={{ color: 'var(--color-error)' }}>
+            <p><strong>{ticker.regime === 'DANGER' ? 'Danger regime' : 'Caution regime'}:</strong> Do not sell premium on this ticker. {ticker.regime === 'DANGER' ? 'Deep backwardation or acute stress detected.' : 'Elevated risk — reduce exposure, defined risk only.'}</p>
+          </div>
+          {ticker.flags && ticker.flags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {ticker.flags.map((flag, i) => (
+                <span key={i} className="text-2xs px-2 py-0.5 rounded-full bg-error-subtle border border-error-20" style={{ color: 'var(--color-error)' }}>
+                  {flag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

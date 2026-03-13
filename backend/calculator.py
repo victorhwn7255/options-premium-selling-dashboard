@@ -8,7 +8,7 @@ import math
 import numpy as np
 from datetime import date, datetime
 from typing import Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from marketdata_client import DailyBar, OptionContract
 
 
@@ -76,6 +76,41 @@ class VolSurface:
     skew: VolSkew
     vrp: float               # IV current - RV30
     vrp_ratio: float          # IV current / RV30
+    low_confidence_flags: list[str] = field(default_factory=list)
+
+
+def _bsm_delta(spot: float, strike: float, iv: float, dte: int, is_put: bool) -> float:
+    """Black-Scholes delta when API doesn't provide Greeks."""
+    if iv <= 0 or dte <= 0:
+        return 0.0
+    T = dte / 365.0
+    sigma_sqrt_t = iv * math.sqrt(T)
+    d1 = (math.log(spot / strike) / sigma_sqrt_t) + 0.5 * sigma_sqrt_t
+    nd1 = 0.5 * (1.0 + math.erf(d1 / math.sqrt(2.0)))
+    return nd1 - 1.0 if is_put else nd1
+
+
+# ── Liquidity Filter ──────────────────────────────────
+MAX_SPREAD_RATIO = 0.50  # reject contracts with spread > 50% of mid
+
+
+def filter_liquid_contracts(contracts: list[OptionContract]) -> list[OptionContract]:
+    """
+    Reject illiquid contracts: bid == 0 or (ask - bid) / mid > 50%.
+    Contracts without bid/ask data are kept (can't evaluate liquidity).
+    """
+    result = []
+    for c in contracts:
+        if c.bid is None or c.ask is None:
+            result.append(c)
+            continue
+        if c.bid <= 0:
+            continue
+        mid = (c.bid + c.ask) / 2
+        if mid > 0 and (c.ask - c.bid) / mid > MAX_SPREAD_RATIO:
+            continue
+        result.append(c)
+    return result
 
 
 # ── Realized Volatility ────────────────────────────────
@@ -418,44 +453,27 @@ def compute_skew(
 
     points = []
 
-    # If we have Greeks (delta), use delta-space skew
-    has_greeks = any(c.delta is not None for c in puts + calls)
+    for c in puts:
+        delta = c.delta
+        if delta is None and c.implied_volatility and c.implied_volatility > 0:
+            delta = _bsm_delta(spot_price, c.strike, c.implied_volatility, dte, is_put=True)
+        if delta is not None and -0.9 < delta < -0.05:
+            points.append(SkewPoint(
+                delta=round(abs(delta) * 100, 1),
+                iv=round(c.implied_volatility * 100, 2),
+                contract_type="put",
+            ))
 
-    if has_greeks:
-        for c in puts:
-            if c.delta is not None and -0.9 < c.delta < -0.05:
-                points.append(SkewPoint(
-                    delta=round(abs(c.delta) * 100, 1),
-                    iv=round(c.implied_volatility * 100, 2),
-                    contract_type="put",
-                ))
-        for c in calls:
-            if c.delta is not None and 0.05 < c.delta < 0.9:
-                points.append(SkewPoint(
-                    delta=round(c.delta * 100, 1),
-                    iv=round(c.implied_volatility * 100, 2),
-                    contract_type="call",
-                ))
-    else:
-        # Fallback: use moneyness as a proxy for delta
-        for c in puts:
-            moneyness = c.strike / spot_price
-            if 0.8 < moneyness < 1.0:
-                pseudo_delta = round((1 - moneyness) * 100 * 2, 1)  # rough approximation
-                points.append(SkewPoint(
-                    delta=min(50, max(5, pseudo_delta)),
-                    iv=round(c.implied_volatility * 100, 2),
-                    contract_type="put",
-                ))
-        for c in calls:
-            moneyness = c.strike / spot_price
-            if 1.0 < moneyness < 1.2:
-                pseudo_delta = round((1 - (moneyness - 1) * 2) * 50, 1)
-                points.append(SkewPoint(
-                    delta=min(50, max(5, pseudo_delta)),
-                    iv=round(c.implied_volatility * 100, 2),
-                    contract_type="call",
-                ))
+    for c in calls:
+        delta = c.delta
+        if delta is None and c.implied_volatility and c.implied_volatility > 0:
+            delta = _bsm_delta(spot_price, c.strike, c.implied_volatility, dte, is_put=False)
+        if delta is not None and 0.05 < delta < 0.9:
+            points.append(SkewPoint(
+                delta=round(delta * 100, 1),
+                iv=round(c.implied_volatility * 100, 2),
+                contract_type="call",
+            ))
 
     # Compute 25-delta skew: IV of 25Δ put - ATM IV
     atm_iv = None
@@ -516,7 +534,17 @@ def build_vol_surface(
     """
     rv = compute_realized_vol(bars)
 
-    iv_current = compute_atm_iv(contracts, spot_price, target_dte=30)
+    # Apply liquidity filter — reject bid=0 and wide-spread contracts
+    filtered = filter_liquid_contracts(contracts)
+    low_confidence_flags: list[str] = []
+    removed = len(contracts) - len(filtered)
+
+    # ATM IV — try filtered, fall back to unfiltered
+    iv_current = compute_atm_iv(filtered, spot_price, target_dte=30)
+    if iv_current is None and removed > 0:
+        iv_current = compute_atm_iv(contracts, spot_price, target_dte=30)
+        if iv_current is not None:
+            low_confidence_flags.append("ATM IV from low-liquidity contracts")
     if iv_current is None:
         iv_current = rv.rv30  # Fallback — shouldn't happen with good data
 
@@ -528,8 +556,21 @@ def build_vol_surface(
         iv_percentile=iv_pct,
     )
 
-    term_structure = compute_term_structure(contracts, spot_price)
-    skew = compute_skew(contracts, spot_price)
+    # Term structure — try filtered, fall back to unfiltered
+    term_structure = compute_term_structure(filtered, spot_price)
+    if len(term_structure.points) < 2 and removed > 0:
+        ts_unfiltered = compute_term_structure(contracts, spot_price)
+        if len(ts_unfiltered.points) >= 2:
+            term_structure = ts_unfiltered
+            low_confidence_flags.append("Term structure from low-liquidity contracts")
+
+    # Skew — try filtered, fall back to unfiltered
+    skew = compute_skew(filtered, spot_price)
+    if len(skew.points) < 2 and removed > 0:
+        skew_unfiltered = compute_skew(contracts, spot_price)
+        if len(skew_unfiltered.points) >= 2:
+            skew = skew_unfiltered
+            low_confidence_flags.append("Skew from low-liquidity contracts")
 
     vrp = round(iv_current - rv.rv30, 2)
     vrp_ratio = round(iv_current / rv.rv30, 3) if rv.rv30 > 0 else 1.0
@@ -543,4 +584,5 @@ def build_vol_surface(
         skew=skew,
         vrp=vrp,
         vrp_ratio=vrp_ratio,
+        low_confidence_flags=low_confidence_flags,
     )

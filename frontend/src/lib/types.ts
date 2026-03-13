@@ -23,10 +23,11 @@ export interface DashboardTicker {
   earningsWarning?: boolean;
   // Scored
   score: number;
-  action: 'SELL' | 'CONDITIONAL' | 'NO EDGE' | 'SKIP';
+  action: 'SELL' | 'CONDITIONAL' | 'NO EDGE' | 'AVOID' | 'SKIP';
   actionReason: string | null;
   preGateScore?: number;  // Score computed before earnings gate (display-only, present only when gated and > 0)
   sizing?: string;
+  regime: 'NORMAL' | 'CAUTION' | 'DANGER';
   // API data (attached for detail panel)
   termStructurePoints?: TermStructurePoint[];
   recommendation?: string;

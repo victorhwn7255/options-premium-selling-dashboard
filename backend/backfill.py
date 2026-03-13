@@ -7,9 +7,9 @@ This gives the scanner enough history (252 trading days) for accurate
 IV Rank and IV Percentile calculations.
 
 Two-step approach for historical IV:
-  1. Chain endpoint → contract symbols + metadata (IV is null for historical)
-  2. Quotes endpoint → bid/ask/mid prices for nearest-ATM contracts (~6 calls)
-  3. Black-Scholes solver → compute IV from option mid price
+  1. Chain endpoint -> contract symbols + metadata (IV is null for historical)
+  2. Quotes endpoint -> bid/ask/mid prices for nearest-ATM contracts (~6 calls)
+  3. Black-Scholes solver -> compute IV from option mid price
 
 Usage:
     export MARKETDATA_TOKEN=your_token_here
@@ -178,7 +178,7 @@ def compute_atm_iv_historical(
         nearest = min(sorted_strikes, key=lambda s: abs(s - spot_price))
         return strike_avg[nearest]
 
-    # Collect ATM IV per expiry (decimal → percentage)
+    # Collect ATM IV per expiry (decimal -> percentage)
     expiry_ivs: list[tuple[int, float]] = []
     for exp, dte in expiry_dte.items():
         iv = _interpolated_atm_iv(exp)
@@ -291,7 +291,7 @@ def pick_atm_symbols(
     For each of the 3 closest-to-30-DTE expirations:
       - Find the 2 strikes that bracket spot (just below + just above)
       - Include both call and put at each strike
-      → up to 4 contracts per expiry, ~8-12 total
+      -> up to 4 contracts per expiry, ~8-12 total
 
     Each dict: {"symbol": str, "strike": float, "side": str, "exp_ts": int}
     """
@@ -392,7 +392,7 @@ def _safe_get(data: dict, key: str, idx: int):
 class BackfillClient:
     """
     Thin async HTTP client for backfill operations.
-    Uses two-step approach: chain (for symbols) → quotes (for IV).
+    Uses two-step approach: chain (for symbols) -> quotes (for IV).
     """
     BASE = "https://api.marketdata.app"
 
@@ -514,7 +514,7 @@ class BackfillClient:
     ) -> Optional[OptionContract]:
         """
         Fetch a single historical option quote.
-        Priority: API-provided IV → Black-Scholes fallback from mid price.
+        Priority: API-provided IV -> Black-Scholes fallback from mid price.
         """
         url = f"{self.BASE}/v1/options/quotes/{symbol}/"
         data = await self._get(url, {"date": as_of.isoformat()})
@@ -581,8 +581,8 @@ class BackfillClient:
     ) -> list[OptionContract]:
         """
         Two-step historical chain fetch:
-        1. Chain endpoint → contract symbols + metadata (IV is null for historical)
-        2. Quotes endpoint → IV + Greeks for nearest-ATM contracts (~4-6 calls)
+        1. Chain endpoint -> contract symbols + metadata (IV is null for historical)
+        2. Quotes endpoint -> IV + Greeks for nearest-ATM contracts (~4-6 calls)
         """
         # Step 1: Chain for contract metadata
         url = f"{self.BASE}/v1/options/chain/{underlying}/"
@@ -699,7 +699,7 @@ async def run_backfill(args: argparse.Namespace):
         print(
             f"  {len(bars_by_ticker)} tickers | "
             f"{len(trading_days)} trading days "
-            f"({trading_days[-1]} → {trading_days[0]})"
+            f"({trading_days[-1]} -> {trading_days[0]})"
         )
 
         # ── Phase 2: Backfill daily metrics ────────────────
@@ -794,7 +794,7 @@ async def run_backfill(args: argparse.Namespace):
                 f"{ticker} {day_str}", refresh=False
             )
 
-            # Fetch historical option chain (two-step: chain → quotes)
+            # Fetch historical option chain (two-step: chain -> quotes)
             try:
                 contracts = await client.fetch_historical_chain(
                     ticker, day_date, spot_price,
@@ -871,7 +871,7 @@ async def run_backfill(args: argparse.Namespace):
             q_rows = sum(1 for _ in open(quotes_path)) - 1 if quotes_path.exists() else 0
             if latest and oldest:
                 print(
-                    f"  {ticker}: {count} days ({oldest[0]} → {latest[0]}) "
+                    f"  {ticker}: {count} days ({oldest[0]} -> {latest[0]}) "
                     f"latest IV={latest[1]:.1f} | {q_rows} quotes"
                 )
             else:

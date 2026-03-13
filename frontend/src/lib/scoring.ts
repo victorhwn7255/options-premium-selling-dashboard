@@ -1,68 +1,41 @@
 import type { DashboardTicker, ScanResponse, TickerResult } from './types';
 
-function computeScore(ticker: {
-  iv: number;
-  rv30: number;
-  rv10: number;
-  termSlope: number;
-  ivPct: number;
-  earningsDTE?: number | null;
-}): { score: number; action: DashboardTicker['action']; actionReason: string | null; preGateScore?: number } {
-  const vrp = ticker.iv - ticker.rv30;
-  const rvAccel = ticker.rv10 / ticker.rv30;
-
-  // Always compute full score first
-  const vrpScore = Math.min(40, vrp * 2.5);
-  const termScore =
-    ticker.termSlope < 0.85 ? 25 :
-    ticker.termSlope < 0.90 ? 18 :
-    ticker.termSlope < 0.95 ? 12 : 5;
-  const ivPctScore =
-    ticker.ivPct >= 80 ? 20 :
-    ticker.ivPct >= 60 ? 14 :
-    ticker.ivPct >= 40 ? 8 : 3;
-  const rvPenalty =
-    rvAccel > 1.15 ? -15 :
-    rvAccel > 1.05 ? -6 : 0;
-
-  const raw = vrpScore + termScore + ivPctScore + rvPenalty;
-  const computed = Math.round(Math.max(0, Math.min(100, raw)));
-
-  // Earnings gate — override score/action but preserve pre-gate score
-  if (ticker.earningsDTE != null && ticker.earningsDTE <= 14) {
-    return {
-      score: 0, action: 'SKIP',
-      actionReason: `Earnings in ${ticker.earningsDTE}d`,
-      preGateScore: computed > 0 ? computed : undefined,
-    };
+/**
+ * Map backend recommendation string to frontend action type.
+ * Backend values: SELL PREMIUM, CONDITIONAL, REDUCE SIZE, AVOID, NO EDGE
+ * Frontend action: SELL, CONDITIONAL, NO EDGE, AVOID, SKIP (earnings gate)
+ */
+function mapRecommendation(rec: string): DashboardTicker['action'] {
+  switch (rec) {
+    case 'SELL PREMIUM': return 'SELL';
+    case 'CONDITIONAL': return 'CONDITIONAL';
+    case 'AVOID': return 'AVOID';
+    case 'REDUCE SIZE': return 'AVOID';
+    default: return 'NO EDGE';
   }
-
-  const action: DashboardTicker['action'] =
-    computed >= 70 ? 'SELL' :
-    computed >= 50 ? 'CONDITIONAL' : 'NO EDGE';
-
-  return { score: computed, action, actionReason: null };
 }
 
 export function convertApiTicker(t: TickerResult): DashboardTicker {
   const rvAccel = t.rv_acceleration;
-
-  // Build raw ticker data first
   const earningsDTE = t.earnings_dte ?? undefined;
   const earningsWarning = t.earnings_dte != null && t.earnings_dte <= 14;
 
   const thetaVega = (t.theta != null && t.vega != null && t.vega !== 0)
     ? Math.abs(t.theta / t.vega) : undefined;
 
-  // Compute score client-side (replaces backend signal_score)
-  const { score, action, actionReason, preGateScore } = computeScore({
-    iv: t.iv_current,
-    rv30: t.rv30,
-    rv10: t.rv10,
-    termSlope: t.term_slope,
-    ivPct: t.iv_percentile,
-    earningsDTE: t.earnings_dte,
-  });
+  // Use backend-computed score and recommendation
+  let score = t.signal_score;
+  let action = mapRecommendation(t.recommendation);
+  let actionReason: string | null = null;
+  let preGateScore: number | undefined;
+
+  // Earnings gate — override score/action but preserve pre-gate score for display
+  if (t.earnings_dte != null && t.earnings_dte <= 14) {
+    preGateScore = score > 0 ? score : undefined;
+    score = 0;
+    action = 'SKIP';
+    actionReason = `Earnings in ${t.earnings_dte}d`;
+  }
 
   let sizing = 'Full';
   if (rvAccel > 1.10) sizing = 'Half';
@@ -93,6 +66,7 @@ export function convertApiTicker(t: TickerResult): DashboardTicker {
     actionReason,
     preGateScore,
     sizing,
+    regime: t.regime as DashboardTicker['regime'],
     termStructurePoints: t.term_structure_points,
     recommendation: t.recommendation,
     flags: t.flags,
