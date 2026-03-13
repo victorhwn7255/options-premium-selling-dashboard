@@ -82,6 +82,12 @@ UNIVERSE = {
     "WMT":  {"name": "Walmart",              "sector": "Consumer"},
     "MCD":  {"name": "McDonald's",           "sector": "Consumer"},
     "KO":   {"name": "Coca-Cola",            "sector": "Consumer"},
+    "CAT":  {"name": "Caterpillar",          "sector": "Industrials"},
+    "UBER": {"name": "Uber Technologies",    "sector": "Tech"},
+    "JNJ":  {"name": "Johnson & Johnson",    "sector": "Healthcare"},
+    "SBUX": {"name": "Starbucks",            "sector": "Consumer"},
+    "NKE":  {"name": "Nike",                 "sector": "Consumer"},
+    "HD":   {"name": "Home Depot",           "sector": "Consumer"},
 }
 
 
@@ -528,6 +534,18 @@ async def run_post_scan_verification(scanned_at: str, tickers_data: list[dict]):
             if yahoo_fills:
                 update_latest_scan_earnings(yahoo_fills)
                 logger.info(f"Filled {len(yahoo_fills)} missing earnings from Yahoo: {', '.join(sorted(yahoo_fills))}")
+
+            # Override FMP with Yahoo when both exist but differ by >5 days
+            yahoo_overrides = {}
+            for check in earnings_report["checks"]:
+                if (check["status"] == "FAIL"
+                        and check.get("diff_days") is not None
+                        and abs(check["diff_days"]) > 5
+                        and check.get("yahoo_dte") is not None):
+                    yahoo_overrides[check["ticker"]] = check["yahoo_dte"]
+            if yahoo_overrides:
+                update_latest_scan_earnings(yahoo_overrides)
+                logger.info(f"Overrode {len(yahoo_overrides)} earnings with Yahoo (>5d diff): {', '.join(sorted(yahoo_overrides))}")
         except Exception as e:
             logger.warning(f"Earnings verification failed (non-critical): {e}")
 
@@ -839,6 +857,22 @@ async def refresh_earnings():
     non_none = {k: v for k, v in results.items() if v is not None}
     if non_none:
         update_latest_scan_earnings(non_none)
+
+    # Re-apply Yahoo overrides for >5d discrepancies from latest verification
+    latest_ev = get_latest_earnings_verification()
+    if latest_ev and latest_ev.get("checks"):
+        yahoo_overrides = {}
+        for check in latest_ev["checks"]:
+            if (check["status"] == "FAIL"
+                    and check.get("diff_days") is not None
+                    and abs(check["diff_days"]) > 5
+                    and check.get("yahoo_dte") is not None):
+                yahoo_overrides[check["ticker"]] = check["yahoo_dte"]
+                results[check["ticker"]] = check["yahoo_dte"]
+        if yahoo_overrides:
+            update_latest_scan_earnings(yahoo_overrides)
+            logger.info(f"Earnings refresh: re-applied {len(yahoo_overrides)} Yahoo overrides (>5d diff): {', '.join(sorted(yahoo_overrides))}")
+
     return {"earnings": results, "remaining": remaining}
 
 

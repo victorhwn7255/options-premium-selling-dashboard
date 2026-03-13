@@ -11,7 +11,7 @@ export function computeRegime(data: DashboardTicker[]) {
   const eligible = data.filter(d => d.action !== 'SKIP');
   if (eligible.length === 0) {
     return {
-      regime: 'SHOOTAROUND', colorClass: 'text-secondary', borderClass: 'border-l-secondary',
+      regime: 'THE PLAYOFFS', colorClass: 'text-secondary', borderClass: 'border-l-secondary',
       desc: 'All tickers near earnings — insufficient data for regime',
       avgVRP: 0, avgTermSlope: 0, avgRVAccel: 0,
       tradeableCount: 0, eligibleCount: 0, total: data.length, isHostile: false,
@@ -26,22 +26,22 @@ export function computeRegime(data: DashboardTicker[]) {
   let regime: string, colorClass: string, borderClass: string, desc: string;
 
   if (backwardation >= 3 || avgTermSlope > 1.02) {
-    regime = 'GARBAGE TIME';
+    regime = 'OFF SEASON';
     colorClass = 'text-error';
     borderClass = 'border-l-error';
     desc = "";
   } else if (avgRVAccel > 1.12 || backwardation >= 1) {
-    regime = 'CLUTCH Q4';
+    regime = 'REGULAR SEASON';
     colorClass = 'text-warning';
     borderClass = 'border-l-warning';
     desc = 'Be cautious! Small positions, defined risk, no turnovers';
   } else if (avgVRP > 8 && avgTermSlope < 0.90) {
-    regime = 'HEAT CHECK';
+    regime = 'THE FINALS';
     colorClass = 'text-accent';
     borderClass = 'border-l-accent';
     desc = "Wide VRP in contango, keep shooting";
   } else {
-    regime = 'SHOOTAROUND';
+    regime = 'THE PLAYOFFS';
     colorClass = 'text-secondary';
     borderClass = 'border-l-secondary';
     desc = 'Standard conditions, execute the playbook';
@@ -53,7 +53,7 @@ export function computeRegime(data: DashboardTicker[]) {
     tradeableCount: tradeable.length,
     eligibleCount: eligible.length,
     total: data.length,
-    isHostile: regime === 'GARBAGE TIME',
+    isHostile: regime === 'OFF SEASON',
   };
 }
 

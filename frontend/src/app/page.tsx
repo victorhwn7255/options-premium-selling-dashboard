@@ -131,7 +131,7 @@ export default function Home() {
           ...prev,
           tickers: prev.tickers.map(t => ({
             ...t,
-            earnings_dte: t.ticker in earnings ? earnings[t.ticker] : t.earnings_dte,
+            earnings_dte: (t.ticker in earnings && earnings[t.ticker] !== null) ? earnings[t.ticker] : t.earnings_dte,
           })),
         };
       });

@@ -135,7 +135,7 @@ def test_score_opportunity():
         rv=RealizedVol(rv10=30.0, rv20=25.0, rv30=20.0, rv60=18.0, rv_acceleration=1.5),
         iv=ImpliedVolMetrics(iv_current=35.0, iv_rank=95.0, iv_percentile=95.0),
         term_structure=TermStructure(
-            points=[], slope=1.15, is_contango=False, front_iv=35.0, back_iv=30.0,
+            points=[], slope=1.20, is_contango=False, front_iv=35.0, back_iv=30.0,
         ),
         skew=VolSkew(
             points=[], skew_25d=12.0, put_skew_slope=-0.5, call_skew_slope=0.2,

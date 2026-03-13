@@ -35,10 +35,10 @@ function VRPBar({ value, max = 20 }: { value: number; max?: number }) {
 
 function ScorePill({ score }: { score: number }) {
   let bgClass: string, colorStyle: string;
-  if (score >= 70) {
+  if (score >= 65) {
     bgClass = 'bg-success-subtle';
     colorStyle = 'var(--color-badge-sell)';
-  } else if (score >= 50) {
+  } else if (score >= 45) {
     bgClass = 'bg-warning-subtle';
     colorStyle = 'var(--color-badge-reduce)';
   } else if (score > 0) {
@@ -72,6 +72,10 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
     'NO EDGE': {
       bgClass: 'bg-surface-alt', colorStyle: 'var(--color-txt-tertiary)',
       borderClass: 'border-border-subtle', label: 'NO EDGE',
+    },
+    AVOID: {
+      bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
+      borderClass: 'border-error-20', label: 'AVOID',
     },
     SKIP: {
       bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
@@ -129,7 +133,11 @@ function MobileTickerCard({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-baseline gap-2 min-w-0">
             <span className="font-primary text-sm font-semibold text-txt">{row.sym}</span>
-            <span className="font-primary text-2xs text-txt-tertiary truncate">{row.name || row.sector}</span>
+            <span className="font-primary text-2xs text-txt-tertiary truncate flex items-center gap-1">
+              {row.name || row.sector}
+              {row.regime === 'DANGER' && <span className="inline-block w-1.5 h-1.5 rounded-full bg-error shrink-0" />}
+              {row.regime === 'CAUTION' && <span className="inline-block w-1.5 h-1.5 rounded-full bg-warning shrink-0" />}
+            </span>
           </div>
           <ScorePill score={row.score} />
         </div>
@@ -203,6 +211,23 @@ function ExpandableDetail({ ticker, isOpen }: { ticker: DashboardTicker | null; 
 export default function Leaderboard({ data, selected, onSelect, selectedData }: LeaderboardProps) {
   const sellCount = data.filter(d => d.action === 'SELL').length;
   const conditionalCount = data.filter(d => d.action === 'CONDITIONAL').length;
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    const header = '| Ticker | Score | IV | IV Pct | RV30 | VRP | Term Slope | RV Accel | 25Δ Skew | θ/V | Earnings | Regime |';
+    const sep    = '|--------|-------|----|--------|------|-----|------------|----------|----------|-----|----------|--------|';
+    const rows = data.map(row => {
+      const earnings = row.earningsDTE ? `${row.earningsDTE}d` : row.isEtf ? 'ETF' : 'TBD';
+      const regime = row.action === 'SKIP' ? (row.actionReason || 'SKIP') : `${row.action} (${row.regime})`;
+      const tv = row.thetaVega != null ? row.thetaVega.toFixed(2) : '—';
+      return `| ${row.sym} | ${row.score} | ${row.iv.toFixed(1)} | ${row.ivPct.toFixed(0)} | ${row.rv30.toFixed(1)} | ${row.vrp.toFixed(1)} | ${row.termSlope.toFixed(2)} | ${row.rvAccel.toFixed(2)} | ${row.skew25d.toFixed(1)} | ${tv} | ${earnings} | ${regime} |`;
+    });
+    const md = [header, sep, ...rows].join('\n');
+    navigator.clipboard.writeText(md).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [data]);
 
   const handleRowHover = useCallback((e: React.MouseEvent<HTMLTableRowElement>, isSelected: boolean, enter: boolean) => {
     if (!isSelected) {
@@ -229,8 +254,38 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
               Ranked by composite score — select a row for trade construction
             </p>
           </div>
-          <span className="font-mono text-2xs sm:text-xs md:text-sm text-txt-tertiary">
-            {sellCount} actionable &middot; {conditionalCount} conditional
+          <span className="flex items-center gap-2">
+            <span className="font-mono text-2xs sm:text-xs md:text-sm text-txt-tertiary">
+              {sellCount} actionable &middot; {conditionalCount} conditional
+            </span>
+            <span className="relative group">
+              <button
+                onClick={handleCopy}
+                className="p-1 rounded hover:bg-surface-alt transition-colors"
+                aria-label="Copy metrics to clipboard"
+              >
+                {copied ? (
+                  <svg className="w-4 h-4 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-txt-tertiary hover:text-txt transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+                  </svg>
+                )}
+              </button>
+              {/* Tooltip */}
+              <span
+                className="pointer-events-none absolute right-0 top-full mt-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 origin-top-right z-50"
+                style={{ background: 'var(--color-tooltip-bg)', color: 'var(--color-tooltip-text)' }}
+              >
+                <span className="flex items-center rounded-lg px-3.5 py-2.5 shadow-lg whitespace-nowrap" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
+                  <span className="text-2xs font-medium" style={{ color: 'var(--color-tooltip-text)' }}>
+                    {copied ? 'Copied!' : 'Copy metrics to clipboard'}
+                  </span>
+                </span>
+              </span>
+            </span>
           </span>
         </div>
       </div>
@@ -275,6 +330,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
             {data.map(row => {
               const isSelected = selected === row.sym;
               const isSkipped = row.action === 'SKIP';
+              const isAvoided = row.action === 'AVOID';
 
               return (
                 <React.Fragment key={row.sym}>
@@ -283,7 +339,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
                     onMouseEnter={e => handleRowHover(e, isSelected, true)}
                     onMouseLeave={e => handleRowHover(e, isSelected, false)}
                     className="cursor-pointer"
-                    style={{ opacity: isSkipped ? 0.5 : 1 }}
+                    style={{ opacity: isSkipped ? 0.5 : isAvoided ? 0.65 : 1 }}
                   >
                     {/* Ticker */}
                     <td
@@ -294,7 +350,15 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
                       }}
                     >
                       <div className="font-primary text-sm font-semibold text-txt">{row.sym}</div>
-                      <div className="font-primary text-2xs text-txt-tertiary">{row.sector}</div>
+                      <div className="font-primary text-2xs text-txt-tertiary flex items-center gap-1.5">
+                        {row.sector}
+                        {row.regime === 'DANGER' && (
+                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-error shrink-0" title="Danger regime" />
+                        )}
+                        {row.regime === 'CAUTION' && (
+                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-warning shrink-0" title="Caution regime" />
+                        )}
+                      </div>
                     </td>
 
                     {/* VRP bar */}
