@@ -13,7 +13,10 @@ interface LeaderboardProps {
 
 /* ── Inline sub-components ────────────────────────── */
 
-function VRPBar({ value, max = 20 }: { value: number; max?: number }) {
+function VRPBar({ value, max = 20 }: { value: number | null; max?: number }) {
+  if (value == null) {
+    return <span className="font-mono text-sm text-txt-tertiary">N/A</span>;
+  }
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   const colorClass = value >= 10 ? 'text-secondary' : value >= 5 ? 'text-primary' : 'text-txt-tertiary';
   const barColor = value >= 10 ? 'bg-secondary' : value >= 5 ? 'bg-primary' : 'bg-txt-tertiary';
@@ -81,6 +84,10 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
       bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
       borderClass: 'border-error-20', label: reason || 'SKIP',
     },
+    'NO DATA': {
+      bgClass: 'bg-surface-alt', colorStyle: 'var(--color-txt-tertiary)',
+      borderClass: 'border-border-subtle', label: 'NO DATA',
+    },
   };
   const c = configs[action] || configs['NO EDGE'];
 
@@ -143,7 +150,7 @@ function MobileTickerCard({
         </div>
         {/* Line 2: Key metrics */}
         <div className="font-mono text-sm text-txt-secondary mt-1.5">
-          VRP {row.vrp.toFixed(1)} · Term {row.termSlope.toFixed(2)} · RV {row.rvAccel.toFixed(2)}
+          VRP {row.vrp != null ? row.vrp.toFixed(1) : 'N/A'} · Term {row.termSlope.toFixed(2)} · RV {row.rvAccel.toFixed(2)}
         </div>
         {/* Line 3: Action chips */}
         <div className="flex items-center justify-end gap-1.5 mt-2">
@@ -220,7 +227,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
       const earnings = row.earningsDTE ? `${row.earningsDTE}d` : row.isEtf ? 'ETF' : 'TBD';
       const regime = row.action === 'SKIP' ? (row.actionReason || 'SKIP') : `${row.action} (${row.regime})`;
       const tv = row.thetaVega != null ? row.thetaVega.toFixed(2) : '—';
-      return `| ${row.sym} | ${row.score} | ${row.iv.toFixed(1)} | ${row.ivPct.toFixed(0)} | ${row.rv30.toFixed(1)} | ${row.vrp.toFixed(1)} | ${row.termSlope.toFixed(2)} | ${row.rvAccel.toFixed(2)} | ${row.skew25d.toFixed(1)} | ${tv} | ${earnings} | ${regime} |`;
+      return `| ${row.sym} | ${row.score} | ${row.iv != null ? row.iv.toFixed(1) : 'N/A'} | ${row.ivPct.toFixed(0)} | ${row.rv30.toFixed(1)} | ${row.vrp != null ? row.vrp.toFixed(1) : 'N/A'} | ${row.termSlope.toFixed(2)} | ${row.rvAccel.toFixed(2)} | ${row.skew25d.toFixed(1)} | ${tv} | ${earnings} | ${regime} |`;
     });
     const md = [header, sep, ...rows].join('\n');
     navigator.clipboard.writeText(md).then(() => {

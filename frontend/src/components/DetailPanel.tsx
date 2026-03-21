@@ -63,6 +63,10 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
       bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
       borderClass: 'border-error-20', label: reason || 'SKIP',
     },
+    'NO DATA': {
+      bgClass: 'bg-surface-alt', colorStyle: 'var(--color-txt-tertiary)',
+      borderClass: 'border-border-subtle', label: 'NO DATA',
+    },
   };
   const c = configs[action] || configs['NO EDGE'];
 
@@ -147,14 +151,15 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
 
   const isSkipped = ticker.action === 'SKIP';
   const isAvoided = ticker.action === 'AVOID';
+  const isNoData = ticker.action === 'NO DATA';
 
   // Trade construction from API
   const suggestDelta = ticker.suggestedDelta
     ?? (ticker.ivPct >= 80 ? '16\u0394' : ticker.ivPct >= 60 ? '20\u0394' : '25\u0394');
   const suggestStructure = ticker.suggestedStructure
-    ?? (ticker.vrp > 10
+    ?? ((ticker.vrp ?? 0) > 10
       ? 'Short strangle or jade lizard'
-      : ticker.vrp > 6
+      : (ticker.vrp ?? 0) > 6
         ? 'Put credit spread or iron condor'
         : 'Narrow put spread (defined risk)');
   const suggestDTE = ticker.suggestedDte
@@ -163,7 +168,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
     ticker.sizing === 'Quarter' ? '\u00BC standard' : 'Standard';
 
   const metricsGrid = [
-    { label: 'VRP', value: ticker.vrp.toFixed(1), sub: `IV ${ticker.iv.toFixed(1)} \u2212 RV ${ticker.rv30.toFixed(1)}`, highlight: ticker.vrp >= 8, warn: false },
+    { label: 'VRP', value: ticker.vrp != null ? ticker.vrp.toFixed(1) : 'N/A', sub: ticker.iv != null ? `IV ${ticker.iv.toFixed(1)} \u2212 RV ${ticker.rv30.toFixed(1)}` : 'No reliable IV', highlight: ticker.vrp != null && ticker.vrp >= 8, warn: false },
     { label: 'Term Slope', value: ticker.termSlope.toFixed(2), sub: ticker.termSlope < 1 ? 'Contango \u2713' : 'Backwardation \u26A0', highlight: false, warn: ticker.termSlope > 1 },
     { label: 'RV Accel', value: ticker.rvAccel.toFixed(2), sub: `RV10 ${ticker.rv10.toFixed(1)} / RV30 ${ticker.rv30.toFixed(1)}`, highlight: false, warn: ticker.rvAccel > 1.10 },
     { label: 'IV Percentile', value: `${ticker.ivPct}%`, sub: '252-day window', highlight: false, warn: false },
@@ -197,7 +202,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
   return (
     <div
       className="bg-surface rounded-lg border border-border overflow-hidden"
-      style={{ borderTop: `3px solid ${isSkipped || isAvoided ? colors.error : colors.primary}` }}
+      style={{ borderTop: `3px solid ${isSkipped || isAvoided ? colors.error : isNoData ? colors.textTertiary : colors.primary}` }}
     >
       {/* Header */}
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
@@ -272,7 +277,7 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
       </div>
 
       {/* Position Construction -- only if actionable */}
-      {!isSkipped && !isAvoided && ticker.action !== 'NO EDGE' && (
+      {!isSkipped && !isAvoided && !isNoData && ticker.action !== 'NO EDGE' && (
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
           <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block mb-3">
             Position Construction
@@ -333,6 +338,24 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
             <div className="mt-3 flex flex-wrap gap-1.5">
               {ticker.flags.map((flag, i) => (
                 <span key={i} className="text-2xs px-2 py-0.5 rounded-full bg-error-subtle border border-error-20" style={{ color: 'var(--color-error)' }}>
+                  {flag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* No data warning */}
+      {isNoData && (
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
+          <div className="px-4 py-3.5 bg-surface-alt rounded-md border border-border-subtle text-xs leading-normal text-txt-secondary">
+            <p><strong>Insufficient data:</strong> Not enough liquid contracts to compute reliable IV. Metrics shown may be incomplete or unavailable.</p>
+          </div>
+          {ticker.flags && ticker.flags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {ticker.flags.map((flag, i) => (
+                <span key={i} className="text-2xs px-2 py-0.5 rounded-full bg-surface-alt border border-border-subtle text-txt-tertiary">
                   {flag}
                 </span>
               ))}

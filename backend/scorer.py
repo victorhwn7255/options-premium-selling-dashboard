@@ -15,21 +15,21 @@ class ScoredOpportunity:
     name: str
     sector: str
     price: float
-    iv_current: float
+    iv_current: Optional[float]
     iv_rank: float
     iv_percentile: float
     rv10: float
     rv20: float
     rv30: float
-    vrp: float
-    vrp_ratio: float
+    vrp: Optional[float]
+    vrp_ratio: Optional[float]
     rv_acceleration: float
     term_slope: float
     is_contango: bool
     skew_25d: float
     signal_score: int
     regime: str            # NORMAL / CAUTION / DANGER
-    recommendation: str    # SELL PREMIUM / CONDITIONAL / REDUCE SIZE / AVOID / NO EDGE
+    recommendation: str    # SELL PREMIUM / CONDITIONAL / REDUCE SIZE / AVOID / NO EDGE / NO DATA
     flags: list[str] = field(default_factory=list)
 
     # Position construction suggestions
@@ -80,6 +80,45 @@ def score_opportunity(
     - RV Stability (0-15): Low acceleration = stable environment
     - Skew (0-10): Positive put skew = premium to harvest; 7-12 sweet spot
     """
+    # If no reliable IV data, return NO DATA immediately
+    if surface.iv.iv_current is None:
+        ts_points = [
+            {"tenor_label": p.tenor_label, "tenor_days": p.tenor_days, "iv": p.iv}
+            for p in surface.term_structure.points
+        ]
+        skew_pts = [
+            {"delta": p.delta, "iv": p.iv, "type": p.contract_type}
+            for p in surface.skew.points
+        ]
+        return ScoredOpportunity(
+            ticker=surface.ticker,
+            name=name,
+            sector=sector,
+            price=round(surface.price, 2),
+            iv_current=None,
+            iv_rank=surface.iv.iv_rank,
+            iv_percentile=surface.iv.iv_percentile,
+            rv10=surface.rv.rv10,
+            rv20=surface.rv.rv20,
+            rv30=surface.rv.rv30,
+            vrp=surface.vrp,
+            vrp_ratio=surface.vrp_ratio,
+            rv_acceleration=surface.rv.rv_acceleration,
+            term_slope=surface.term_structure.slope,
+            is_contango=surface.term_structure.is_contango,
+            skew_25d=surface.skew.skew_25d,
+            signal_score=0,
+            regime="NORMAL",
+            recommendation="NO DATA",
+            flags=list(surface.low_confidence_flags),
+            suggested_delta="N/A",
+            suggested_structure="No position \u2014 insufficient data quality",
+            suggested_dte="N/A",
+            suggested_max_notional="0%",
+            term_structure_points=ts_points,
+            skew_points=skew_pts,
+        )
+
     score = 0.0
     flags = list(surface.low_confidence_flags)  # carry forward liquidity warnings
     regime = "NORMAL"
@@ -165,6 +204,12 @@ def score_opportunity(
         if regime != "DANGER":
             regime = "CAUTION"
         flags.append("Extreme IV + rising RV — potential regime shift, not just fear")
+
+    # ── Negative VRP Gate ────────────────────────────
+    # When realized vol exceeds implied, there is zero premium edge.
+    # Cap score below CONDITIONAL threshold regardless of other metrics.
+    if surface.vrp < 0:
+        score = min(score, 44)
 
     # ── Clamp score ───────────────────────────────────
     score = max(0, min(100, int(score)))
