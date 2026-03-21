@@ -260,22 +260,24 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
             historical_ivs=historical_ivs,
         )
 
-        # 6. Store today's IV for future rank computation
-        store_daily_iv(
-            ticker=ticker,
-            atm_iv=surface.iv.iv_current,
-            rv30=surface.rv.rv30,
-            vrp=surface.vrp,
-            term_slope=surface.term_structure.slope,
-        )
+        # 6. Store today's IV for future rank computation (skip if no reliable IV)
+        if surface.iv.iv_current is not None:
+            store_daily_iv(
+                ticker=ticker,
+                atm_iv=surface.iv.iv_current,
+                rv30=surface.rv.rv30,
+                vrp=surface.vrp,
+                term_slope=surface.term_structure.slope,
+            )
 
         # 7. Persist to CSV files (daily metrics + option quotes)
         trading_date = bars[-1].date  # latest bar = most recent trading day
-        append_daily_csv(
-            ticker, trading_date, snapshot.price,
-            surface.iv.iv_current, surface.rv.rv30,
-            surface.vrp, surface.term_structure.slope,
-        )
+        if surface.iv.iv_current is not None:
+            append_daily_csv(
+                ticker, trading_date, snapshot.price,
+                surface.iv.iv_current, surface.rv.rv30,
+                surface.vrp, surface.term_structure.slope,
+            )
         append_quotes_csv(ticker, trading_date, contracts, snapshot.price)
 
         return {

@@ -5,7 +5,7 @@ export interface DashboardTicker {
   name: string;
   sector: string;
   price: number;
-  iv: number;
+  iv: number | null;
   rv30: number;
   rv10: number;
   termSlope: number;
@@ -16,14 +16,14 @@ export interface DashboardTicker {
   earningsDTE?: number | null;
   isEtf: boolean;
   // Derived
-  vrp: number;
+  vrp: number | null;
   rvAccel: number;
   ivPct: number;
   thetaVega?: number;
   earningsWarning?: boolean;
   // Scored
   score: number;
-  action: 'SELL' | 'CONDITIONAL' | 'NO EDGE' | 'AVOID' | 'SKIP';
+  action: 'SELL' | 'CONDITIONAL' | 'NO EDGE' | 'AVOID' | 'SKIP' | 'NO DATA';
   actionReason: string | null;
   preGateScore?: number;  // Score computed before earnings gate (display-only, present only when gated and > 0)
   sizing?: string;
@@ -70,14 +70,14 @@ export interface TickerResult {
   name: string;
   sector: string;
   price: number;
-  iv_current: number;
+  iv_current: number | null;
   iv_rank: number;
   iv_percentile: number;
   rv10: number;
   rv20: number;
   rv30: number;
-  vrp: number;
-  vrp_ratio: number;
+  vrp: number | null;
+  vrp_ratio: number | null;
   rv_acceleration: number;
   term_slope: number;
   is_contango: boolean;

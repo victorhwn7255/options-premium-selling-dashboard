@@ -11,6 +11,7 @@ function mapRecommendation(rec: string): DashboardTicker['action'] {
     case 'CONDITIONAL': return 'CONDITIONAL';
     case 'AVOID': return 'AVOID';
     case 'REDUCE SIZE': return 'AVOID';
+    case 'NO DATA': return 'NO DATA';
     default: return 'NO EDGE';
   }
 }
@@ -46,7 +47,7 @@ export function convertApiTicker(t: TickerResult): DashboardTicker {
     name: t.name,
     sector: t.sector,
     price: t.price,
-    iv: t.iv_current,
+    iv: t.iv_current ?? null,
     rv30: t.rv30,
     rv10: t.rv10,
     termSlope: t.term_slope,
@@ -56,7 +57,7 @@ export function convertApiTicker(t: TickerResult): DashboardTicker {
     atr14: t.atr14 ?? undefined,
     earningsDTE,
     isEtf: t.is_etf ?? false,
-    vrp: t.vrp,
+    vrp: t.vrp ?? null,
     rvAccel,
     ivPct: t.iv_percentile,
     thetaVega,

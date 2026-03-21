@@ -23,14 +23,14 @@ class TickerResult(BaseModel):
     name: str
     sector: str
     price: float
-    iv_current: float
+    iv_current: Optional[float]
     iv_rank: float
     iv_percentile: float
     rv10: float
     rv20: float
     rv30: float
-    vrp: float
-    vrp_ratio: float
+    vrp: Optional[float]
+    vrp_ratio: Optional[float]
     rv_acceleration: float
     term_slope: float
     is_contango: bool

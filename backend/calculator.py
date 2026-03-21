@@ -28,7 +28,7 @@ class RealizedVol:
 
 @dataclass
 class ImpliedVolMetrics:
-    iv_current: float        # ATM 30-day IV
+    iv_current: Optional[float]  # ATM 30-day IV (None = insufficient liquid contracts)
     iv_rank: float           # 0-100, percentile rank vs trailing 252 days
     iv_percentile: float     # 0-100, % of days IV was below current
     iv_30d_ago: Optional[float] = None
@@ -74,8 +74,8 @@ class VolSurface:
     iv: ImpliedVolMetrics
     term_structure: TermStructure
     skew: VolSkew
-    vrp: float               # IV current - RV30
-    vrp_ratio: float          # IV current / RV30
+    vrp: Optional[float]      # IV current - RV30 (None when IV unavailable)
+    vrp_ratio: Optional[float] # IV current / RV30 (None when IV unavailable)
     low_confidence_flags: list[str] = field(default_factory=list)
 
 
@@ -92,16 +92,51 @@ def _bsm_delta(spot: float, strike: float, iv: float, dte: int, is_put: bool) ->
 
 # ── Liquidity Filter ──────────────────────────────────
 MAX_SPREAD_RATIO = 0.50  # reject contracts with spread > 50% of mid
+MAX_IV = 2.0  # 200% annualized — anything above is data error
+MAX_IV_NO_QUOTES = 1.0  # 100% ceiling for contracts with no bid/ask (likely stale theoretical values)
+MIN_ATM_CONTRACTS = 3  # minimum liquid contracts in ATM bucket to trust IV computation
+
+
+def _count_atm_contracts(
+    contracts: list[OptionContract],
+    spot_price: float,
+    target_dte: int = 30,
+    dte_tolerance: int = 10,
+) -> int:
+    """Count contracts in the ATM bucket near the target DTE."""
+    today = date.today()
+    atm_range = spot_price * 0.03
+    count = 0
+    for c in contracts:
+        if abs(c.strike - spot_price) > atm_range:
+            continue
+        if c.implied_volatility is None or c.implied_volatility <= 0:
+            continue
+        try:
+            exp_date = datetime.strptime(c.expiration, "%Y-%m-%d").date()
+            dte = (exp_date - today).days
+            if dte > 0 and abs(dte - target_dte) <= dte_tolerance:
+                count += 1
+        except ValueError:
+            continue
+    return count
 
 
 def filter_liquid_contracts(contracts: list[OptionContract]) -> list[OptionContract]:
     """
     Reject illiquid contracts: bid == 0 or (ask - bid) / mid > 50%.
+    Also reject contracts with IV > 500% (garbage data from API).
     Contracts without bid/ask data are kept (can't evaluate liquidity).
     """
     result = []
     for c in contracts:
+        # Reject garbage IV
+        if c.implied_volatility is not None and c.implied_volatility > MAX_IV:
+            continue
         if c.bid is None or c.ask is None:
+            # Stricter IV ceiling for quote-less contracts — no live market validation
+            if c.implied_volatility is not None and c.implied_volatility > MAX_IV_NO_QUOTES:
+                continue
             result.append(c)
             continue
         if c.bid <= 0:
@@ -219,13 +254,15 @@ def compute_atm_iv(
                     weight = (target_dte - best_dte) / (next_dte - best_dte)
                     weight = max(0, min(1, weight))
                     iv = iv * (1 - weight) + next_iv * weight
-            return round(iv, 2)
+            result = round(iv, 2)
+            return result if result <= 200.0 else None
 
     # Fallback: just use the closest
     for exp, dte in sorted_expiries[:3]:
         iv = _atm_iv_at_expiry(exp)
         if iv is not None:
-            return round(iv, 2)
+            result = round(iv, 2)
+            return result if result <= 200.0 else None
 
     return None
 
@@ -366,9 +403,14 @@ def compute_term_structure(
 
         nearest_strike = min(near_atm, key=lambda c: abs(c.strike - spot_price)).strike
         at_strike = [c for c in near_atm if c.strike == nearest_strike]
+        if len(at_strike) < 2:
+            continue  # Need both put and call for reliable ATM IV at this expiry
         ivs = [c.implied_volatility * 100 for c in at_strike if c.implied_volatility]
         if ivs:
-            expiry_ivs.append((dte, np.mean(ivs)))
+            mean_iv = np.mean(ivs)
+            if mean_iv > 200.0:
+                continue  # Skip expiry with implausible ATM IV
+            expiry_ivs.append((dte, mean_iv))
 
     expiry_ivs.sort(key=lambda x: x[0])
 
@@ -451,6 +493,9 @@ def compute_skew(
     puts = [c for c in chain if c.contract_type == "put" and c.implied_volatility and c.implied_volatility > 0]
     calls = [c for c in chain if c.contract_type == "call" and c.implied_volatility and c.implied_volatility > 0]
 
+    if len(puts) + len(calls) < 2:
+        return VolSkew(points=[], skew_25d=0, put_skew_slope=0, call_skew_slope=0)
+
     points = []
 
     for c in puts:
@@ -494,6 +539,7 @@ def compute_skew(
         put_25d_iv = np.mean([p.iv for p in near_25_puts])
 
     skew_25d = round(put_25d_iv - atm_iv, 2) if (put_25d_iv and atm_iv) else 0
+    skew_25d = max(-30, min(30, skew_25d))  # Clamp to physically plausible range
 
     # Simple slope computation
     put_slope = 0
@@ -537,18 +583,26 @@ def build_vol_surface(
     # Apply liquidity filter — reject bid=0 and wide-spread contracts
     filtered = filter_liquid_contracts(contracts)
     low_confidence_flags: list[str] = []
-    removed = len(contracts) - len(filtered)
 
-    # ATM IV — try filtered, fall back to unfiltered
+    # Count liquid contracts in ATM bucket at target DTE
+    atm_count = _count_atm_contracts(filtered, spot_price, target_dte=30, dte_tolerance=10)
+
+    # ATM IV — only fall back to unfiltered if enough liquid ATM contracts exist
     iv_current = compute_atm_iv(filtered, spot_price, target_dte=30)
-    if iv_current is None and removed > 0:
-        iv_current = compute_atm_iv(contracts, spot_price, target_dte=30)
-        if iv_current is not None:
-            low_confidence_flags.append("ATM IV from low-liquidity contracts")
     if iv_current is None:
-        iv_current = rv.rv30  # Fallback — shouldn't happen with good data
+        if atm_count >= MIN_ATM_CONTRACTS:
+            # Enough liquid contracts but compute still failed — try unfiltered as last resort
+            iv_current = compute_atm_iv(contracts, spot_price, target_dte=30)
+            if iv_current is not None:
+                low_confidence_flags.append("ATM IV from low-liquidity contracts")
+        else:
+            # Not enough liquid contracts — refuse to produce garbage
+            low_confidence_flags.append("Insufficient liquid contracts \u2014 no reliable IV")
 
-    iv_rank, iv_pct = compute_iv_rank(iv_current, historical_ivs)
+    if iv_current is not None:
+        iv_rank, iv_pct = compute_iv_rank(iv_current, historical_ivs)
+    else:
+        iv_rank, iv_pct = 50.0, 50.0  # Defaults when no reliable IV
 
     iv_metrics = ImpliedVolMetrics(
         iv_current=iv_current,
@@ -556,24 +610,19 @@ def build_vol_surface(
         iv_percentile=iv_pct,
     )
 
-    # Term structure — try filtered, fall back to unfiltered
+    # Term structure — filtered only, no unfiltered fallback
     term_structure = compute_term_structure(filtered, spot_price)
-    if len(term_structure.points) < 2 and removed > 0:
-        ts_unfiltered = compute_term_structure(contracts, spot_price)
-        if len(ts_unfiltered.points) >= 2:
-            term_structure = ts_unfiltered
-            low_confidence_flags.append("Term structure from low-liquidity contracts")
 
-    # Skew — try filtered, fall back to unfiltered
+    # Skew — filtered only, no unfiltered fallback
     skew = compute_skew(filtered, spot_price)
-    if len(skew.points) < 2 and removed > 0:
-        skew_unfiltered = compute_skew(contracts, spot_price)
-        if len(skew_unfiltered.points) >= 2:
-            skew = skew_unfiltered
-            low_confidence_flags.append("Skew from low-liquidity contracts")
 
-    vrp = round(iv_current - rv.rv30, 2)
-    vrp_ratio = round(iv_current / rv.rv30, 3) if rv.rv30 > 0 else 1.0
+    # VRP
+    if iv_current is not None:
+        vrp = round(iv_current - rv.rv30, 2)
+        vrp_ratio = round(iv_current / rv.rv30, 3) if rv.rv30 > 0 else 1.0
+    else:
+        vrp = None
+        vrp_ratio = None
 
     return VolSurface(
         ticker=ticker,

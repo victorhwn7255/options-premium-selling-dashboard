@@ -13,13 +13,12 @@ const REGIME_DATA = [
     regime: 'OFF SEASON',
     tagline: "Game's out of reach — sit on the bench, protect your capital",
     colorToken: 'error' as const,
-    triggerLogic: 'either condition',
+    triggerLogic: 'threshold',
     triggers: [
-      { metric: 'Term Slope', value: '> 1.02 (backwardation)' },
-      { metric: 'Backwardation Count', value: '≥ 3 tickers' },
+      { metric: 'DANGER Ratio', value: '> 40% of eligible tickers' },
     ],
     explanation: [
-      "The volatility term structure is inverted — front-month implied volatility exceeds back-month, meaning the market expects more turbulence now than later. This typically happens during broad selloffs, macro shocks, or cascading uncertainty (tariff escalations, credit events, pandemic scares). Multiple tickers are showing the same pattern, confirming this isn't a single-name event — it's systemic.",
+      "More than 40% of tickers have flipped to DANGER regime — deep backwardation (term slope > 1.15) or extreme IV with rising RV. This isn't a single-name event; it's systemic stress across the universe. This typically happens during broad selloffs, macro shocks, or cascading uncertainty (tariff escalations, credit events, pandemic scares).",
       "Premium selling in backwardation is like picking up pennies in front of a bulldozer that's already moving. The options market is telling you that realized volatility will likely exceed implied — meaning you'll collect less premium than the losses your short options generate.",
     ],
     dos: [
@@ -50,14 +49,13 @@ const REGIME_DATA = [
     regime: 'REGULAR SEASON',
     tagline: 'Every possession counts — play tight, no turnovers',
     colorToken: 'warning' as const,
-    triggerLogic: 'either condition',
+    triggerLogic: 'threshold',
     triggers: [
-      { metric: 'RV Accel', value: '> 1.12' },
-      { metric: 'Backwardation Count', value: '≥ 1 ticker' },
+      { metric: 'Stress Ratio', value: '> 25% of tickers in DANGER or CAUTION' },
     ],
     explanation: [
-      'The market is playable but stressed. Either short-term realized volatility is accelerating (recent moves are bigger than the trailing average) or at least one ticker has flipped into backwardation — an early warning that broader stress may be building.',
-      "Think of it as the fourth quarter of a tight playoff game. You can still score, but every play needs to be high-percentage. No hero ball. This is where defined-risk structures (spreads, iron condors) earn their keep — they cap your downside if the regime deteriorates to Garbage Time.",
+      'The market is playable but stressed. More than a quarter of tickers are showing caution or danger signals — backwardation, extreme IV with rising RV, or both. This is an early warning that broader stress may be building.',
+      "Think of it as the fourth quarter of a tight playoff game. You can still score, but every play needs to be high-percentage. No hero ball. This is where defined-risk structures (spreads, iron condors) earn their keep — they cap your downside if the regime deteriorates to Off Season.",
     ],
     dos: [
       'Use defined-risk only — credit spreads, iron condors, iron butterflies',
@@ -88,15 +86,14 @@ const REGIME_DATA = [
     regime: 'THE PLAYOFFS',
     tagline: "Running your sets — nothing weird, execute the playbook",
     colorToken: 'secondary' as const,
-    triggerLogic: 'all conditions (default)',
+    triggerLogic: 'default (no other regime triggers)',
     triggers: [
-      { metric: 'Term Slope', value: '≤ 1.02 (contango)' },
-      { metric: 'RV Accel', value: '≤ 1.12' },
-      { metric: 'Backwardation Count', value: '= 0' },
-      { metric: 'Not favorable', value: 'VRP < 8 or slope ≥ 0.90' },
+      { metric: 'DANGER Ratio', value: '≤ 40%' },
+      { metric: 'Stress Ratio', value: '≤ 25%' },
+      { metric: 'Not THE FINALS', value: 'VRP < 8 or slope ≥ 0.90' },
     ],
     explanation: [
-      "Normal conditions. The volatility term structure is in contango (back months more expensive than front months, as expected), realized vol isn't spiking, and no individual tickers are flashing warnings. The VRP exists but isn't unusually wide.",
+      "Normal conditions. Most tickers are in NORMAL regime — term structures in contango, realized vol stable, no systemic stress signals. The VRP exists but isn't unusually wide.",
       'This is where you spend most of your time as a premium seller — roughly 60-70% of trading days. Run your standard playbook: sell premium on high-scoring tickers at normal sizing, using whatever structures your system calls for. Nothing to get excited about, nothing to worry about.',
     ],
     dos: [
@@ -130,8 +127,8 @@ const REGIME_DATA = [
     colorToken: 'accent' as const,
     triggerLogic: 'both required',
     triggers: [
-      { metric: 'Avg VRP', value: '> 8 vol points' },
-      { metric: 'Term Slope', value: '< 0.90 (deep contango)' },
+      { metric: 'Avg VRP', value: '> 8 vol points (universe average)' },
+      { metric: 'Avg Term Slope', value: '< 0.90 (deep contango)' },
     ],
     explanation: [
       "This is the sweet spot. The options market is significantly overpricing future volatility relative to what's actually being realized — and the term structure confirms it with deep contango. The variance risk premium is fat and the market structure supports harvesting it.",
