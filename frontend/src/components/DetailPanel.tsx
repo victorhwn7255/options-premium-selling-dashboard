@@ -8,7 +8,6 @@ import {
 } from 'recharts';
 import type { DashboardTicker, VolHistoryPoint, TermStructurePoint2, TickerDelta } from '@/lib/types';
 import { fetchTickerHistory } from '@/lib/api';
-import { useCssColors } from '@/hooks/useCssColors';
 
 interface DetailPanelProps {
   ticker: DashboardTicker | null;
@@ -18,20 +17,19 @@ interface DetailPanelProps {
 /* -- Chart tooltip ---------------------------------------- */
 
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
-  const colors = useCssColors();
   if (!active || !payload?.length) return null;
 
   return (
     <div
-      className="rounded-md px-3 py-2 font-primary text-xs shadow-lg"
-      style={{ background: colors.text, color: colors.textInverse, lineHeight: 1.6 }}
+      className="px-3 py-2 font-mono text-xs bg-black text-white"
+      style={{ lineHeight: 1.6 }}
     >
       <div className="font-semibold mb-0.5">{label}</div>
       {payload.map((p, i) => (
         <div key={i} className="flex items-center gap-1.5">
-          <div className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: p.color }} />
+          <div className="w-[7px] h-[7px] shrink-0" style={{ background: p.color }} />
           <span style={{ opacity: 0.7 }}>{p.name}:</span>
-          <span className="font-mono text-xs" style={{ color: 'var(--color-txt-inverse)' }}>
+          <span className="font-mono text-xs text-white">
             {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}
           </span>
         </div>
@@ -43,39 +41,36 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
 /* -- Action chip ------------------------------------------ */
 
 function ActionChip({ action, reason }: { action: string; reason: string | null }) {
-  const configs: Record<string, { bgClass: string; colorStyle: string; borderClass: string; label: string }> = {
+  const configs: Record<string, { className: string; label: string }> = {
     SELL: {
-      bgClass: 'bg-success-subtle', colorStyle: 'var(--color-badge-sell)',
-      borderClass: 'border-success-30', label: 'SELL PREMIUM',
+      className: 'bg-black text-white font-mono text-xs font-medium uppercase tracking-widest px-3 py-1',
+      label: 'SELL PREMIUM',
     },
     CONDITIONAL: {
-      bgClass: 'bg-warning-subtle', colorStyle: 'var(--color-badge-reduce)',
-      borderClass: 'border-warning-30', label: 'CONDITIONAL',
+      className: 'border border-black text-black font-mono text-xs font-medium uppercase tracking-widest px-3 py-1',
+      label: 'CONDITIONAL',
     },
     'NO EDGE': {
-      bgClass: 'bg-surface-alt', colorStyle: 'var(--color-txt-tertiary)',
-      borderClass: 'border-border-subtle', label: 'NO EDGE',
+      className: 'text-[#525252] font-mono text-xs font-medium uppercase tracking-widest',
+      label: 'NO EDGE',
     },
     AVOID: {
-      bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
-      borderClass: 'border-error-20', label: 'AVOID',
+      className: 'bg-black text-white font-mono text-xs font-medium uppercase tracking-widest px-3 py-1 border-l-4 border-white',
+      label: 'AVOID',
     },
     SKIP: {
-      bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
-      borderClass: 'border-error-20', label: reason || 'SKIP',
+      className: 'text-[#525252] font-mono text-xs font-medium uppercase tracking-widest line-through',
+      label: reason || 'SKIP',
     },
     'NO DATA': {
-      bgClass: 'bg-surface-alt', colorStyle: 'var(--color-txt-tertiary)',
-      borderClass: 'border-border-subtle', label: 'NO DATA',
+      className: 'text-[#525252] font-mono text-xs font-medium uppercase tracking-widest',
+      label: 'NO DATA',
     },
   };
   const c = configs[action] || configs['NO EDGE'];
 
   return (
-    <span
-      className={`inline-flex items-center px-3 py-1 rounded-full font-primary text-2xs font-semibold tracking-wide border ${c.bgClass} ${c.borderClass} whitespace-nowrap`}
-      style={{ color: c.colorStyle }}
-    >
+    <span className={`inline-flex items-center whitespace-nowrap ${c.className}`}>
       {c.label}
     </span>
   );
@@ -86,13 +81,7 @@ function SizingChip({ sizing }: { sizing?: string }) {
   const isHalf = sizing === 'Half';
 
   return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${
-        isHalf
-          ? 'text-warning bg-warning-subtle border-warning-30'
-          : 'text-error bg-error-subtle border-error-20'
-      }`}
-    >
+    <span className={`inline-flex items-center font-mono text-xs font-medium uppercase ${isHalf ? 'text-[#525252]' : 'text-[#525252] italic'}`}>
       &darr; {sizing}
     </span>
   );
@@ -101,7 +90,6 @@ function SizingChip({ sizing }: { sizing?: string }) {
 /* -- Main component --------------------------------------- */
 
 export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
-  const colors = useCssColors();
 
   // Fetch vol history from API
   const [volHistory, setVolHistory] = useState<VolHistoryPoint[]>([]);
@@ -142,8 +130,8 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
   // Empty state
   if (!ticker) {
     return (
-      <div className="bg-surface rounded-lg border border-dashed border-border-strong px-6 py-12 text-center">
-        <p className="text-sm text-txt-tertiary">
+      <div className="bg-white border border-dashed border-black px-6 py-12 text-center">
+        <p className="text-sm text-[#525252] font-body">
           Select a ticker to view trade construction
         </p>
       </div>
@@ -198,52 +186,43 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
     },
   ];
 
-  const chartAxisStyle = { fontSize: 9, fontFamily: "'JetBrains Mono', monospace", fill: colors.textTertiary };
+  const chartAxisStyle = { fontSize: 11, fontFamily: "'JetBrains Mono', monospace", fill: '#525252' };
 
   return (
     <div
-      className="bg-surface rounded-lg border border-border overflow-hidden"
-      style={{ borderTop: `3px solid ${isSkipped || isAvoided ? colors.error : isNoData ? colors.textTertiary : colors.primary}` }}
+      className="bg-white border border-black overflow-hidden"
+      style={{ borderTop: '4px solid #000000' }}
     >
       {/* Header */}
-      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
+      <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E5E5E5]">
         <div className="flex justify-between items-start flex-wrap gap-3">
           <div>
             <div className="flex items-baseline gap-2.5">
-              <span className="font-secondary text-lg sm:text-[22px] font-medium text-txt">{ticker.sym}</span>
-              <span className="text-sm text-txt-tertiary">{ticker.name}</span>
+              <span className="font-display text-3xl sm:text-4xl font-bold text-black tracking-tight">{ticker.sym}</span>
+              <span className="text-lg text-[#525252] font-body">{ticker.name}</span>
             </div>
             <div className="flex gap-2 mt-2 flex-wrap items-center">
               <ActionChip action={ticker.action} reason={ticker.actionReason} />
               <SizingChip sizing={ticker.sizing} />
               {ticker.regime !== 'NORMAL' && (
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-primary text-2xs font-semibold tracking-wide border ${
-                    ticker.regime === 'DANGER'
-                      ? 'bg-error-subtle border-error-20'
-                      : 'bg-warning-subtle border-warning-30'
-                  }`}
-                  style={{ color: ticker.regime === 'DANGER' ? 'var(--color-error)' : 'var(--color-warning)' }}
-                >
+                <span className="bg-black text-white font-mono text-[10px] font-medium uppercase tracking-widest px-2 py-0.5">
                   {ticker.regime}
                 </span>
               )}
-              <span className="text-2xs text-txt-tertiary px-2.5 py-0.5 rounded-full bg-bg-alt border border-border-subtle">
+              <span className="font-mono text-[10px] text-[#525252] uppercase tracking-widest px-2.5 py-0.5 border border-[#E5E5E5]">
                 {ticker.sector}
               </span>
             </div>
           </div>
-          <span className="font-mono text-xl sm:text-[26px] font-semibold text-txt">
+          <span className="font-mono text-xl sm:text-[26px] font-semibold text-black">
             ${ticker.price.toFixed(2)}
           </span>
         </div>
       </div>
 
       {/* 2x4 metrics grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 border-b border-border-subtle">
+      <div className="grid grid-cols-2 md:grid-cols-4 border-b border-[#E5E5E5]">
         {metricsGrid.map((m, i) => {
-          // Mobile (2-col): right border on left column, bottom border except last row
-          // Desktop (4-col): right border except every 4th, bottom border first row only
           const borderCls = [
             i % 2 === 0 ? 'border-r' : '',
             i % 2 !== 0 && i % 4 !== 3 ? 'md:border-r' : '',
@@ -253,22 +232,20 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
           return (
           <div
             key={m.label}
-            className={`px-3 sm:px-5 py-3 sm:py-4 border-border-subtle ${borderCls}`}
+            className={`px-3 sm:px-5 py-3 sm:py-4 border-[#E5E5E5] ${borderCls} hover:border-black transition-colors duration-100`}
           >
-            <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
+            <span className="font-mono text-[10px] font-semibold text-[#525252] tracking-widest uppercase">
               {m.label}
             </span>
             <div className="mt-1">
               <span
-                className="font-mono text-lg font-semibold"
-                style={{ color: m.warn ? colors.error : m.highlight ? colors.secondary : colors.text }}
+                className={`font-mono text-lg font-semibold text-black ${m.warn ? 'font-bold italic underline decoration-2 decoration-black' : m.highlight ? 'font-bold' : ''}`}
               >
                 {m.value}
               </span>
             </div>
             <div
-              className="text-2xs mt-0.5"
-              style={{ color: m.warn ? colors.error : colors.textTertiary }}
+              className={`text-2xs mt-0.5 font-mono ${m.warn ? 'font-bold italic text-black' : 'text-[#525252]'}`}
             >
               {m.sub}
             </div>
@@ -279,14 +256,14 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
 
       {/* Day-over-Day Comparison */}
       {delta ? (
-        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
-          <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block mb-3">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E5E5E5]">
+          <span className="font-mono text-[10px] font-semibold text-[#525252] tracking-widest uppercase block mb-3">
             Day-over-Day
           </span>
           <div className="grid grid-cols-[auto_1fr_1fr] gap-x-4 gap-y-1.5 font-mono text-sm">
-            <span className="text-2xs text-txt-tertiary font-primary font-semibold uppercase tracking-wider">Metric</span>
-            <span className="text-2xs text-txt-tertiary font-primary font-semibold uppercase tracking-wider text-right">Today</span>
-            <span className="text-2xs text-txt-tertiary font-primary font-semibold uppercase tracking-wider text-right">Change</span>
+            <span className="text-2xs text-[#525252] font-mono font-semibold uppercase tracking-wider">Metric</span>
+            <span className="text-2xs text-[#525252] font-mono font-semibold uppercase tracking-wider text-right">Today</span>
+            <span className="text-2xs text-[#525252] font-mono font-semibold uppercase tracking-wider text-right">Change</span>
             {[
               { label: 'Score', today: String(ticker.score), change: delta.score, precision: 0, invertColor: false },
               { label: 'VRP', today: ticker.vrp != null ? ticker.vrp.toFixed(1) : 'N/A', change: delta.vrp, precision: 1, invertColor: false },
@@ -299,35 +276,36 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
               const changeStr = row.change != null
                 ? `${row.change > 0 ? '+' : ''}${row.change.toFixed(row.precision)}`
                 : '--';
-              const changeColor = row.change == null ? 'text-txt-tertiary'
-                : row.change === 0 ? 'text-txt-tertiary'
-                : (row.invertColor ? row.change < 0 : row.change > 0) ? 'text-secondary'
-                : 'text-error';
+              // Monochrome emphasis: favorable = normal, unfavorable = bold, neutral = muted
+              const changeClass = row.change == null ? 'text-[#525252]'
+                : row.change === 0 ? 'text-[#525252]'
+                : (row.invertColor ? row.change < 0 : row.change > 0) ? 'text-black'
+                : 'text-black font-bold';
               return (
                 <React.Fragment key={row.label}>
-                  <span className="text-txt-secondary text-xs">{row.label}</span>
-                  <span className="text-txt text-right">{row.today}</span>
-                  <span className={`text-right ${changeColor}`}>{changeStr}</span>
+                  <span className="text-[#525252] text-xs">{row.label}</span>
+                  <span className="text-black text-right">{row.today}</span>
+                  <span className={`text-right ${changeClass}`}>{changeStr}</span>
                 </React.Fragment>
               );
             })}
-            <span className="text-txt-secondary text-xs">Regime</span>
-            <span className="text-txt text-right">{ticker.regime}</span>
-            <span className={`text-right ${delta.regime_changed ? 'text-warning' : 'text-txt-tertiary'}`}>
+            <span className="text-[#525252] text-xs">Regime</span>
+            <span className="text-black text-right">{ticker.regime}</span>
+            <span className={`text-right ${delta.regime_changed ? 'text-black font-bold' : 'text-[#525252]'}`}>
               {delta.regime_changed && delta.previous_regime ? `was ${delta.previous_regime}` : '--'}
             </span>
           </div>
         </div>
       ) : (
-        <div className="px-4 sm:px-6 py-3 border-b border-border-subtle">
-          <span className="text-2xs text-txt-tertiary">First scan &mdash; no prior day comparison available</span>
+        <div className="px-4 sm:px-6 py-3 border-b border-[#E5E5E5]">
+          <span className="text-2xs text-[#525252] font-mono">First scan &mdash; no prior day comparison available</span>
         </div>
       )}
 
       {/* Position Construction -- only if actionable */}
       {!isSkipped && !isAvoided && !isNoData && ticker.action !== 'NO EDGE' && (
-        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
-          <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block mb-3">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E5E5E5]">
+          <span className="font-mono text-[10px] font-semibold text-[#525252] tracking-widest uppercase block mb-3">
             Position Construction
           </span>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
@@ -337,11 +315,11 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
               { label: 'DTE', value: suggestDTE },
               { label: 'Sizing', value: suggestSize },
             ].map(item => (
-              <div key={item.label} className="bg-bg-alt rounded-md px-3.5 py-3 border border-border-subtle">
-                <div className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-wider uppercase mb-1">
+              <div key={item.label} className="bg-[#F5F5F5] px-3.5 py-3 border border-[#E5E5E5]">
+                <div className="font-mono text-[10px] font-semibold text-[#525252] tracking-wider uppercase mb-1">
                   {item.label}
                 </div>
-                <div className="font-primary text-xs font-medium text-txt leading-snug">
+                <div className="font-body text-xs font-medium text-black leading-snug">
                   {item.value}
                 </div>
               </div>
@@ -351,7 +329,7 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
           {ticker.flags && ticker.flags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {ticker.flags.map((flag, i) => (
-                <span key={i} className="text-2xs px-2 py-0.5 rounded-full bg-warning-subtle text-warning border border-warning-30">
+                <span key={i} className="text-2xs px-2 py-0.5 border-l-4 border-black bg-[#F5F5F5] font-mono text-black">
                   {flag}
                 </span>
               ))}
@@ -362,13 +340,12 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
 
       {/* Skip reason */}
       {isSkipped && (
-        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
-          <div className="px-4 py-3.5 bg-error-subtle rounded-md border border-error-20 text-xs leading-normal"
-            style={{ color: 'var(--color-error)' }}>
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E5E5E5]">
+          <div className="px-4 py-3.5 border-l-4 border-black bg-[#F5F5F5] text-xs leading-normal font-mono text-black">
             <p><strong>Skipped:</strong> {ticker.actionReason}. No premium selling recommended for this ticker.</p>
             {ticker.preGateScore != null && (
-              <p className="mt-1.5 text-txt-secondary">
-                Score without earnings gate: <span className="font-mono font-semibold">{ticker.preGateScore}</span> — monitor post-earnings
+              <p className="mt-1.5 text-[#525252]">
+                Score without earnings gate: <span className="font-mono font-semibold text-black">{ticker.preGateScore}</span> — monitor post-earnings
               </p>
             )}
           </div>
@@ -377,15 +354,14 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
 
       {/* Avoid warning */}
       {isAvoided && (
-        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
-          <div className="px-4 py-3.5 bg-error-subtle rounded-md border border-error-20 text-xs leading-normal"
-            style={{ color: 'var(--color-error)' }}>
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E5E5E5]">
+          <div className="px-4 py-3.5 bg-black text-white text-xs leading-normal font-mono">
             <p><strong>{ticker.regime === 'DANGER' ? 'Danger regime' : 'Caution regime'}:</strong> Do not sell premium on this ticker. {ticker.regime === 'DANGER' ? 'Deep backwardation or acute stress detected.' : 'Elevated risk — reduce exposure, defined risk only.'}</p>
           </div>
           {ticker.flags && ticker.flags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {ticker.flags.map((flag, i) => (
-                <span key={i} className="text-2xs px-2 py-0.5 rounded-full bg-error-subtle border border-error-20" style={{ color: 'var(--color-error)' }}>
+                <span key={i} className="text-2xs px-2 py-0.5 bg-black text-white font-mono">
                   {flag}
                 </span>
               ))}
@@ -396,14 +372,14 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
 
       {/* No data warning */}
       {isNoData && (
-        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
-          <div className="px-4 py-3.5 bg-surface-alt rounded-md border border-border-subtle text-xs leading-normal text-txt-secondary">
-            <p><strong>Insufficient data:</strong> Not enough liquid contracts to compute reliable IV. Metrics shown may be incomplete or unavailable.</p>
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E5E5E5]">
+          <div className="px-4 py-3.5 bg-[#F5F5F5] border border-[#E5E5E5] text-xs leading-normal text-[#525252] font-mono">
+            <p><strong className="text-black">Insufficient data:</strong> Not enough liquid contracts to compute reliable IV. Metrics shown may be incomplete or unavailable.</p>
           </div>
           {ticker.flags && ticker.flags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {ticker.flags.map((flag, i) => (
-                <span key={i} className="text-2xs px-2 py-0.5 rounded-full bg-surface-alt border border-border-subtle text-txt-tertiary">
+                <span key={i} className="text-2xs px-2 py-0.5 bg-[#F5F5F5] border border-[#E5E5E5] text-[#525252] font-mono">
                   {flag}
                 </span>
               ))}
@@ -413,36 +389,31 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
       )}
 
       {/* Charts -- IV/RV + Term Structure side by side */}
-      <div className="grid grid-cols-1 md:grid-cols-2 border-t border-border-subtle">
+      <div className="grid grid-cols-1 md:grid-cols-2 border-t border-[#E5E5E5]">
         {/* IV/RV Chart */}
-        <div className="px-5 pt-5 pb-4 md:border-r md:border-border-subtle">
-          <div className="mb-3">
-            <span className="font-secondary text-sm font-medium text-txt">IV vs RV — 120 Day</span>
+        <div className="px-5 pt-5 pb-4 md:border-r md:border-[#E5E5E5]">
+          <div className="mb-3 flex items-baseline gap-3">
+            <span className="font-display text-sm font-bold text-black">IV vs RV — 120 Day</span>
+            <span className="font-mono text-[10px] text-[#525252]">— solid &middot; --- dashed</span>
           </div>
           {volHistory.length > 0 ? (
             <div className="w-full h-[150px] sm:h-[180px]">
               <ResponsiveContainer>
                 <ComposedChart data={volHistory} margin={{ top: 5, right: 8, left: -15, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id={`vrpFill-${ticker.sym}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={colors.primary} stopOpacity={0.15} />
-                      <stop offset="100%" stopColor={colors.primary} stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.08)" />
-                  <XAxis dataKey="date" tick={chartAxisStyle} interval={20} axisLine={false} tickLine={false} />
-                  <YAxis tick={chartAxisStyle} domain={['auto', 'auto']} axisLine={false} tickLine={false} />
+                  <CartesianGrid stroke="#E5E5E5" strokeDasharray="1 4" vertical={false} />
+                  <XAxis dataKey="date" tick={chartAxisStyle} interval={20} axisLine={{ stroke: '#000000', strokeWidth: 1 }} tickLine={{ stroke: '#E5E5E5' }} />
+                  <YAxis tick={chartAxisStyle} domain={['auto', 'auto']} axisLine={{ stroke: '#000000', strokeWidth: 1 }} tickLine={false} />
                   <Tooltip content={<ChartTooltip />} />
-                  <Area type="monotone" dataKey="iv" fill={`url(#vrpFill-${ticker.sym})`} stroke="none" />
-                  <Line type="monotone" dataKey="iv" stroke={colors.primary} strokeWidth={2} dot={false} name="IV" />
-                  <Line type="monotone" dataKey="rv" stroke={colors.secondary} strokeWidth={1.5} dot={false} name="RV30" strokeDasharray="4 3" />
-                  <ReferenceLine y={0} stroke={colors.borderStrong} strokeDasharray="3 3" />
+                  <Area type="monotone" dataKey="iv" fill="#000000" fillOpacity={0.05} stroke="none" />
+                  <Line type="monotone" dataKey="iv" stroke="#000000" strokeWidth={2} dot={false} name="IV" />
+                  <Line type="monotone" dataKey="rv" stroke="#000000" strokeWidth={1} dot={false} name="RV30" strokeDasharray="6 4" />
+                  <ReferenceLine y={0} stroke="#000000" strokeDasharray="4 4" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
           ) : (
             <div className="w-full h-[150px] sm:h-[180px] flex items-center justify-center">
-              <p className="text-xs text-txt-tertiary">Collecting history — chart available after first scan</p>
+              <p className="text-xs text-[#525252] font-mono">Collecting history — chart available after first scan</p>
             </div>
           )}
         </div>
@@ -450,12 +421,12 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
         {/* Term Structure */}
         <div className="px-5 pt-5 pb-4">
           <div className="mb-3 flex justify-between items-baseline">
-            <span className="font-secondary text-sm font-medium text-txt">Term Structure</span>
+            <span className="font-display text-sm font-bold text-black">Term Structure</span>
             <span
-              className={`font-mono text-2xs font-medium px-2 py-0.5 rounded-full ${
+              className={`font-mono text-xs font-medium px-2 py-0.5 ${
                 ticker.termSlope < 1
-                  ? 'text-secondary bg-secondary-subtle'
-                  : 'text-error bg-error-subtle'
+                  ? 'border border-black text-black'
+                  : 'bg-black text-white'
               }`}
             >
               {ticker.termSlope < 1 ? 'Contango' : 'Backwardation'}
@@ -465,31 +436,26 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
             <div className="w-full h-[150px] sm:h-[180px]">
               <ResponsiveContainer>
                 <AreaChart data={termStructure} margin={{ top: 5, right: 8, left: -15, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id={`termFill-${ticker.sym}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={colors.accent} stopOpacity={0.15} />
-                      <stop offset="100%" stopColor={colors.accent} stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.08)" />
-                  <XAxis dataKey="label" tick={chartAxisStyle} axisLine={false} tickLine={false} />
-                  <YAxis tick={chartAxisStyle} domain={['auto', 'auto']} axisLine={false} tickLine={false} />
+                  <CartesianGrid stroke="#E5E5E5" strokeDasharray="1 4" vertical={false} />
+                  <XAxis dataKey="label" tick={chartAxisStyle} axisLine={{ stroke: '#000000', strokeWidth: 1 }} tickLine={{ stroke: '#E5E5E5' }} />
+                  <YAxis tick={chartAxisStyle} domain={['auto', 'auto']} axisLine={{ stroke: '#000000', strokeWidth: 1 }} tickLine={false} />
                   <Tooltip content={<ChartTooltip />} />
                   <Area
                     type="monotone"
                     dataKey="iv"
-                    fill={`url(#termFill-${ticker.sym})`}
-                    stroke={colors.accent}
+                    fill="#000000"
+                    fillOpacity={0.05}
+                    stroke="#000000"
                     strokeWidth={2}
                     name="IV %"
-                    dot={{ fill: colors.accent, r: 3 }}
+                    dot={{ fill: '#000000', r: 3 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           ) : (
             <div className="w-full h-[150px] sm:h-[180px] flex items-center justify-center">
-              <p className="text-xs text-txt-tertiary">No term structure data available</p>
+              <p className="text-xs text-[#525252] font-mono">No term structure data available</p>
             </div>
           )}
         </div>

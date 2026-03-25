@@ -132,11 +132,11 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
     : '';
 
   return (
-    <header className="h-[56px] bg-bg border-b border-border sticky top-0 z-30 relative">
+    <header className="h-[56px] bg-white border-b border-black sticky top-0 z-30 relative">
       {/* Logo — pinned to viewport left */}
       <div className="absolute left-4 sm:left-6 top-0 h-[56px] flex items-center gap-2.5">
-        <Image src="/favicon.svg" alt="" width={24} height={24} className="rounded-[5px]" />
-        <span className="font-secondary text-[17px] font-semibold text-txt hidden sm:inline">
+        <Image src="/favicon.svg" alt="" width={24} height={24} />
+        <span className="font-display text-xl font-bold text-black tracking-tight hidden sm:inline">
           Theta Harvest
         </span>
       </div>
@@ -147,13 +147,13 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
         <div className="hidden sm:flex items-center gap-2 ml-44 2xl:ml-0">
           <button
             onClick={onOpenRegimeGuide}
-            className="font-primary text-sm font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-1.5 rounded-md transition-colors duration-fast"
+            className="font-mono text-xs font-medium uppercase tracking-widest text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-[#F5F5F5] px-3 py-1.5 transition-none"
           >
             Explain Market Regime
           </button>
           <button
             onClick={() => setMetricsModalOpen(true)}
-            className="font-primary text-sm font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-1.5 rounded-md transition-colors duration-fast"
+            className="font-mono text-xs font-medium uppercase tracking-widest text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-[#F5F5F5] px-3 py-1.5 transition-none"
           >
             Explain Metrics
           </button>
@@ -162,20 +162,20 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
         {/* Right side */}
         <div className="ml-auto flex items-center gap-2 sm:gap-3.5">
           {/* Market status badge (desktop only) */}
-          <span className={`font-mono text-xs font-medium px-2.5 py-1 rounded-full hidden sm:inline-flex items-center gap-1.5 ${
-            isMarketClosed ? 'text-error bg-error-subtle' : 'text-secondary bg-secondary-subtle'
-          }`}>
-            <span className="relative flex h-2 w-2">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isMarketClosed ? 'bg-error' : 'bg-secondary'}`} />
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${isMarketClosed ? 'bg-error' : 'bg-secondary'}`} />
+          {isMarketClosed ? (
+            <span className="font-mono text-xs font-medium uppercase tracking-widest text-[#525252] hidden sm:inline-flex items-center">
+              CLOSED
             </span>
-            {isMarketClosed ? 'Market Closed' : 'Live Data'}
-          </span>
+          ) : (
+            <span className="font-mono text-xs font-medium uppercase tracking-widest border-b-2 border-black hidden sm:inline-flex items-center">
+              LIVE
+            </span>
+          )}
 
           {/* Scan status (desktop only) */}
           <div className="hidden sm:block">
             {isNonTradingDay && !refreshing ? (
-              <span className="relative group p-1.5 cursor-default" style={{ color: '#d4768a' }}>
+              <span className="relative group p-1.5 cursor-default text-[#525252]">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
@@ -184,7 +184,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                   className="pointer-events-none absolute right-0 top-full mt-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 origin-top-right z-50"
                   style={{ background: 'var(--color-tooltip-bg)', color: 'var(--color-tooltip-text)' }}
                 >
-                  <span className="flex items-start gap-2.5 rounded-lg px-3.5 py-2.5 shadow-lg whitespace-nowrap" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
+                  <span className="flex items-start gap-2.5 px-3.5 py-2.5 whitespace-nowrap">
                     <span className="flex flex-col gap-0.5">
                       <span className="text-2xs font-medium" style={{ color: 'var(--color-tooltip-text)' }}>Market closed</span>
                       <span className="text-2xs" style={{ color: 'var(--color-tooltip-label)' }}>Showing data from {scannedAtFormatted}</span>
@@ -193,7 +193,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                 </span>
               </span>
             ) : isFresh && !refreshing ? (
-              <span className="relative group p-1.5 rounded-md text-secondary cursor-default">
+              <span className="relative group p-1.5 text-black cursor-default">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
@@ -202,8 +202,8 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                   className="pointer-events-none absolute right-0 top-full mt-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 origin-top-right z-50"
                   style={{ background: 'var(--color-tooltip-bg)', color: 'var(--color-tooltip-text)' }}
                 >
-                  <span className="flex items-start gap-2.5 rounded-lg px-3.5 py-2.5 shadow-lg whitespace-nowrap" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
-                    <svg className="w-3.5 h-3.5 mt-0.5 shrink-0 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <span className="flex items-start gap-2.5 px-3.5 py-2.5 whitespace-nowrap">
+                    <svg className="w-3.5 h-3.5 mt-0.5 shrink-0 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <span className="flex flex-col gap-0.5">
@@ -214,7 +214,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                 </span>
               </span>
             ) : !isScanWindowOpen && !refreshing ? (
-              <span className="relative group p-1.5 rounded-md cursor-default text-txt-tertiary">
+              <span className="relative group p-1.5 cursor-default text-txt-tertiary">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
@@ -223,7 +223,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                   className="pointer-events-none absolute right-0 top-full mt-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 origin-top-right z-50"
                   style={{ background: 'var(--color-tooltip-bg)', color: 'var(--color-tooltip-text)' }}
                 >
-                  <span className="flex items-start gap-2.5 rounded-lg px-3.5 py-2.5 shadow-lg whitespace-nowrap" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
+                  <span className="flex items-start gap-2.5 px-3.5 py-2.5 whitespace-nowrap">
                     <span className="flex flex-col gap-0.5">
                       <span className="text-2xs font-medium" style={{ color: 'var(--color-tooltip-text)' }}>Fetch available after 6:30 PM ET</span>
                       {scannedAtFormatted && <span className="text-2xs" style={{ color: 'var(--color-tooltip-label)' }}>Showing data from {scannedAtFormatted}</span>}
@@ -236,7 +236,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                 <button
                   onClick={onRefresh}
                   disabled={refreshing}
-                  className="p-1.5 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
+                  className="p-1.5 text-txt-tertiary hover:text-txt hover:bg-[#F5F5F5] transition-colors duration-100 disabled:opacity-50"
                   title="Fetch latest data"
                 >
                   <svg
@@ -259,8 +259,8 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
           {/* Verification status (desktop only) */}
           {verification && (
             <span className="relative group hidden sm:block">
-              <span className={`p-1.5 rounded-md cursor-default inline-flex ${
-                verification.fail_count === 0 ? 'text-secondary' : 'text-warning'
+              <span className={`p-1.5 cursor-default inline-flex ${
+                verification.fail_count === 0 ? 'text-black' : 'text-[#525252]'
               }`}>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.745 3.745 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.745 3.745 0 013.296-1.043A3.745 3.745 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.745 3.745 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z" />
@@ -271,8 +271,8 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                 className="pointer-events-none absolute right-0 top-full mt-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 origin-top-right z-50"
                 style={{ background: 'var(--color-tooltip-bg)', color: 'var(--color-tooltip-text)' }}
               >
-                <span className="flex items-start gap-2.5 rounded-lg px-3.5 py-2.5 shadow-lg whitespace-nowrap" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
-                  <svg className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${verification.fail_count === 0 ? 'text-secondary' : 'text-warning'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <span className="flex items-start gap-2.5 px-3.5 py-2.5 whitespace-nowrap">
+                  <svg className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${verification.fail_count === 0 ? 'text-black' : 'text-[#525252]'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.745 3.745 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.745 3.745 0 013.296-1.043A3.745 3.745 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.745 3.745 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z" />
                   </svg>
                   <span className="flex flex-col gap-0.5">
@@ -300,7 +300,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
             <button
               onClick={onRefreshEarnings}
               disabled={earningsRefreshing || earningsRemaining <= 0}
-              className="p-1.5 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
+              className="p-1.5 text-txt-tertiary hover:text-txt hover:bg-[#F5F5F5] transition-colors duration-100 disabled:opacity-50"
             >
               <svg
                 className={`w-5 h-5 ${earningsRefreshing ? 'animate-spin' : ''}`}
@@ -317,8 +317,8 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
               className="pointer-events-none absolute right-0 top-full mt-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 origin-top-right z-50"
               style={{ background: 'var(--color-tooltip-bg)', color: 'var(--color-tooltip-text)' }}
             >
-              <span className="flex items-start gap-2.5 rounded-lg px-3.5 py-2.5 shadow-lg whitespace-nowrap" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
-                <svg className="w-3.5 h-3.5 mt-0.5 shrink-0 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <span className="flex items-start gap-2.5 px-3.5 py-2.5 whitespace-nowrap">
+                <svg className="w-3.5 h-3.5 mt-0.5 shrink-0 text-[#525252]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
                 <span className="flex flex-col gap-0.5">
@@ -342,7 +342,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
           {/* Hamburger button (mobile only) */}
           <button
             onClick={() => setMenuOpen(v => !v)}
-            className="sm:hidden p-2 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors"
+            className="sm:hidden p-2 text-txt-tertiary hover:text-txt hover:bg-[#F5F5F5] transition-colors duration-100"
           >
             {menuOpen ? (
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -359,48 +359,48 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
 
       {/* Mobile dropdown menu */}
       {menuOpen && (
-        <div className="sm:hidden absolute top-[56px] left-0 right-0 bg-bg border-b border-border shadow-md z-40 px-4 py-3 space-y-3">
+        <div className="sm:hidden absolute top-[56px] left-0 right-0 bg-bg border-b border-border z-40 px-4 py-3 space-y-3">
           {/* Row 1: Text buttons */}
           <div className="flex gap-2">
             <button
               onClick={() => { onOpenRegimeGuide(); setMenuOpen(false); }}
-              className="font-primary text-xs font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-2 rounded-md transition-colors duration-fast"
+              className="font-mono text-xs font-medium uppercase tracking-widest text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-[#F5F5F5] px-3 py-2 transition-none"
             >
               Explain Market Regime
             </button>
             <button
               onClick={() => { setMetricsModalOpen(true); setMenuOpen(false); }}
-              className="font-primary text-xs font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-2 rounded-md transition-colors duration-fast"
+              className="font-mono text-xs font-medium uppercase tracking-widest text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-[#F5F5F5] px-3 py-2 transition-none"
             >
               Explain Metrics
             </button>
           </div>
           {/* Row 2: Status + actions */}
           <div className="flex items-center justify-between">
-            <span className={`font-mono text-2xs font-medium px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 ${
-              isMarketClosed ? 'text-error bg-error-subtle' : 'text-secondary bg-secondary-subtle'
-            }`}>
-              <span className="relative flex h-1.5 w-1.5">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isMarketClosed ? 'bg-error' : 'bg-secondary'}`} />
-                <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isMarketClosed ? 'bg-error' : 'bg-secondary'}`} />
+            {isMarketClosed ? (
+              <span className="font-mono text-2xs font-medium uppercase tracking-widest text-[#525252] inline-flex items-center">
+                CLOSED
               </span>
-              {isMarketClosed ? 'Market Closed' : 'Live Data'}
-            </span>
+            ) : (
+              <span className="font-mono text-2xs font-medium uppercase tracking-widest border-b-2 border-black inline-flex items-center">
+                LIVE
+              </span>
+            )}
             <div className="flex items-center gap-2">
               {isNonTradingDay && !refreshing ? (
-                <span className="p-2 cursor-default" style={{ color: '#d4768a' }}>
+                <span className="p-2 cursor-default text-[#525252]">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
                 </span>
               ) : isFresh && !refreshing ? (
-                <span className="p-2 rounded-md text-secondary cursor-default">
+                <span className="p-2 text-black cursor-default">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </span>
               ) : !isScanWindowOpen && !refreshing ? (
-                <span className="p-2 rounded-md cursor-default text-txt-tertiary">
+                <span className="p-2 cursor-default text-txt-tertiary">
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
@@ -410,7 +410,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                   <button
                     onClick={() => { onRefresh(); setMenuOpen(false); }}
                     disabled={refreshing}
-                    className="p-2 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
+                    className="p-2 text-txt-tertiary hover:text-txt hover:bg-[#F5F5F5] transition-colors duration-100 disabled:opacity-50"
                     title="Fetch latest data"
                   >
                     <svg
@@ -431,7 +431,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
               <button
                 onClick={() => { onRefreshEarnings(); setMenuOpen(false); }}
                 disabled={earningsRefreshing || earningsRemaining <= 0}
-                className="p-2 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
+                className="p-2 text-txt-tertiary hover:text-txt hover:bg-[#F5F5F5] transition-colors duration-100 disabled:opacity-50"
               >
                 <svg
                   className={`w-3.5 h-3.5 ${earningsRefreshing ? 'animate-spin' : ''}`}
@@ -444,7 +444,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                 </svg>
               </button>
               {verification && (
-                <span className={`p-2 cursor-default ${verification.fail_count === 0 ? 'text-secondary' : 'text-warning'}`}>
+                <span className={`p-2 cursor-default ${verification.fail_count === 0 ? 'text-black' : 'text-[#525252]'}`}>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.745 3.745 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.745 3.745 0 013.296-1.043A3.745 3.745 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.745 3.745 0 013.296 1.043 3.745 3.745 0 011.043 3.296A3.745 3.745 0 0121 12z" />
                   </svg>

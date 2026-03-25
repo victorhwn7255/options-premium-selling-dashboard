@@ -11,7 +11,7 @@ export function computeRegime(data: DashboardTicker[]) {
   const eligible = data.filter(d => d.action !== 'SKIP' && d.action !== 'NO DATA');
   if (eligible.length === 0) {
     return {
-      regime: 'THE PLAYOFFS', colorClass: 'text-secondary', borderClass: 'border-l-secondary',
+      regime: 'THE PLAYOFFS', colorClass: 'text-black', borderClass: 'border border-black',
       desc: '', detail: 'All tickers near earnings — insufficient data for regime.',
       avgVRP: 0, avgTermSlope: 0, avgRVAccel: 0,
       tradeableCount: 0, eligibleCount: 0, total: data.length, isHostile: false,
@@ -35,26 +35,26 @@ export function computeRegime(data: DashboardTicker[]) {
 
   if (dangerPct > 0.40) {
     regime = 'OFF SEASON';
-    colorClass = 'text-error';
-    borderClass = 'border-l-error';
+    colorClass = 'text-black';
+    borderClass = 'border-l-0';
     desc = "Game's out of reach — sit on the bench, protect your capital";
     detail = `${dangerPctStr}% of tickers in DANGER regime — systemic stress across the universe. No premium selling today.`;
   } else if (stressPct > 0.25) {
     regime = 'REGULAR SEASON';
-    colorClass = 'text-warning';
-    borderClass = 'border-l-warning';
+    colorClass = 'text-black';
+    borderClass = 'border-l-8 border-black';
     desc = 'Every possession counts — play tight, no turnovers';
     detail = `${stressPctStr}% of tickers are stressed (${dangerCount} DANGER, ${stressCount - dangerCount} CAUTION). Play tight — defined-risk structures only, reduced sizing.`;
   } else if (avgVRP > 8 && avgTermSlope < 0.90) {
     regime = 'THE FINALS';
-    colorClass = 'text-accent';
-    borderClass = 'border-l-accent';
+    colorClass = 'text-black';
+    borderClass = 'border-2 border-black';
     desc = "You're on fire — wide VRP in contango, keep shooting";
     detail = `Avg VRP at ${avgVRP.toFixed(1)} with deep contango — the options market is significantly overpricing volatility. Statistical edge is at its widest.`;
   } else {
     regime = 'THE PLAYOFFS';
-    colorClass = 'text-secondary';
-    borderClass = 'border-l-secondary';
+    colorClass = 'text-black';
+    borderClass = 'border border-black';
     desc = 'Running your sets — nothing weird, execute the playbook';
     detail = `Most tickers in normal regime with stable vol. Run your standard playbook on high-scoring tickers.`;
   }
@@ -79,23 +79,40 @@ export default function RegimeBanner({ data }: RegimeBannerProps) {
     { label: 'Tradeable', value: `${r.tradeableCount}/${r.eligibleCount}`, good: r.tradeableCount > 3 },
   ];
 
+  // Determine container classes based on regime
+  const isHostile = r.regime === 'OFF SEASON';
+  const containerClass = isHostile
+    ? 'bg-black text-white p-4 sm:p-5 sm:px-6'
+    : r.regime === 'REGULAR SEASON'
+      ? 'bg-white border-l-8 border-black p-4 sm:p-5 sm:px-6'
+      : r.regime === 'THE FINALS'
+        ? 'bg-white border-2 border-black p-4 sm:p-5 sm:px-6'
+        : 'bg-white border border-black p-4 sm:p-5 sm:px-6';
+
+  // Regime name extra classes
+  const regimeNameExtra = isHostile
+    ? 'uppercase tracking-tight'
+    : r.regime === 'REGULAR SEASON'
+      ? 'italic'
+      : '';
+
   return (
-    <div className={`bg-surface rounded-lg border border-border border-l-4 ${r.borderClass} p-4 sm:p-5 sm:px-6`}>
+    <div className={containerClass}>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         {/* Left: regime info */}
         <div>
-          <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
+          <span className={`font-mono text-xs font-semibold ${isHostile ? 'text-white/60' : 'text-[#525252]'} tracking-widest uppercase`}>
             Market Regime
           </span>
-          <div className={`font-secondary text-xl sm:text-[26px] font-medium ${r.colorClass} leading-tight mt-1.5`}>
+          <div className={`font-display text-4xl font-bold ${isHostile ? 'text-white' : 'text-black'} leading-tight mt-1.5 ${regimeNameExtra}`}>
             {r.regime}
           </div>
           {r.desc && (
-            <p className={`text-xs font-semibold ${r.colorClass} mt-5`}>
+            <p className={`font-body text-lg text-[#525252] italic mt-5 ${isHostile ? '!text-white/80' : ''}`}>
               {r.desc}
             </p>
           )}
-          <p className="text-xs text-txt-secondary max-w-[480px] leading-relaxed mt-1">
+          <p className={`font-body text-lg text-[#525252] italic max-w-[480px] leading-relaxed mt-1 ${isHostile ? '!text-white/70' : ''}`}>
             {r.detail}
           </p>
         </div>
@@ -104,11 +121,14 @@ export default function RegimeBanner({ data }: RegimeBannerProps) {
         <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:flex sm:gap-7 sm:items-start">
           {metrics.map(m => (
             <div key={m.label} className="text-left sm:text-right">
-              <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
+              <span className={`font-mono text-xs font-semibold ${isHostile ? 'text-white/60' : 'text-[#525252]'} tracking-widest uppercase`}>
                 {m.label}
               </span>
               <div className="mt-0.5">
-                <span className={`font-mono text-xl font-semibold ${m.good ? 'text-txt' : 'text-warning'}`}>
+                <span className={m.good
+                  ? `font-mono text-xl font-semibold ${isHostile ? 'text-white' : 'text-black'}`
+                  : `font-mono text-xl font-bold italic ${isHostile ? 'text-white' : 'text-black'}`
+                }>
                   {m.value}
                 </span>
               </div>
@@ -119,8 +139,7 @@ export default function RegimeBanner({ data }: RegimeBannerProps) {
 
       {/* Hostile alert */}
       {r.isHostile && (
-        <div className="mt-6 px-3.5 py-2.5 bg-error-subtle rounded-md border border-error-20 text-xs leading-normal"
-          style={{ color: 'var(--color-error)' }}>
+        <div className="bg-white text-black border-l-4 border-white px-4 py-3 mt-6 font-mono text-sm">
           No premium selling today. Let&apos;s be disciplined and wait for better days.
         </div>
       )}

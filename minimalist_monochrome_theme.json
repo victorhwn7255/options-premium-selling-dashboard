@@ -1,0 +1,1058 @@
+{
+  "meta": {
+    "name": "Minimalist Monochrome",
+    "version": "1.0.0",
+    "description": "An editorial, luxury-grade design system built on pure black and white with zero accent colors. Typography is the primary visual element — oversized serif headlines function as graphic elements. Depth is achieved through color inversion, border weight variation, and layered subtle textures rather than shadows or gradients. Every corner is sharp, every transition is instant, every decision is deliberate. Inspired by high-end fashion editorials, architectural monographs, and luxury brand identities.",
+    "mood_keywords": [
+      "austere",
+      "authoritative",
+      "timeless",
+      "editorial",
+      "intellectual",
+      "dramatic",
+      "refined",
+      "stark",
+      "confident",
+      "uncompromising"
+    ],
+    "style_references": [
+      "high-end fashion editorial (Vogue, Harper's Bazaar)",
+      "architectural monographs and museum catalogs",
+      "luxury brand identity (Chanel, Celine, Bottega Veneta)",
+      "award-winning book design and fine typography",
+      "gallery exhibition materials",
+      "Bauhaus meets editorial print"
+    ],
+    "anti_patterns": [
+      "colorful or playful",
+      "soft, rounded, or friendly",
+      "gradient-based or with accent colors",
+      "shadow-heavy or elevated",
+      "generic or template-like",
+      "busy or cluttered",
+      "Minimalist Modern with colors removed"
+    ],
+    "success_feels_like": [
+      "opening a high-end fashion magazine",
+      "walking through a modern art gallery",
+      "reading an award-winning architectural monograph",
+      "browsing a luxury brand's website"
+    ],
+    "companion_file": "minimalist_monochrome_design_system.md is the primary implementation guide with prose reasoning and dashboard-specific component mappings. This JSON is the structured token reference. If anything conflicts, follow the MD."
+  },
+
+  "colors": {
+    "background": "#FFFFFF",
+    "foreground": "#000000",
+    "muted": "#F5F5F5",
+    "muted_foreground": "#525252",
+    "accent": "#000000",
+    "accent_foreground": "#FFFFFF",
+    "border": "#000000",
+    "border_light": "#E5E5E5",
+    "card": "#FFFFFF",
+    "card_foreground": "#000000",
+    "ring": "#000000",
+
+    "rule": "No other colors. Ever. The palette is absolute. Black IS the accent.",
+
+    "inverted": {
+      "background": "#000000",
+      "foreground": "#FFFFFF",
+      "muted": "#1A1A1A",
+      "muted_foreground": "#A3A3A3",
+      "border": "#FFFFFF",
+      "border_light": "rgba(255, 255, 255, 0.2)",
+      "card": "#000000",
+      "card_foreground": "#FFFFFF",
+      "ring": "#FFFFFF",
+      "usage": "Use sparingly for emphasis: stats sections, highlighted cards, CTAs, pull quotes"
+    },
+
+    "palette": [
+      "#000000",
+      "#FFFFFF",
+      "#F5F5F5",
+      "#E5E5E5",
+      "#525252"
+    ],
+
+    "dark_mode": {
+      "background": "#000000",
+      "foreground": "#FFFFFF",
+      "muted": "#1A1A1A",
+      "muted_foreground": "#A3A3A3",
+      "border": "#FFFFFF",
+      "border_light": "#333333",
+      "card": "#000000",
+      "card_foreground": "#FFFFFF",
+      "ring": "#FFFFFF",
+      "note": "Full page inversion as dark mode. Maintains monochrome constraint. Applied via [data-theme='dark'] on html element."
+    }
+  },
+
+  "typography": {
+    "font_families": {
+      "display": "'Playfair Display', Georgia, serif",
+      "body": "'Source Serif 4', Georgia, serif",
+      "mono": "'JetBrains Mono', monospace"
+    },
+    "font_family_usage": {
+      "display": "Headlines, hero text, section titles, pull quotes, editorial emphasis — the primary visual element of the entire system",
+      "body": "Body text, paragraphs, descriptions, long-form content — highly readable serif for sustained reading",
+      "mono": "Dates, metadata, labels, technical details, small caps, navigation counters"
+    },
+    "google_fonts_import": "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400;1,8..60,500&family=JetBrains+Mono:wght@300;400;500&display=swap",
+    "scale": {
+      "xs": { "size": "0.75rem", "px": "12px", "usage": "fine print, metadata" },
+      "sm": { "size": "0.875rem", "px": "14px", "usage": "captions, labels" },
+      "base": { "size": "1rem", "px": "16px", "usage": "body text minimum" },
+      "lg": { "size": "1.125rem", "px": "18px", "usage": "body text preferred" },
+      "xl": { "size": "1.25rem", "px": "20px", "usage": "lead paragraphs" },
+      "2xl": { "size": "1.5rem", "px": "24px", "usage": "section intros" },
+      "3xl": { "size": "2rem", "px": "32px", "usage": "subheadings" },
+      "4xl": { "size": "2.5rem", "px": "40px", "usage": "section titles" },
+      "5xl": { "size": "3.5rem", "px": "56px", "usage": "page titles" },
+      "6xl": { "size": "4.5rem", "px": "72px", "usage": "hero subheadings" },
+      "7xl": { "size": "6rem", "px": "96px", "usage": "hero headlines" },
+      "8xl": { "size": "8rem", "px": "128px", "usage": "display headlines — words as graphic elements" },
+      "9xl": { "size": "10rem", "px": "160px", "usage": "oversized statements — single words filling viewport width" }
+    },
+    "font_weights": {
+      "light": 300,
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700,
+      "extrabold": 800,
+      "black": 900
+    },
+    "letter_spacing": {
+      "tighter": "-0.05em",
+      "tight": "-0.025em",
+      "normal": "0em",
+      "wide": "0.025em",
+      "wider": "0.05em",
+      "widest": "0.1em"
+    },
+    "letter_spacing_usage": {
+      "tighter": "oversized display headlines (8xl, 9xl)",
+      "tight": "standard headlines (5xl–7xl)",
+      "normal": "body text",
+      "widest": "small caps, labels, button text, metadata"
+    },
+    "line_heights": {
+      "none": 1.0,
+      "tight": 1.1,
+      "snug": 1.2,
+      "normal": 1.5,
+      "relaxed": 1.625,
+      "loose": 1.8
+    },
+    "line_height_usage": {
+      "none": "display headlines (7xl+) — type as graphic, no leading",
+      "tight": "headlines (4xl–6xl)",
+      "snug": "subheadings (3xl)",
+      "relaxed": "body text — comfortable reading rhythm"
+    },
+    "defaults": {
+      "body": {
+        "family": "body",
+        "size": "lg",
+        "weight": "regular",
+        "line_height": "relaxed",
+        "letter_spacing": "normal",
+        "color": "#000000"
+      },
+      "heading_1": {
+        "family": "display",
+        "size": "7xl",
+        "weight": "bold",
+        "line_height": "none",
+        "letter_spacing": "tight",
+        "color": "#000000",
+        "note": "Hero-level — words function as graphic elements"
+      },
+      "heading_2": {
+        "family": "display",
+        "size": "5xl",
+        "weight": "bold",
+        "line_height": "tight",
+        "letter_spacing": "tight",
+        "color": "#000000"
+      },
+      "heading_3": {
+        "family": "display",
+        "size": "3xl",
+        "weight": "semibold",
+        "line_height": "snug",
+        "letter_spacing": "normal",
+        "color": "#000000"
+      },
+      "heading_4": {
+        "family": "display",
+        "size": "2xl",
+        "weight": "semibold",
+        "line_height": "snug",
+        "letter_spacing": "normal",
+        "color": "#000000"
+      },
+      "display_oversized": {
+        "family": "display",
+        "size": "9xl",
+        "weight": "black",
+        "line_height": "none",
+        "letter_spacing": "tighter",
+        "color": "#000000",
+        "note": "At least one word in 8xl+ is non-negotiable for hero sections"
+      },
+      "label": {
+        "family": "mono",
+        "size": "xs",
+        "weight": "medium",
+        "line_height": "none",
+        "letter_spacing": "widest",
+        "text_transform": "uppercase",
+        "color": "#525252"
+      },
+      "caption": {
+        "family": "mono",
+        "size": "xs",
+        "weight": "regular",
+        "line_height": "normal",
+        "letter_spacing": "wide",
+        "color": "#525252"
+      },
+      "pull_quote": {
+        "family": "display",
+        "size": "4xl",
+        "weight": "regular",
+        "line_height": "snug",
+        "letter_spacing": "tight",
+        "font_style": "italic",
+        "color": "#000000",
+        "note": "Large italic serif with oversized quotation marks"
+      },
+      "nav_item": {
+        "family": "mono",
+        "size": "sm",
+        "weight": "medium",
+        "letter_spacing": "widest",
+        "text_transform": "uppercase",
+        "color": "#000000"
+      }
+    }
+  },
+
+  "spacing": {
+    "base_unit": "4px",
+    "scale": {
+      "0": "0px",
+      "1": "4px",
+      "2": "8px",
+      "3": "12px",
+      "4": "16px",
+      "5": "20px",
+      "6": "24px",
+      "7": "32px",
+      "8": "40px",
+      "9": "48px",
+      "10": "64px",
+      "11": "96px",
+      "12": "128px",
+      "13": "160px"
+    },
+    "section_padding": {
+      "mobile": "96px 0",
+      "tablet": "128px 0",
+      "desktop": "160px 0",
+      "note": "Dramatic negative space between sections — whitespace is active, not empty"
+    }
+  },
+
+  "radius": {
+    "ALL": "0px",
+    "note": "Zero border radius everywhere. No exceptions. Every element has sharp 90-degree corners. This is non-negotiable and defines the style's architectural character."
+  },
+
+  "borders": {
+    "hairline": { "width": "1px", "style": "solid", "color": "#E5E5E5", "usage": "subtle dividers, background structure" },
+    "thin": { "width": "1px", "style": "solid", "color": "#000000", "usage": "standard borders, card outlines, vertical dividers" },
+    "medium": { "width": "2px", "style": "solid", "color": "#000000", "usage": "emphasis borders, secondary section dividers" },
+    "thick": { "width": "4px", "style": "solid", "color": "#000000", "usage": "heavy rules between ALL major sections — non-negotiable" },
+    "ultra": { "width": "8px", "style": "solid", "color": "#000000", "usage": "maximum impact, hero decorative elements" },
+    "inverted": {
+      "thin": { "width": "1px", "style": "solid", "color": "#FFFFFF" },
+      "medium": { "width": "2px", "style": "solid", "color": "#FFFFFF" },
+      "thick": { "width": "4px", "style": "solid", "color": "#FFFFFF" }
+    }
+  },
+
+  "shadows": {
+    "ALL": "none",
+    "note": "Zero drop shadows. Depth is created exclusively through: color inversion (black/white swap), border weight variation, scale contrast, and negative space."
+  },
+
+  "textures": {
+    "note": "CRITICAL — these textures are REQUIRED to prevent flat design. Apply strategically across sections. They provide paper-like depth and editorial quality.",
+    "horizontal_lines": {
+      "css": "repeating-linear-gradient(0deg, transparent, transparent 1px, #000 1px, #000 2px)",
+      "background_size": "100% 4px",
+      "opacity": 0.015,
+      "usage": "Global — primary pattern for light backgrounds"
+    },
+    "grid": {
+      "css": "linear-gradient(#00000008 1px, transparent 1px), linear-gradient(90deg, #00000008 1px, transparent 1px)",
+      "background_size": "40px 40px",
+      "opacity": 0.015,
+      "usage": "Editorial sections, product detail areas"
+    },
+    "diagonal_lines": {
+      "css": "repeating-linear-gradient(45deg, transparent, transparent 40px, #00000008 40px, #00000008 42px)",
+      "opacity": 0.01,
+      "usage": "Process sections, timelines, steps"
+    },
+    "noise": {
+      "css": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
+      "opacity": 0.02,
+      "usage": "Global overlay — gives paper-like quality to all surfaces"
+    },
+    "inverted_vertical_lines": {
+      "css": "repeating-linear-gradient(90deg, transparent, transparent 1px, #fff 1px, #fff 2px)",
+      "background_size": "4px 100%",
+      "opacity": 0.03,
+      "usage": "Dark/inverted sections like stats bars"
+    },
+    "inverted_radial": {
+      "css": "radial-gradient(circle at top center, #ffffff, transparent 70%)",
+      "opacity": 0.05,
+      "usage": "Dark/inverted CTA sections — subtle light bloom at top"
+    }
+  },
+
+  "motion": {
+    "philosophy": "Minimal and Instant. Favor stillness and instant state changes. Animation is binary (sharp on/off), never gradual or bouncy.",
+    "durations": {
+      "instant": "0ms",
+      "snap": "100ms",
+      "note": "100ms is the absolute maximum. Most interactions should be 0ms (transition-none)."
+    },
+    "easing": {
+      "default": "linear",
+      "note": "No easing functions. Instant state flips. The only exception is blog image scale (300ms for grayscale removal)."
+    },
+    "forbidden": [
+      "bouncy animations",
+      "floating elements",
+      "parallax scrolling",
+      "slow easing functions (ease-in-out, cubic-bezier curves)",
+      "gradient animations",
+      "spring physics",
+      "staggered reveals (unless page load)"
+    ],
+    "component_guidelines": {
+      "card_hover": {
+        "effect": "full color inversion (bg, text, borders)",
+        "duration": "100ms",
+        "css_class_hint": "group transition-colors duration-100 hover:bg-[var(--foreground)] hover:text-[var(--background)]"
+      },
+      "button_hover": {
+        "effect": "color inversion",
+        "duration": "0ms",
+        "css_class_hint": "transition-none"
+      },
+      "image_hover": {
+        "effect": "border thickens (2px → 4px), image scales 105%, grayscale removed",
+        "duration": "300ms (exception for image filter)",
+        "css_class_hint": "grayscale transition-all duration-300 group-hover:scale-105 group-hover:grayscale-0"
+      },
+      "link_hover": {
+        "effect": "underline appears",
+        "duration": "0ms"
+      },
+      "testimonial_hover": {
+        "effect": "quote mark opacity increases, bottom border thickens",
+        "duration": "100ms"
+      }
+    }
+  },
+
+  "components": {
+    "button": {
+      "primary": {
+        "background": "#000000",
+        "color": "#FFFFFF",
+        "border": "2px solid #000000",
+        "border_note": "Use 2px solid black (invisible against black bg) in default state to prevent layout shift on hover",
+        "padding": "16px 32px",
+        "font_family": "mono",
+        "font_size": "0.875rem",
+        "font_weight": 500,
+        "text_transform": "uppercase",
+        "letter_spacing": "0.1em",
+        "border_radius": "0px",
+        "hover": {
+          "background": "#FFFFFF",
+          "color": "#000000",
+          "border": "2px solid #000000"
+        },
+        "focus_visible": {
+          "outline": "3px solid #000000",
+          "outline_offset": "3px"
+        },
+        "cta_arrow": "→",
+        "cta_arrow_note": "Consider appending → for call-to-action buttons"
+      },
+      "secondary": {
+        "background": "transparent",
+        "color": "#000000",
+        "border": "2px solid #000000",
+        "padding": "16px 32px",
+        "font_family": "mono",
+        "font_size": "0.875rem",
+        "font_weight": 500,
+        "text_transform": "uppercase",
+        "letter_spacing": "0.1em",
+        "border_radius": "0px",
+        "hover": {
+          "background": "#000000",
+          "color": "#FFFFFF"
+        }
+      },
+      "ghost": {
+        "background": "transparent",
+        "color": "#000000",
+        "border": "none",
+        "text_decoration": "none",
+        "hover": {
+          "text_decoration": "underline"
+        },
+        "note": "Looks like a text link — no container styling"
+      }
+    },
+
+    "card": {
+      "standard": {
+        "background": "#FFFFFF",
+        "border": "1px solid #000000",
+        "padding": "24px–32px",
+        "border_radius": "0px",
+        "shadow": "none",
+        "hover": {
+          "background": "#000000",
+          "color": "#FFFFFF",
+          "border_color": "#000000",
+          "transition": "100ms"
+        }
+      },
+      "inverted": {
+        "background": "#000000",
+        "color": "#FFFFFF",
+        "border": "none",
+        "padding": "24px–32px",
+        "usage": "sparingly, for highlighted/featured content"
+      },
+      "borderless": {
+        "background": "transparent",
+        "border": "none",
+        "note": "Content separated by generous whitespace. Use horizontal rules above/below if needed."
+      }
+    },
+
+    "input": {
+      "text": {
+        "background": "#FFFFFF",
+        "color": "#000000",
+        "border": "none",
+        "border_bottom": "2px solid #000000",
+        "border_radius": "0px",
+        "padding": "12px 0",
+        "font_family": "body",
+        "font_size": "1rem",
+        "placeholder": {
+          "color": "#525252",
+          "font_style": "italic"
+        },
+        "focus": {
+          "border_bottom_width": "4px",
+          "outline": "none"
+        },
+        "variant_full_border": {
+          "border": "2px solid #000000",
+          "padding": "12px 16px",
+          "focus_border_width": "3px"
+        }
+      },
+      "textarea": {
+        "inherits": "text",
+        "resize": "vertical"
+      }
+    },
+
+    "navbar": {
+      "height": "72px",
+      "height_mobile": "56px",
+      "background": "#FFFFFF",
+      "border_bottom": "1px solid #000000",
+      "padding_horizontal": "24px–48px",
+      "logo": {
+        "font_family": "display",
+        "font_weight": 700,
+        "color": "#000000"
+      },
+      "nav_item": {
+        "font_family": "mono",
+        "font_size": "0.75rem",
+        "font_weight": 500,
+        "letter_spacing": "0.1em",
+        "text_transform": "uppercase",
+        "color": "#000000",
+        "hover": "underline"
+      }
+    },
+
+    "section_divider": {
+      "element": "hr",
+      "border_top": "4px solid #000000",
+      "margin": "0",
+      "note": "Heavy horizontal rules between ALL major sections. Non-negotiable. 4px minimum, 8px for maximum impact.",
+      "hero_decorative": {
+        "description": "Thick rule with small bordered square for visual punctuation",
+        "rule_weight": "8px",
+        "square_size": "12px",
+        "square_border": "2px solid #000000"
+      }
+    },
+
+    "stats_section": {
+      "background": "#000000",
+      "color": "#FFFFFF",
+      "texture": "inverted_vertical_lines",
+      "stat_value": {
+        "font_family": "display",
+        "font_size": "5xl–7xl",
+        "font_weight": 700,
+        "color": "#FFFFFF"
+      },
+      "stat_label": {
+        "font_family": "mono",
+        "font_size": "xs",
+        "font_weight": 500,
+        "letter_spacing": "0.1em",
+        "text_transform": "uppercase",
+        "color": "rgba(255, 255, 255, 0.7)"
+      }
+    },
+
+    "testimonial": {
+      "style": "editorial pull quote",
+      "quote_text": {
+        "font_family": "display",
+        "font_size": "3xl–4xl",
+        "font_style": "italic",
+        "font_weight": 400,
+        "line_height": 1.3,
+        "color": "#000000"
+      },
+      "quotation_mark": {
+        "font_family": "display",
+        "font_size": "8xl–9xl",
+        "color": "#000000",
+        "opacity": 0.08,
+        "hover_opacity": 0.2,
+        "position": "absolute, top-left or decorative"
+      },
+      "attribution": {
+        "font_family": "mono",
+        "font_size": "xs",
+        "letter_spacing": "0.1em",
+        "text_transform": "uppercase",
+        "color": "#525252"
+      },
+      "hover": {
+        "quote_mark_opacity": 0.2,
+        "border_bottom": "3px solid #000000",
+        "transition": "100ms"
+      }
+    },
+
+    "pricing": {
+      "tier_card": {
+        "border": "1px solid #000000",
+        "padding": "32px",
+        "border_radius": "0px",
+        "hover": "full inversion (bg black, text white)"
+      },
+      "elevated_tier": {
+        "note": "Highlighted tier extends vertically beyond siblings on desktop — visual hierarchy through physical size, not color",
+        "extra_padding_vertical": "48px–64px",
+        "border_width": "2px",
+        "background": "#000000",
+        "color": "#FFFFFF"
+      }
+    },
+
+    "blog_card": {
+      "image": {
+        "border": "2px solid #000000",
+        "filter": "grayscale(100%)",
+        "hover_filter": "grayscale(0%)",
+        "hover_scale": 1.05,
+        "hover_border_width": "4px",
+        "transition": "300ms"
+      },
+      "title": {
+        "font_family": "display",
+        "font_weight": 600,
+        "hover": "underline"
+      },
+      "meta": {
+        "font_family": "mono",
+        "font_size": "xs",
+        "letter_spacing": "0.1em",
+        "text_transform": "uppercase",
+        "color": "#525252"
+      }
+    },
+
+    "drop_cap": {
+      "type": "boxed",
+      "border": "2px solid #000000",
+      "padding": "8px 12px",
+      "font_family": "display",
+      "font_size": "4xl",
+      "font_weight": 700,
+      "float": "left",
+      "margin_right": "12px",
+      "usage": "First paragraph of Product Detail section"
+    },
+
+    "faq_accordion": {
+      "border_bottom": "1px solid #000000",
+      "padding": "20px 0",
+      "question": {
+        "font_family": "display",
+        "font_size": "xl",
+        "font_weight": 600,
+        "color": "#000000"
+      },
+      "answer": {
+        "font_family": "body",
+        "font_size": "lg",
+        "color": "#525252"
+      },
+      "icon": {
+        "type": "plus/minus or chevron",
+        "stroke_width": 1.5,
+        "size": "20px",
+        "color": "#000000"
+      }
+    },
+
+    "table": {
+      "header": {
+        "font_family": "mono",
+        "font_size": "xs",
+        "font_weight": 500,
+        "letter_spacing": "0.1em",
+        "text_transform": "uppercase",
+        "border_bottom": "2px solid #000000",
+        "color": "#525252",
+        "padding": "12px 16px"
+      },
+      "row": {
+        "border_bottom": "1px solid #E5E5E5",
+        "padding": "14px 16px",
+        "font_family": "body",
+        "font_size": "base",
+        "color": "#000000"
+      },
+      "row_hover": {
+        "background": "#F5F5F5"
+      },
+      "cell_numeric": {
+        "font_family": "mono",
+        "text_align": "right"
+      }
+    },
+
+    "chip_tag": {
+      "background": "transparent",
+      "border": "1px solid #000000",
+      "color": "#000000",
+      "padding": "4px 12px",
+      "font_family": "mono",
+      "font_size": "xs",
+      "letter_spacing": "0.1em",
+      "text_transform": "uppercase",
+      "border_radius": "0px"
+    },
+
+    "tooltip": {
+      "background": "#000000",
+      "color": "#FFFFFF",
+      "padding": "8px 12px",
+      "font_family": "mono",
+      "font_size": "xs",
+      "border_radius": "0px",
+      "shadow": "none"
+    },
+
+    "modal": {
+      "background": "#FFFFFF",
+      "border": "2px solid #000000",
+      "border_radius": "0px",
+      "shadow": "none",
+      "max_width": "560px",
+      "padding": "32px",
+      "backdrop": "rgba(0, 0, 0, 0.8)",
+      "close_button": {
+        "position": "top-right",
+        "icon": "X or ×",
+        "stroke_width": 1.5,
+        "size": "24px"
+      }
+    },
+
+    "toast": {
+      "background": "#000000",
+      "color": "#FFFFFF",
+      "border": "none",
+      "border_radius": "0px",
+      "padding": "16px 24px",
+      "font_family": "mono",
+      "font_size": "sm"
+    },
+
+    "progress": {
+      "track": "#E5E5E5",
+      "fill": "#000000",
+      "height": "4px",
+      "border_radius": "0px"
+    },
+
+    "divider": {
+      "default": {
+        "color": "#E5E5E5",
+        "thickness": "1px",
+        "margin": "24px 0"
+      },
+      "emphasis": {
+        "color": "#000000",
+        "thickness": "4px",
+        "margin": "0"
+      }
+    }
+  },
+
+  "icons": {
+    "style": "outlined",
+    "stroke_width": "1px–1.5px",
+    "recommended_library": "Lucide React",
+    "default_size": "20px",
+    "sizes": {
+      "sm": "16px",
+      "md": "20px",
+      "lg": "24px"
+    },
+    "color": "#000000",
+    "container": {
+      "option_a": "circle with black stroke, white fill",
+      "option_b": "standalone, no container"
+    },
+    "lucide_config": {
+      "size": 20,
+      "strokeWidth": 1.5,
+      "className": "text-black"
+    }
+  },
+
+  "layout": {
+    "container": {
+      "max_width": "72rem",
+      "max_width_px": "1152px",
+      "padding": {
+        "mobile": "0 24px",
+        "tablet": "0 32px",
+        "desktop": "0 48px"
+      }
+    },
+    "max_widths": {
+      "content": "1152px",
+      "content_narrow": "720px",
+      "full_bleed": "100%",
+      "modal": "560px"
+    },
+    "grid": {
+      "type": "CSS Grid",
+      "columns": 12,
+      "note": "12-column base grid. Strong alignment to vertical rhythm. Use CSS Grid for precise control.",
+      "web": { "columns": 12, "gutter": "24px", "margin": "48px" },
+      "tablet": { "columns": 8, "gutter": "20px", "margin": "32px" },
+      "mobile": { "columns": 4, "gutter": "16px", "margin": "24px" }
+    },
+    "breakpoints": {
+      "sm": "640px",
+      "md": "768px",
+      "lg": "1024px",
+      "xl": "1280px",
+      "2xl": "1440px"
+    },
+    "z_index": {
+      "base": 0,
+      "dropdown": 10,
+      "sticky": 20,
+      "navbar": 30,
+      "modal_backdrop": 40,
+      "modal": 50,
+      "toast": 60,
+      "tooltip": 70
+    }
+  },
+
+  "accessibility": {
+    "contrast_ratio": "21:1 (pure black on white — exceeds WCAG AAA)",
+    "min_touch_target": "44px",
+    "focus_visible": {
+      "buttons": {
+        "outline": "3px solid #000000",
+        "outline_offset": "3px"
+      },
+      "inputs": {
+        "border_bottom_width": "4px",
+        "outline": "none"
+      },
+      "links": {
+        "border_bottom": "2px solid #000000",
+        "outline": "none"
+      },
+      "secondary_interactive": {
+        "outline": "3px solid #000000",
+        "outline_offset": "2px"
+      },
+      "note": "All focus states use focus-visible to prevent mouse-click outlines"
+    },
+    "skip_link": {
+      "visible": true,
+      "style": "black button at top of page"
+    }
+  },
+
+  "responsive": {
+    "mobile_adaptations": {
+      "maintain": [
+        "sharp corners (0px radius)",
+        "black and white palette",
+        "generous vertical spacing",
+        "monochrome drama"
+      ],
+      "scale_down": {
+        "9xl": "5xl",
+        "8xl": "4xl–5xl",
+        "7xl": "4xl",
+        "6xl": "3xl",
+        "5xl": "3xl"
+      },
+      "layout_changes": [
+        "stack columns vertically",
+        "borders become full-width horizontal rules",
+        "pricing tiers stack instead of extending vertically"
+      ],
+      "principle": "The monochrome drama must survive on mobile. Don't default to generic mobile patterns."
+    }
+  },
+
+  "page_templates": {
+    "landing_page_sections": [
+      {
+        "name": "hero",
+        "required_elements": [
+          "oversized headline (8xl+ desktop, 5xl mobile) — at least one word this large",
+          "thick decorative rule (8px) with small bordered square",
+          "subheading in body serif",
+          "primary CTA button with arrow (→)"
+        ],
+        "background": "#FFFFFF",
+        "texture": "noise + horizontal_lines"
+      },
+      {
+        "name": "social_proof_bar",
+        "style": "logos or trust signals",
+        "border_top": "1px solid #000000",
+        "border_bottom": "1px solid #000000",
+        "logos": "grayscale, opacity 0.6"
+      },
+      {
+        "name": "features",
+        "style": "grid of cards with hover inversion",
+        "card_style": "standard card with thin border",
+        "hover": "full bg/text inversion",
+        "texture": "grid"
+      },
+      {
+        "name": "product_detail",
+        "style": "editorial, long-form",
+        "required": "boxed drop cap on first paragraph",
+        "texture": "grid",
+        "layout": "asymmetric two-column"
+      },
+      {
+        "name": "stats",
+        "background": "#000000",
+        "color": "#FFFFFF",
+        "texture": "inverted_vertical_lines",
+        "stat_values": "display serif, 5xl–7xl",
+        "stat_labels": "mono, uppercase, tracking-widest"
+      },
+      {
+        "name": "testimonials",
+        "style": "editorial pull quotes with oversized quotation marks",
+        "quote_mark_font_size": "8xl–9xl",
+        "quote_mark_opacity": 0.08
+      },
+      {
+        "name": "pricing",
+        "style": "side-by-side tiers with hover inversion",
+        "elevated_tier": "extends vertically, inverted by default"
+      },
+      {
+        "name": "blog_grid",
+        "images": "grayscale by default, color on hover",
+        "image_border": "2px solid #000000, thickens to 4px on hover"
+      },
+      {
+        "name": "faq",
+        "style": "accordion with thin bottom borders",
+        "questions": "display serif",
+        "answers": "body serif, muted color"
+      },
+      {
+        "name": "final_cta",
+        "background": "#000000",
+        "color": "#FFFFFF",
+        "texture": "inverted_radial",
+        "headline": "display serif, 5xl+",
+        "button": "inverted primary (white bg, black text)"
+      },
+      {
+        "name": "footer",
+        "border_top": "4px solid #000000",
+        "style": "minimal, mono typography"
+      }
+    ],
+    "section_separators": "4px solid #000000 horizontal rules between every major section"
+  },
+
+  "bold_choices_checklist": {
+    "note": "Non-negotiable design requirements. Every implementation must include these.",
+    "items": [
+      "Oversized hero typography: at least one word in 8xl or larger (9xl on desktop)",
+      "Hero decorative element: thick rule with small bordered square",
+      "Inverted stats section: black bg, white text, subtle vertical line texture",
+      "No accent colors: black IS the accent — resist all temptation",
+      "Heavy horizontal rules: 4px black lines between ALL major sections",
+      "Editorial pull quotes: large italic serif with oversized quotation marks",
+      "Sharp everything: 0px border-radius on every single element",
+      "Instant interactions: 100ms max, mostly 0ms",
+      "Typography as graphics: headlines that function as visual elements",
+      "Layered textures: multiple subtle patterns for depth (not flat design)",
+      "Boxed drop cap: first paragraph of product detail",
+      "Elevated pricing tier: highlighted tier extends vertically on desktop",
+      "Hover inversions: feature cards and pricing tiers invert on hover",
+      "Image borders thicken: blog images border weight increases on hover with scale"
+    ]
+  },
+
+  "css_variables_template": {
+    "note": "Paste into :root for immediate use in any project",
+    "variables": {
+      "--background": "#FFFFFF",
+      "--foreground": "#000000",
+      "--muted": "#F5F5F5",
+      "--muted-foreground": "#525252",
+      "--accent": "#000000",
+      "--accent-foreground": "#FFFFFF",
+      "--border": "#000000",
+      "--border-light": "#E5E5E5",
+      "--card": "#FFFFFF",
+      "--card-foreground": "#000000",
+      "--ring": "#000000",
+      "--radius": "0px",
+      "--font-display": "'Playfair Display', Georgia, serif",
+      "--font-body": "'Source Serif 4', Georgia, serif",
+      "--font-mono": "'JetBrains Mono', monospace",
+      "--border-hairline": "1px solid #E5E5E5",
+      "--border-thin": "1px solid #000000",
+      "--border-medium": "2px solid #000000",
+      "--border-thick": "4px solid #000000",
+      "--border-ultra": "8px solid #000000",
+      "--section-py-mobile": "96px",
+      "--section-py-tablet": "128px",
+      "--section-py-desktop": "160px",
+      "--transition-instant": "0ms",
+      "--transition-snap": "100ms",
+      "--container-max": "1152px"
+    },
+    "dark_mode_variables": {
+      "note": "Paste into [data-theme='dark'] for inverted dark mode",
+      "--background": "#000000",
+      "--foreground": "#FFFFFF",
+      "--muted": "#1A1A1A",
+      "--muted-foreground": "#A3A3A3",
+      "--accent": "#FFFFFF",
+      "--accent-foreground": "#000000",
+      "--border": "#FFFFFF",
+      "--border-light": "#333333",
+      "--card": "#000000",
+      "--card-foreground": "#FFFFFF",
+      "--ring": "#FFFFFF"
+    }
+  },
+
+  "tailwind_config_extension": {
+    "note": "Extend tailwind.config.js with these values for immediate Tailwind CSS integration",
+    "theme_extend": {
+      "fontFamily": {
+        "display": ["'Playfair Display'", "Georgia", "serif"],
+        "body": ["'Source Serif 4'", "Georgia", "serif"],
+        "mono": ["'JetBrains Mono'", "monospace"]
+      },
+      "colors": {
+        "background": "#FFFFFF",
+        "foreground": "#000000",
+        "muted": "#F5F5F5",
+        "muted-foreground": "#525252",
+        "border-light": "#E5E5E5"
+      },
+      "borderRadius": {
+        "none": "0px",
+        "DEFAULT": "0px",
+        "sm": "0px",
+        "md": "0px",
+        "lg": "0px",
+        "xl": "0px",
+        "2xl": "0px",
+        "full": "0px"
+      },
+      "borderWidth": {
+        "hairline": "1px",
+        "thin": "1px",
+        "medium": "2px",
+        "thick": "4px",
+        "ultra": "8px"
+      },
+      "boxShadow": {
+        "none": "none",
+        "DEFAULT": "none",
+        "sm": "none",
+        "md": "none",
+        "lg": "none",
+        "xl": "none"
+      },
+      "transitionDuration": {
+        "instant": "0ms",
+        "snap": "100ms"
+      }
+    }
+  }
+}

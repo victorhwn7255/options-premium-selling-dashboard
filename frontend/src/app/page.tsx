@@ -157,7 +157,7 @@ export default function Home() {
   }, [apiData, earningsRemaining]);
 
   return (
-    <div className="min-h-screen bg-bg font-primary">
+    <div className="min-h-screen bg-white font-body">
       <Navbar
         theme={theme}
         onToggleTheme={toggleTheme}
@@ -173,51 +173,55 @@ export default function Home() {
         onOpenRegimeGuide={() => setRegimeGuideOpen(true)}
       />
 
-      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-5 pb-16">
+      <main className="max-w-[1152px] mx-auto px-6 md:px-8 py-6 pb-16">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-sm text-txt-tertiary">Loading market data...</p>
+              <div className="w-6 h-6 border-2 border-black border-t-transparent animate-spin mx-auto mb-3" />
+              <p className="text-sm text-[#525252] font-mono uppercase tracking-widest">Loading market data...</p>
             </div>
           </div>
         ) : scoredData.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <p className="text-sm text-txt-secondary mb-2">No scan data available</p>
-              <p className="text-xs text-txt-tertiary mb-4">
+              <p className="text-sm text-[#525252] mb-2 font-body">No scan data available</p>
+              <p className="text-xs text-[#525252] mb-4 font-body">
                 Data is fetched automatically at 6:30 PM ET, or you can fetch it manually.
               </p>
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="px-4 py-2 text-xs font-medium rounded-md bg-primary text-white hover:bg-primary-hover transition-colors disabled:opacity-50"
+                className="px-8 py-4 font-mono text-xs font-medium uppercase tracking-widest bg-black text-white border-2 border-black hover:bg-white hover:text-black transition-none disabled:opacity-50"
               >
-                {refreshing ? 'Fetching...' : 'Fetch Latest Data'}
+                {refreshing ? 'Fetching...' : 'Fetch Latest Data \u2192'}
               </button>
             </div>
           </div>
         ) : (
           <>
             {/* Zone 1: Market Regime */}
-            <div className="mb-5">
+            <div className="mb-6">
               <RegimeBanner data={scoredData} />
             </div>
 
+            <hr className="border-0 border-t-4 border-black mb-6" />
+
             {/* Zone 2: Opportunity Leaderboard (detail expands inline) */}
-            <div className="mb-5">
+            <div className="mb-6">
               <Leaderboard data={scoredData} selected={selectedTicker} onSelect={handleSelect} selectedData={selectedData} deltaMap={deltaMap} />
             </div>
 
+            <hr className="border-0 border-t-4 border-black mb-6" />
+
             {/* Methodology Footer */}
-            <div className="px-4 sm:px-5 py-4 bg-surface-alt rounded-lg border border-border-subtle">
-              <div className="text-xs text-txt-tertiary leading-loose">
-                <strong className="text-txt-secondary">Scoring:</strong>{' '}
-                VRP magnitude (0-40) + Term structure (0-25) + IV percentile (0-20) &minus; RV acceleration penalty (0-15).
-                Gated by earnings proximity and backwardation.{' '}
-                <strong className="text-txt-secondary">Sizing:</strong>{' '}
+            <div className="px-6 py-5 bg-[#F5F5F5] border-t-4 border-black">
+              <div className="text-xs text-[#525252] leading-loose font-body">
+                <strong className="text-black">Scoring:</strong>{' '}
+                VRP quality (0-30) + IV percentile (0-25) + Term structure (0-20) + RV stability (0-15) + Skew (0-10).
+                Gated by earnings proximity and negative VRP.{' '}
+                <strong className="text-black">Sizing:</strong>{' '}
                 Full if RV Accel &lt; 1.10, half if &lt; 1.20, quarter above.{' '}
-                <span className="text-secondary">Live data — not financial advice.</span>
+                <span className="font-mono uppercase tracking-widest">Live data — not financial advice.</span>
               </div>
             </div>
           </>

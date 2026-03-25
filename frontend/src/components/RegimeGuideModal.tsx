@@ -264,7 +264,7 @@ export default function RegimeGuideModal({ currentRegime, onClose }: RegimeGuide
     <div
       ref={overlayRef}
       onClick={handleBackdropClick}
-      className={`fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-normal ${
+      className={`fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-100 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
     >
@@ -274,19 +274,19 @@ export default function RegimeGuideModal({ currentRegime, onClose }: RegimeGuide
         aria-modal="true"
         aria-label="Market Regime Guide"
         onKeyDown={handleKeyDown}
-        className={`relative bg-surface rounded-2xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-y-auto transition-transform duration-normal ${
-          isVisible ? 'scale-100' : 'scale-95'
+        className={`relative bg-white border border-black max-w-3xl w-full max-h-[85vh] overflow-y-auto transition-opacity duration-100 ${
+          isVisible ? 'opacity-100' : 'opacity-0'
         }`}
       >
         {/* Sticky header */}
-        <div className="sticky top-0 z-10 bg-surface border-b border-border px-6 py-4 flex items-center justify-between rounded-t-2xl">
-          <h2 className="font-secondary text-2xl font-medium text-txt">
+        <div className="sticky top-0 z-10 bg-white border-b-2 border-black px-6 py-4 flex items-center justify-between">
+          <h2 className="font-display text-2xl font-bold text-black tracking-tight">
             Market Regime Guide
           </h2>
           <button
             ref={closeRef}
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors duration-fast"
+            className="w-8 h-8 flex items-center justify-center text-[#525252] hover:text-black hover:bg-[#F5F5F5] transition-colors duration-100"
             aria-label="Close"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -319,26 +319,26 @@ export default function RegimeGuideModal({ currentRegime, onClose }: RegimeGuide
           ))}
 
           {/* Quick Reference: Key Metrics */}
-          <div className="border-t border-border pt-6">
-            <h3 className="font-secondary text-lg font-medium text-txt mb-4">
+          <div className="border-t border-black pt-6">
+            <h3 className="font-display text-lg font-bold text-black mb-4">
               Quick Reference: Key Metrics
             </h3>
             <div className="space-y-4">
               {KEY_METRICS.map((km) => (
                 <div key={km.label}>
                   <div className="flex items-baseline gap-2 mb-1">
-                    <span className="font-mono text-xs font-semibold text-txt">{km.label}</span>
-                    <span className="text-xs text-txt-secondary">— {km.title}</span>
+                    <span className="font-mono text-xs font-semibold text-black">{km.label}</span>
+                    <span className="text-xs text-[#525252] font-body">— {km.title}</span>
                   </div>
-                  <p className="text-xs text-txt-secondary leading-relaxed">{km.desc}</p>
+                  <p className="text-xs text-[#525252] leading-relaxed font-body">{km.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Footer */}
-          <div className="border-t border-border pt-5">
-            <p className="text-xs text-txt-tertiary leading-relaxed italic">
+          <div className="border-t border-[#E5E5E5] pt-5">
+            <p className="text-xs text-[#525252] leading-relaxed italic font-body">
               Option Harvest uses these regimes as the first decision layer — &ldquo;Should I trade today?&rdquo; — before evaluating individual tickers. The regime system is designed to keep you out of the market during the conditions that cause the worst losses in premium selling strategies. Patience during Off Season is what makes The Finals profitable.
             </p>
           </div>

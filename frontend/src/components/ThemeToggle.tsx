@@ -13,9 +13,9 @@ export default function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
       onClick={onToggle}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       className="
-        w-[36px] h-[36px] flex items-center justify-center rounded-md
-        text-txt-secondary hover:text-txt hover:bg-surface-alt
-        transition-colors duration-fast
+        w-[36px] h-[36px] flex items-center justify-center
+        text-[#525252] hover:text-black hover:bg-[#F5F5F5]
+        transition-colors duration-100
       "
     >
       {theme === 'dark' ? (

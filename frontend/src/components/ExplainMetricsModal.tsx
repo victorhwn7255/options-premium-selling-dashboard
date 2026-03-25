@@ -13,17 +13,17 @@ interface ExplainMetricsModalProps {
 /* ── Reading pill ────────────────────────────────────── */
 
 const READING_COLORS: Record<MetricReading['color'], { dot: string; text: string; bg: string }> = {
-  good:    { dot: 'bg-success',  text: 'text-success',  bg: 'bg-success-subtle' },
-  ok:      { dot: 'bg-warning',  text: 'text-warning',  bg: 'bg-warning-subtle' },
-  bad:     { dot: 'bg-error',    text: 'text-error',    bg: 'bg-error-subtle' },
-  neutral: { dot: 'bg-accent',   text: 'text-accent',   bg: 'bg-accent-subtle' },
+  good:    { dot: 'bg-black',      text: 'text-black',      bg: 'border border-black' },
+  ok:      { dot: 'bg-[#525252]',  text: 'text-[#525252]',  bg: 'border border-[#E5E5E5]' },
+  bad:     { dot: 'bg-black',      text: 'text-white',      bg: 'bg-black' },
+  neutral: { dot: 'bg-[#525252]',  text: 'text-[#525252]',  bg: 'border border-[#E5E5E5]' },
 };
 
 function ReadingPill({ reading }: { reading: MetricReading }) {
   const c = READING_COLORS[reading.color];
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-2xs font-medium ${c.text} ${c.bg}`}>
-      <span className={`w-2 h-2 rounded-full shrink-0 ${c.dot}`} />
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-2xs font-medium ${c.text} ${c.bg}`}>
+      <span className={`w-2 h-2 shrink-0 ${c.dot}`} />
       {reading.label}
     </span>
   );
@@ -33,51 +33,45 @@ function ReadingPill({ reading }: { reading: MetricReading }) {
 
 function MetricCard({ metric }: { metric: MetricDefinition }) {
   return (
-    <div className="relative bg-surface rounded-lg border border-border overflow-hidden pl-2">
+    <div className="relative bg-white border border-black overflow-hidden pl-2">
       {/* Left accent bar */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg"
-        style={{ backgroundColor: 'var(--color-primary)' }}
-      />
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-black" />
 
       <div className="px-5 py-5">
         {/* Header */}
         <div className="flex items-center gap-2.5 flex-wrap">
           <span className="text-[24px] leading-none">{metric.emoji}</span>
-          <span className="font-secondary text-[19px] font-semibold text-txt">{metric.name}</span>
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-txt-tertiary bg-surface-alt px-2 py-0.5 rounded-full">
+          <span className="font-display text-[19px] font-semibold text-black">{metric.name}</span>
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#525252] bg-[#F5F5F5] px-2 py-0.5">
             {metric.tag}
           </span>
         </div>
 
         {/* Explanation */}
         <div
-          className="mt-3 text-sm text-txt-secondary leading-relaxed [&_strong]:text-txt [&_strong]:font-medium [&_em]:font-secondary [&_em]:italic [&_em]:text-primary"
+          className="mt-3 text-sm text-[#525252] leading-relaxed font-body [&_strong]:text-black [&_strong]:font-medium [&_em]:font-display [&_em]:italic [&_em]:text-black"
           dangerouslySetInnerHTML={{ __html: metric.explain }}
         />
 
         {/* Analogy box */}
-        <div
-          className="mt-4 bg-surface-alt rounded-md px-4 py-3"
-          style={{ borderLeft: '3px solid var(--color-accent)' }}
-        >
-          <div className="font-primary text-[10px] font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--color-accent)' }}>
+        <div className="mt-4 bg-[#F5F5F5] px-4 py-3 border-l-4 border-black">
+          <div className="font-mono text-[10px] font-semibold tracking-widest uppercase mb-1.5 text-black">
             Think of it like
           </div>
           <div
-            className="text-xs text-txt-secondary leading-relaxed [&_em]:font-secondary [&_em]:italic [&_em]:text-primary"
+            className="text-xs text-[#525252] leading-relaxed font-body [&_em]:font-display [&_em]:italic [&_em]:text-black"
             dangerouslySetInnerHTML={{ __html: metric.analogy }}
           />
         </div>
 
         {/* Formula block */}
         <div className="mt-4">
-          <div className="font-primary text-[10px] font-semibold tracking-widest uppercase text-txt-tertiary mb-1.5">
+          <div className="font-mono text-[10px] font-semibold tracking-widest uppercase text-[#525252] mb-1.5">
             {metric.formulaLabel}
           </div>
-          <div className="bg-bg-alt rounded-md border border-border px-4 py-3 space-y-1">
+          <div className="bg-[#F5F5F5] border border-[#E5E5E5] px-4 py-3 space-y-1">
             {metric.formulas.map((f, i) => (
-              <div key={i} className="font-mono text-xs" style={{ color: 'var(--color-primary)' }}>
+              <div key={i} className="font-mono text-xs text-black">
                 {f}
               </div>
             ))}
@@ -122,26 +116,26 @@ export default function ExplainMetricsModal({ open, onClose }: ExplainMetricsMod
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-[720px] max-h-[85vh] bg-bg rounded-xl border border-border shadow-xl flex flex-col animate-slide-in"
+        className="relative w-full max-w-[720px] max-h-[85vh] bg-white border border-black flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-bg rounded-t-xl border-b border-border-subtle px-6 sm:px-8 py-5 flex items-start justify-between gap-4">
+        <div className="sticky top-0 z-10 bg-white border-b-2 border-black px-6 sm:px-8 py-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="font-secondary text-[28px] font-semibold text-txt leading-tight">
+            <h2 className="font-display text-3xl font-bold text-black leading-tight tracking-tight">
               Key Metrics for Premium Selling
             </h2>
-            <p className="font-secondary italic text-sm text-txt-tertiary mt-1">
+            <p className="font-body italic text-sm text-[#525252] mt-1">
               Explain the key metrics like I&apos;m 12.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors"
+            className="shrink-0 w-8 h-8 flex items-center justify-center text-[#525252] hover:text-black hover:bg-[#F5F5F5] transition-colors duration-100"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -156,7 +150,7 @@ export default function ExplainMetricsModal({ open, onClose }: ExplainMetricsMod
             return (
               <div key={section.key} className="mb-6 last:mb-0">
                 {/* Section label */}
-                <div className="font-primary text-[10px] font-semibold tracking-widest uppercase text-txt-tertiary mb-3 px-1">
+                <div className="font-mono text-[10px] font-semibold tracking-widest uppercase text-[#525252] mb-3 px-1">
                   {section.label}
                 </div>
                 <div className="space-y-3">
@@ -170,8 +164,8 @@ export default function ExplainMetricsModal({ open, onClose }: ExplainMetricsMod
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border-subtle px-6 sm:px-8 py-4">
-          <p className="text-xs italic text-txt-tertiary leading-relaxed">
+        <div className="border-t border-[#E5E5E5] px-6 sm:px-8 py-4">
+          <p className="text-xs italic text-[#525252] leading-relaxed font-body">
             All metrics update daily after market close (~6:30 PM ET). The scoring engine combines these metrics into a single 0&ndash;100 score per ticker, filtered by the earnings gate and adjusted by the market regime. When in doubt, trust the score &mdash; it&apos;s doing the math so you don&apos;t have to.
           </p>
         </div>

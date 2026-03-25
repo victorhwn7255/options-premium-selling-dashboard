@@ -19,32 +19,32 @@ interface RegimeSectionProps {
 
 const COLOR_MAP = {
   error: {
-    border: 'border-l-error',
-    bg: 'bg-error-subtle',
-    text: 'text-error',
-    bullet: 'bg-error',
-    badge: 'bg-error text-txt-inverse',
+    border: 'border-l-8 border-black',
+    bg: 'bg-[#F5F5F5]',
+    text: 'text-black',
+    bullet: 'bg-black',
+    badge: 'bg-black text-white',
   },
   warning: {
-    border: 'border-l-warning',
-    bg: 'bg-warning-subtle',
-    text: 'text-warning',
-    bullet: 'bg-warning',
-    badge: 'bg-warning text-txt-inverse',
+    border: 'border-l-4 border-black',
+    bg: 'bg-[#F5F5F5]',
+    text: 'text-black',
+    bullet: 'bg-black',
+    badge: 'bg-black text-white',
   },
   secondary: {
-    border: 'border-l-secondary',
-    bg: 'bg-secondary-subtle',
-    text: 'text-secondary',
-    bullet: 'bg-secondary',
-    badge: 'bg-secondary text-txt-inverse',
+    border: 'border-l-2 border-black',
+    bg: 'bg-white',
+    text: 'text-black',
+    bullet: 'bg-black',
+    badge: 'border border-black text-black',
   },
   accent: {
-    border: 'border-l-accent',
-    bg: 'bg-accent-subtle',
-    text: 'text-accent',
-    bullet: 'bg-accent',
-    badge: 'bg-accent text-txt-inverse',
+    border: 'border-l-2 border-[#E5E5E5]',
+    bg: 'bg-white',
+    text: 'text-black',
+    bullet: 'bg-[#525252]',
+    badge: 'border border-black text-black',
   },
 } as const;
 
@@ -63,34 +63,34 @@ export default function RegimeSection({
   const c = COLOR_MAP[colorToken];
 
   return (
-    <section className={`relative border-l-4 ${c.border} ${c.bg} rounded-lg p-5 px-6`}>
+    <section className={`relative ${c.border} ${c.bg} p-5 px-6`}>
       {/* Current badge */}
       {isCurrent && (
-        <span className={`absolute top-4 right-4 ${c.badge} text-[10px] font-primary font-semibold tracking-widest uppercase px-2.5 py-1 rounded-full`}>
+        <span className={`absolute top-4 right-4 ${c.badge} text-[10px] font-mono font-semibold tracking-widest uppercase px-2.5 py-1`}>
           CURRENT
         </span>
       )}
 
       {/* Header */}
-      <h3 className={`font-secondary text-xl font-medium ${c.text} leading-tight`}>
+      <h3 className={`font-display text-xl font-bold ${c.text} leading-tight`}>
         {regime}
       </h3>
-      <p className="text-xs text-txt-secondary italic mt-1">{tagline}</p>
+      <p className="text-xs text-[#525252] italic mt-1 font-body">{tagline}</p>
 
       {/* Triggers */}
       <div className="mt-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
+          <span className="font-mono text-[10px] font-semibold text-[#525252] tracking-widest uppercase">
             Triggers
           </span>
-          <span className="text-[10px] font-mono text-txt-tertiary">({triggerLogic})</span>
+          <span className="text-[10px] font-mono text-[#525252]">({triggerLogic})</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {triggers.map((t) => (
             <div key={t.metric} className="flex items-center gap-2">
-              <span className={`w-1.5 h-1.5 rounded-full ${c.bullet} shrink-0`} />
-              <span className="text-xs text-txt-secondary">
-                <span className="font-mono font-medium text-txt">{t.metric}</span>{' '}
+              <span className={`w-1.5 h-1.5 ${c.bullet} shrink-0`} />
+              <span className="text-xs text-[#525252] font-body">
+                <span className="font-mono font-medium text-black">{t.metric}</span>{' '}
                 {t.value}
               </span>
             </div>
@@ -100,37 +100,37 @@ export default function RegimeSection({
 
       {/* Explanation */}
       <div className="mt-4 space-y-2">
-        <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
+        <span className="font-mono text-[10px] font-semibold text-[#525252] tracking-widest uppercase">
           What&apos;s Happening
         </span>
         {explanation.map((p, i) => (
-          <p key={i} className="text-xs text-txt-secondary leading-relaxed">{p}</p>
+          <p key={i} className="text-xs text-[#525252] leading-relaxed font-body">{p}</p>
         ))}
       </div>
 
       {/* DOs / DON'Ts */}
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <span className="font-primary text-[10px] font-semibold text-success tracking-widest uppercase mb-2 block">
+          <span className="font-mono text-[10px] font-semibold text-black tracking-widest uppercase mb-2 block">
             DOs
           </span>
           <ul className="space-y-1.5">
             {dos.map((d, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs text-txt-secondary leading-relaxed">
-                <span className="text-success mt-0.5 shrink-0">&#10003;</span>
+              <li key={i} className="flex items-start gap-2 text-xs text-[#525252] leading-relaxed font-body">
+                <span className="text-black mt-0.5 shrink-0">&#10003;</span>
                 {d}
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <span className="font-primary text-[10px] font-semibold text-error tracking-widest uppercase mb-2 block">
+          <span className="font-mono text-[10px] font-semibold text-black tracking-widest uppercase mb-2 block">
             DON&apos;Ts
           </span>
           <ul className="space-y-1.5">
             {donts.map((d, i) => (
-              <li key={i} className="flex items-start gap-2 text-xs text-txt-secondary leading-relaxed">
-                <span className="text-error mt-0.5 shrink-0">&#10007;</span>
+              <li key={i} className="flex items-start gap-2 text-xs text-[#525252] leading-relaxed font-body">
+                <span className="text-black mt-0.5 shrink-0">&#10007;</span>
                 {d}
               </li>
             ))}
@@ -139,26 +139,26 @@ export default function RegimeSection({
       </div>
 
       {/* Example trade */}
-      <div className="mt-4 bg-surface rounded-md border border-border p-4">
+      <div className="mt-4 bg-white border border-black p-4">
         <div className="flex items-center gap-2 mb-3">
-          <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
+          <span className="font-mono text-[10px] font-semibold text-[#525252] tracking-widest uppercase">
             Example
           </span>
-          <span className={`text-[10px] font-mono ${c.text} px-2 py-0.5 rounded-full ${c.bg} border border-current`}>
+          <span className="text-[10px] font-mono text-black px-2 py-0.5 border border-black">
             {example.tag}
           </span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
           {example.metrics.map((m) => (
-            <div key={m.label} className="bg-bg rounded-sm px-2.5 py-1.5 text-center">
-              <span className="font-primary text-[10px] text-txt-tertiary tracking-wider uppercase block">
+            <div key={m.label} className="bg-[#F5F5F5] px-2.5 py-1.5 text-center">
+              <span className="font-mono text-[10px] text-[#525252] tracking-wider uppercase block">
                 {m.label}
               </span>
-              <span className="font-mono text-xs font-semibold text-txt">{m.value}</span>
+              <span className="font-mono text-xs font-semibold text-black">{m.value}</span>
             </div>
           ))}
         </div>
-        <p className="text-xs text-txt-secondary italic leading-relaxed">
+        <p className="text-xs text-[#525252] italic leading-relaxed font-body">
           {example.narrative}
         </p>
       </div>
