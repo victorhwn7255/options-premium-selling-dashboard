@@ -2,13 +2,14 @@
 
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import DetailPanel from '@/components/DetailPanel';
-import type { DashboardTicker } from '@/lib/types';
+import type { DashboardTicker, TickerDelta } from '@/lib/types';
 
 interface LeaderboardProps {
   data: DashboardTicker[];
   selected: string | null;
   onSelect: (sym: string) => void;
   selectedData: DashboardTicker | null;
+  deltaMap: Record<string, TickerDelta>;
 }
 
 /* ── Inline sub-components ────────────────────────── */
@@ -101,6 +102,17 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
   );
 }
 
+function DeltaChip({ value, precision = 1 }: { value: number | null | undefined; precision?: number }) {
+  if (value == null) return null;
+  const sign = value > 0 ? '+' : '';
+  const color = value > 0 ? 'text-secondary' : value < 0 ? 'text-error' : 'text-txt-tertiary';
+  return (
+    <span className={`font-mono text-[10px] ${color} ml-1 hidden lg:inline`}>
+      {sign}{value.toFixed(precision)}
+    </span>
+  );
+}
+
 function SizingChip({ sizing }: { sizing?: string }) {
   if (!sizing || sizing === 'Full') return null;
   const isHalf = sizing === 'Half';
@@ -121,9 +133,9 @@ function SizingChip({ sizing }: { sizing?: string }) {
 /* ── Mobile card (shown < sm) ────────────────────── */
 
 function MobileTickerCard({
-  row, isSelected, onSelect, selectedData,
+  row, isSelected, onSelect, selectedData, delta,
 }: {
-  row: DashboardTicker; isSelected: boolean; onSelect: (sym: string) => void; selectedData: DashboardTicker | null;
+  row: DashboardTicker; isSelected: boolean; onSelect: (sym: string) => void; selectedData: DashboardTicker | null; delta?: TickerDelta | null;
 }) {
   const isSkipped = row.action === 'SKIP';
 
@@ -159,7 +171,7 @@ function MobileTickerCard({
         </div>
       </div>
       {/* Expandable detail */}
-      <ExpandableDetail ticker={isSelected ? selectedData : null} isOpen={isSelected} />
+      <ExpandableDetail ticker={isSelected ? selectedData : null} isOpen={isSelected} delta={isSelected ? delta : null} />
     </div>
   );
 }
@@ -178,7 +190,7 @@ const HEADERS = [
 
 /* ── Expandable detail row ────────────────────────── */
 
-function ExpandableDetail({ ticker, isOpen }: { ticker: DashboardTicker | null; isOpen: boolean }) {
+function ExpandableDetail({ ticker, isOpen, delta }: { ticker: DashboardTicker | null; isOpen: boolean; delta?: TickerDelta | null }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
@@ -209,13 +221,13 @@ function ExpandableDetail({ ticker, isOpen }: { ticker: DashboardTicker | null; 
       }}
     >
       <div ref={contentRef} className="pt-2 pb-6">
-        {ticker && <DetailPanel ticker={ticker} />}
+        {ticker && <DetailPanel ticker={ticker} delta={delta} />}
       </div>
     </div>
   );
 }
 
-export default function Leaderboard({ data, selected, onSelect, selectedData }: LeaderboardProps) {
+export default function Leaderboard({ data, selected, onSelect, selectedData, deltaMap }: LeaderboardProps) {
   const sellCount = data.filter(d => d.action === 'SELL').length;
   const conditionalCount = data.filter(d => d.action === 'CONDITIONAL').length;
   const [copied, setCopied] = useState(false);
@@ -306,6 +318,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
             isSelected={selected === row.sym}
             onSelect={onSelect}
             selectedData={selectedData}
+            delta={deltaMap[row.sym] ?? null}
           />
         ))}
       </div>
@@ -338,6 +351,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
               const isSelected = selected === row.sym;
               const isSkipped = row.action === 'SKIP';
               const isAvoided = row.action === 'AVOID';
+              const delta = deltaMap[row.sym];
 
               return (
                 <React.Fragment key={row.sym}>
@@ -365,6 +379,11 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
                         {row.regime === 'CAUTION' && (
                           <span className="inline-block w-1.5 h-1.5 rounded-full bg-warning shrink-0" title="Caution regime" />
                         )}
+                        {delta?.regime_changed && delta?.previous_regime && (
+                          <span className="text-[9px] text-txt-tertiary hidden lg:inline">
+                            was {delta.previous_regime}
+                          </span>
+                        )}
                       </div>
                     </td>
 
@@ -374,6 +393,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
                       style={{ background: isSelected ? 'var(--color-primary-subtle)' : 'transparent' }}
                     >
                       <VRPBar value={row.vrp} />
+                      <DeltaChip value={delta?.vrp} />
                     </td>
 
                     {/* Term Slope */}
@@ -384,6 +404,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
                       <span className={`font-mono text-sm ${row.termSlope > 1 ? 'text-error' : 'text-txt-secondary'}`}>
                         {row.termSlope.toFixed(2)}
                       </span>
+                      <DeltaChip value={delta?.term_slope} precision={2} />
                     </td>
 
                     {/* RV Accel + sizing */}
@@ -419,6 +440,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
                     >
                       <div className="relative inline-block">
                         <ScorePill score={row.score} />
+                        <DeltaChip value={delta?.score} precision={0} />
                         {row.preGateScore != null && (
                           <span className="absolute left-full top-1/2 -translate-y-1/2 ml-1.5 font-mono text-sm text-txt-tertiary whitespace-nowrap">({row.preGateScore})</span>
                         )}
@@ -446,6 +468,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData }: 
                       <ExpandableDetail
                         ticker={isSelected ? selectedData : null}
                         isOpen={isSelected}
+                        delta={isSelected ? (deltaMap[row.sym] ?? null) : null}
                       />
                     </td>
                   </tr>

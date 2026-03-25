@@ -83,6 +83,32 @@ class ScanResponse(BaseModel):
 
 
 
+class TickerDelta(BaseModel):
+    score: Optional[int] = None
+    iv: Optional[float] = None
+    iv_percentile: Optional[float] = None
+    rv30: Optional[float] = None
+    vrp: Optional[float] = None
+    term_slope: Optional[float] = None
+    rv_acceleration: Optional[float] = None
+    skew_25d: Optional[float] = None
+    regime_changed: bool = False
+    previous_regime: Optional[str] = None
+
+
+class TickerComparison(BaseModel):
+    ticker: str
+    current: TickerResult
+    previous: Optional[TickerResult] = None
+    deltas: Optional[TickerDelta] = None
+
+
+class ComparisonResponse(BaseModel):
+    current_scanned_at: str
+    previous_scanned_at: Optional[str] = None
+    tickers: list[TickerComparison]
+
+
 class HealthResponse(BaseModel):
     status: str
     marketdata_connected: bool

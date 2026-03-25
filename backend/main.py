@@ -35,7 +35,7 @@ from calculator import build_vol_surface, compute_realized_vol, compute_atm_iv, 
 from scorer import score_opportunity, ScoringParams
 from database import (
     store_daily_iv, get_historical_ivs, get_historical_series, log_scan,
-    store_scan_result, get_latest_scan, get_scan_history,
+    store_scan_result, get_latest_scan, get_scan_history, get_previous_day_scan,
     clear_earnings_cache, update_latest_scan_earnings,
     store_verification_result, get_latest_verification,
     store_earnings_verification, get_latest_earnings_verification,
@@ -43,6 +43,7 @@ from database import (
 from models import (
     ScanResponse, TickerResult, RegimeSummary,
     HistoricalPoint, HealthResponse, TermStructurePointOut, SkewPointOut,
+    TickerDelta, TickerComparison, ComparisonResponse,
 )
 
 
@@ -271,7 +272,8 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
             )
 
         # 7. Persist to CSV files (daily metrics + option quotes)
-        trading_date = bars[-1].date  # latest bar = most recent trading day
+        from zoneinfo import ZoneInfo
+        trading_date = datetime.now(tz=ZoneInfo("America/New_York")).date().isoformat()
         if surface.iv.iv_current is not None:
             append_daily_csv(
                 ticker, trading_date, snapshot.price,
@@ -779,6 +781,67 @@ async def scan_status():
 async def get_scan_history_endpoint(limit: int = Query(default=10, le=50)):
     """Return metadata for recent scans."""
     return {"scans": get_scan_history(limit=limit)}
+
+
+def _compute_deltas(current: dict, previous: dict) -> TickerDelta:
+    """Compute day-over-day deltas between two ticker result dicts."""
+    def _safe_sub(a, b):
+        if a is None or b is None:
+            return None
+        return round(a - b, 4)
+
+    regime_changed = current["regime"] != previous["regime"]
+    return TickerDelta(
+        score=current["signal_score"] - previous["signal_score"],
+        iv=_safe_sub(current.get("iv_current"), previous.get("iv_current")),
+        iv_percentile=round(current["iv_percentile"] - previous["iv_percentile"], 1),
+        rv30=round(current["rv30"] - previous["rv30"], 2),
+        vrp=_safe_sub(current.get("vrp"), previous.get("vrp")),
+        term_slope=round(current["term_slope"] - previous["term_slope"], 3),
+        rv_acceleration=round(current["rv_acceleration"] - previous["rv_acceleration"], 3),
+        skew_25d=round(current["skew_25d"] - previous["skew_25d"], 1),
+        regime_changed=regime_changed,
+        previous_regime=previous["regime"] if regime_changed else None,
+    )
+
+
+@app.get("/api/scan/comparison", response_model=ComparisonResponse)
+async def get_scan_comparison():
+    """Return today's scan with day-over-day deltas from the previous day's scan."""
+    latest = get_latest_scan()
+    if not latest:
+        return ComparisonResponse(current_scanned_at="", tickers=[])
+
+    previous = get_previous_day_scan(latest["scanned_at"])
+    prev_by_ticker = {}
+    if previous:
+        prev_by_ticker = {t["ticker"]: t for t in previous["tickers"]}
+
+    comparisons = []
+    for t in latest["tickers"]:
+        ticker_sym = t["ticker"]
+        # Enrich with is_etf from UNIVERSE
+        if ticker_sym in UNIVERSE:
+            t["is_etf"] = UNIVERSE[ticker_sym].get("etf", False)
+
+        prev_t = prev_by_ticker.get(ticker_sym)
+        if prev_t and ticker_sym in UNIVERSE:
+            prev_t["is_etf"] = UNIVERSE[ticker_sym].get("etf", False)
+
+        deltas = _compute_deltas(t, prev_t) if prev_t else None
+
+        comparisons.append(TickerComparison(
+            ticker=ticker_sym,
+            current=TickerResult(**t),
+            previous=TickerResult(**prev_t) if prev_t else None,
+            deltas=deltas,
+        ))
+
+    return ComparisonResponse(
+        current_scanned_at=latest["scanned_at"],
+        previous_scanned_at=previous["scanned_at"] if previous else None,
+        tickers=comparisons,
+    )
 
 
 @app.get("/api/ticker/{ticker}/history")

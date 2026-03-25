@@ -171,3 +171,31 @@ export interface EarningsVerificationResult {
   checks: EarningsCheck[];
 }
 
+/* ── Day-over-Day Comparison Types ──────────────────── */
+
+export interface TickerDelta {
+  score: number | null;
+  iv: number | null;
+  iv_percentile: number | null;
+  rv30: number | null;
+  vrp: number | null;
+  term_slope: number | null;
+  rv_acceleration: number | null;
+  skew_25d: number | null;
+  regime_changed: boolean;
+  previous_regime: string | null;
+}
+
+export interface TickerComparison {
+  ticker: string;
+  current: TickerResult;
+  previous: TickerResult | null;
+  deltas: TickerDelta | null;
+}
+
+export interface ComparisonResponse {
+  current_scanned_at: string;
+  previous_scanned_at: string | null;
+  tickers: TickerComparison[];
+}
+

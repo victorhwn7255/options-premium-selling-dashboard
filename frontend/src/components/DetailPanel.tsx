@@ -1,17 +1,18 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   AreaChart, Area, ComposedChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import type { DashboardTicker, VolHistoryPoint, TermStructurePoint2 } from '@/lib/types';
+import type { DashboardTicker, VolHistoryPoint, TermStructurePoint2, TickerDelta } from '@/lib/types';
 import { fetchTickerHistory } from '@/lib/api';
 import { useCssColors } from '@/hooks/useCssColors';
 
 interface DetailPanelProps {
   ticker: DashboardTicker | null;
+  delta?: TickerDelta | null;
 }
 
 /* -- Chart tooltip ---------------------------------------- */
@@ -99,7 +100,7 @@ function SizingChip({ sizing }: { sizing?: string }) {
 
 /* -- Main component --------------------------------------- */
 
-export default function DetailPanel({ ticker }: DetailPanelProps) {
+export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
   const colors = useCssColors();
 
   // Fetch vol history from API
@@ -275,6 +276,53 @@ export default function DetailPanel({ ticker }: DetailPanelProps) {
           );
         })}
       </div>
+
+      {/* Day-over-Day Comparison */}
+      {delta ? (
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
+          <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block mb-3">
+            Day-over-Day
+          </span>
+          <div className="grid grid-cols-[auto_1fr_1fr] gap-x-4 gap-y-1.5 font-mono text-sm">
+            <span className="text-2xs text-txt-tertiary font-primary font-semibold uppercase tracking-wider">Metric</span>
+            <span className="text-2xs text-txt-tertiary font-primary font-semibold uppercase tracking-wider text-right">Today</span>
+            <span className="text-2xs text-txt-tertiary font-primary font-semibold uppercase tracking-wider text-right">Change</span>
+            {[
+              { label: 'Score', today: String(ticker.score), change: delta.score, precision: 0, invertColor: false },
+              { label: 'VRP', today: ticker.vrp != null ? ticker.vrp.toFixed(1) : 'N/A', change: delta.vrp, precision: 1, invertColor: false },
+              { label: 'Term Slope', today: ticker.termSlope.toFixed(2), change: delta.term_slope, precision: 3, invertColor: true },
+              { label: 'RV Accel', today: ticker.rvAccel.toFixed(2), change: delta.rv_acceleration, precision: 3, invertColor: true },
+              { label: 'IV', today: ticker.iv != null ? ticker.iv.toFixed(1) : 'N/A', change: delta.iv, precision: 1, invertColor: false },
+              { label: 'IV Pct', today: `${ticker.ivPct}%`, change: delta.iv_percentile, precision: 1, invertColor: false },
+              { label: 'Skew', today: ticker.skew25d.toFixed(1), change: delta.skew_25d, precision: 1, invertColor: false },
+            ].map(row => {
+              const changeStr = row.change != null
+                ? `${row.change > 0 ? '+' : ''}${row.change.toFixed(row.precision)}`
+                : '--';
+              const changeColor = row.change == null ? 'text-txt-tertiary'
+                : row.change === 0 ? 'text-txt-tertiary'
+                : (row.invertColor ? row.change < 0 : row.change > 0) ? 'text-secondary'
+                : 'text-error';
+              return (
+                <React.Fragment key={row.label}>
+                  <span className="text-txt-secondary text-xs">{row.label}</span>
+                  <span className="text-txt text-right">{row.today}</span>
+                  <span className={`text-right ${changeColor}`}>{changeStr}</span>
+                </React.Fragment>
+              );
+            })}
+            <span className="text-txt-secondary text-xs">Regime</span>
+            <span className="text-txt text-right">{ticker.regime}</span>
+            <span className={`text-right ${delta.regime_changed ? 'text-warning' : 'text-txt-tertiary'}`}>
+              {delta.regime_changed && delta.previous_regime ? `was ${delta.previous_regime}` : '--'}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="px-4 sm:px-6 py-3 border-b border-border-subtle">
+          <span className="text-2xs text-txt-tertiary">First scan &mdash; no prior day comparison available</span>
+        </div>
+      )}
 
       {/* Position Construction -- only if actionable */}
       {!isSkipped && !isAvoided && !isNoData && ticker.action !== 'NO EDGE' && (

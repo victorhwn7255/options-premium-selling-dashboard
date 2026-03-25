@@ -7,8 +7,8 @@ import RegimeGuideModal from '@/components/RegimeGuideModal';
 import Leaderboard from '@/components/Leaderboard';
 import { useTheme } from '@/hooks/useTheme';
 import { buildScoredData } from '@/lib/scoring';
-import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus, fetchVerificationLatest, fetchEarningsVerificationLatest } from '@/lib/api';
-import type { ScanResponse, VerificationResult, EarningsVerificationResult } from '@/lib/types';
+import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus, fetchVerificationLatest, fetchEarningsVerificationLatest, fetchComparison } from '@/lib/api';
+import type { ScanResponse, VerificationResult, EarningsVerificationResult, TickerDelta } from '@/lib/types';
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
@@ -22,6 +22,7 @@ export default function Home() {
   const [regimeGuideOpen, setRegimeGuideOpen] = useState(false);
   const [verification, setVerification] = useState<VerificationResult | null>(null);
   const [earningsVerification, setEarningsVerification] = useState<EarningsVerificationResult | null>(null);
+  const [deltaMap, setDeltaMap] = useState<Record<string, TickerDelta>>({});
 
   // Fetch earnings remaining count + verification status on mount
   useEffect(() => {
@@ -59,6 +60,20 @@ export default function Home() {
     load();
     return () => { cancelled = true; };
   }, []);
+
+  // Fetch day-over-day comparison (non-critical, silent fail)
+  useEffect(() => {
+    if (!apiData?.tickers?.length) return;
+    fetchComparison()
+      .then(comp => {
+        const map: Record<string, TickerDelta> = {};
+        for (const tc of comp.tickers) {
+          if (tc.deltas) map[tc.ticker] = tc.deltas;
+        }
+        setDeltaMap(map);
+      })
+      .catch(() => {});
+  }, [apiData?.scanned_at]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const scoredData = useMemo(() => buildScoredData(apiData), [apiData]);
   const currentRegime = useMemo(() => computeRegime(scoredData).regime, [scoredData]);
@@ -191,7 +206,7 @@ export default function Home() {
 
             {/* Zone 2: Opportunity Leaderboard (detail expands inline) */}
             <div className="mb-5">
-              <Leaderboard data={scoredData} selected={selectedTicker} onSelect={handleSelect} selectedData={selectedData} />
+              <Leaderboard data={scoredData} selected={selectedTicker} onSelect={handleSelect} selectedData={selectedData} deltaMap={deltaMap} />
             </div>
 
             {/* Methodology Footer */}
