@@ -113,7 +113,7 @@ Works identically with individual stocks and ETFs.
 
 ### Adjusting scoring thresholds
 
-Default filter thresholds are in `frontend/src/lib/types.ts` (`DEFAULT_FILTERS`) and can be adjusted live in the dashboard UI.
+Scoring thresholds are in `backend/scorer.py` (`ScoringParams` dataclass).
 
 ## Important Notes
 

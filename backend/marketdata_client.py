@@ -230,7 +230,8 @@ class MarketDataClient:
 
         # Determine which expiration compute_skew will pick (nearest to 30 DTE)
         # so the wide chain fetches that exact expiration with full strike coverage.
-        skew_dte = 30
+        # Pass the actual expiry date (not DTE) to avoid API misalignment.
+        skew_exp_str = None
         if narrow_data and narrow_data.get("s") == "ok":
             today = date.today()
             best_diff = float("inf")
@@ -243,13 +244,15 @@ class MarketDataClient:
                 dte = (exp_date - today).days
                 if dte > 0 and abs(dte - 30) < best_diff:
                     best_diff = abs(dte - 30)
-                    skew_dte = dte
+                    skew_exp_str = exp_date.isoformat()
 
-        # Call 2: Wide chain — wide strikes for skew at the expiration compute_skew will use
-        wide_data = await self._get(url, {
-            "strikeLimit": 60,
-            "dte": skew_dte,
-        })
+        # Call 2: Wide chain — wide strikes for skew at the exact expiration
+        wide_params = {"strikeLimit": 60}
+        if skew_exp_str:
+            wide_params["expiration"] = skew_exp_str
+        else:
+            wide_params["dte"] = 30  # fallback
+        wide_data = await self._get(url, wide_params)
 
         # Parse and merge both responses, deduplicating by (strike, expiration, side)
         seen = set()

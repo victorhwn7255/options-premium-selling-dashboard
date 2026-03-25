@@ -261,6 +261,33 @@ def update_latest_scan_earnings(earnings: dict[str, int | None]) -> None:
     conn.close()
 
 
+def get_previous_day_scan(current_scanned_at: str) -> Optional[dict]:
+    """Get the most recent scan from a calendar day (ET) before the given scan timestamp."""
+    from zoneinfo import ZoneInfo
+    et = ZoneInfo("America/New_York")
+    current_dt = datetime.fromisoformat(current_scanned_at.replace("Z", "+00:00"))
+    current_date = current_dt.astimezone(et).date()
+
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT id, scanned_at, regime, tickers, historical FROM scan_results ORDER BY id DESC LIMIT 50"
+    ).fetchall()
+    conn.close()
+
+    for row in rows:
+        scan_dt = datetime.fromisoformat(row[1].replace("Z", "+00:00"))
+        scan_date = scan_dt.astimezone(et).date()
+        if scan_date < current_date:
+            return {
+                "id": row[0],
+                "scanned_at": row[1],
+                "regime": json.loads(row[2]),
+                "tickers": json.loads(row[3]),
+                "historical": json.loads(row[4]),
+            }
+    return None
+
+
 def get_scan_history(limit: int = 10) -> list[dict]:
     """Return metadata for recent scans (no full payloads)."""
     conn = get_connection()

@@ -1,4 +1,4 @@
-import type { ScanResponse, HealthResponse, VerificationResult, EarningsVerificationResult } from './types';
+import type { ScanResponse, HealthResponse, VerificationResult, EarningsVerificationResult, ComparisonResponse } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -77,6 +77,12 @@ export async function fetchVerificationLatest(): Promise<VerificationResult | nu
   // If no verification yet, API returns { message: "..." } without id
   if (!data.id) return null;
   return data as VerificationResult;
+}
+
+export async function fetchComparison(): Promise<ComparisonResponse> {
+  const res = await fetch(`${API_BASE}/api/scan/comparison`);
+  if (!res.ok) throw new Error('Failed to fetch comparison');
+  return res.json();
 }
 
 export async function fetchEarningsVerificationLatest(): Promise<EarningsVerificationResult | null> {
