@@ -44,19 +44,19 @@ export function computeRegime(data: DashboardTicker[]) {
     colorClass = 'text-warning';
     borderClass = 'border-l-warning';
     desc = 'Every possession counts — play tight, no turnovers';
-    detail = `${stressPctStr}% of tickers are stressed (${dangerCount} DANGER, ${stressCount - dangerCount} CAUTION). Play tight — defined-risk structures only, reduced sizing.`;
+    detail = `${stressPctStr}% stressed (${dangerCount} DANGER, ${stressCount - dangerCount} CAUTION). Defined-risk only, reduced sizing.`;
   } else if (avgVRP > 8 && avgTermSlope < 0.90) {
     regime = 'THE FINALS';
     colorClass = 'text-accent';
     borderClass = 'border-l-accent';
     desc = "You're on fire — wide VRP in contango, keep shooting";
-    detail = `Avg VRP at ${avgVRP.toFixed(1)} with deep contango — the options market is significantly overpricing volatility. Statistical edge is at its widest.`;
+    detail = `Avg VRP at ${avgVRP.toFixed(1)} with deep contango — statistical edge is at its widest.`;
   } else {
     regime = 'THE PLAYOFFS';
     colorClass = 'text-secondary';
     borderClass = 'border-l-secondary';
     desc = 'Running your sets — nothing weird, execute the playbook';
-    detail = `Most tickers in normal regime with stable vol. Run your standard playbook on high-scoring tickers.`;
+    detail = `Most tickers in normal regime with stable vol. Run your standard playbook.`;
   }
 
   return {
@@ -74,57 +74,57 @@ export default function RegimeBanner({ data }: RegimeBannerProps) {
 
   const metrics = [
     { label: 'Avg VRP', value: r.avgVRP.toFixed(1), good: r.avgVRP > 5 },
-    { label: 'Avg Term Slope', value: r.avgTermSlope.toFixed(2), good: r.avgTermSlope < 0.95 },
+    { label: 'Term Slope', value: r.avgTermSlope.toFixed(2), good: r.avgTermSlope < 0.95 },
     { label: 'RV Accel', value: r.avgRVAccel.toFixed(2), good: r.avgRVAccel < 1.08 },
     { label: 'Tradeable', value: `${r.tradeableCount}/${r.eligibleCount}`, good: r.tradeableCount > 3 },
   ];
 
   return (
-    <div className={`bg-surface rounded-lg border border-border border-l-4 ${r.borderClass} p-4 sm:p-5 sm:px-6`}>
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        {/* Left: regime info */}
-        <div>
-          <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
-            Market Regime
-          </span>
-          <div className={`font-secondary text-xl sm:text-[26px] font-medium ${r.colorClass} leading-tight mt-1.5`}>
-            {r.regime}
+    <div className="bg-surface rounded-lg border border-border overflow-hidden">
+      {/* Top row: Regime name + metrics in one line */}
+      <div className="px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center gap-4">
+        {/* Regime name — compact, left-aligned */}
+        <div className="flex items-center gap-3 sm:min-w-[200px]">
+          <div>
+            <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block">
+              Market Regime
+            </span>
+            <div className={`font-secondary text-xl sm:text-2xl font-medium ${r.colorClass} leading-tight mt-0.5`}>
+              {r.regime}
+            </div>
           </div>
-          {r.desc && (
-            <p className={`text-xs font-semibold ${r.colorClass} mt-5`}>
-              {r.desc}
-            </p>
-          )}
-          <p className="text-xs text-txt-secondary max-w-[480px] leading-relaxed mt-1">
-            {r.detail}
-          </p>
         </div>
 
-        {/* Right: aggregate metrics */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:flex sm:gap-7 sm:items-start">
+        {/* Metrics — inline row, grows to fill */}
+        <div className="flex-1 grid grid-cols-4 gap-3 sm:gap-4">
           {metrics.map(m => (
-            <div key={m.label} className="text-left sm:text-right">
-              <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
+            <div key={m.label} className="text-center sm:text-center">
+              <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block">
                 {m.label}
               </span>
-              <div className="mt-0.5">
-                <span className={`font-mono text-xl font-semibold ${m.good ? 'text-txt' : 'text-warning'}`}>
-                  {m.value}
-                </span>
-              </div>
+              <span className={`font-mono text-lg sm:text-xl font-semibold block mt-0.5 ${m.good ? 'text-txt' : 'text-warning'}`}>
+                {m.value}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Bottom strip: description */}
+      <div className="px-4 sm:px-6 py-2.5 border-t border-border-subtle bg-surface-alt">
+        <p className="text-xs text-txt-secondary leading-relaxed">
+          <span className={`font-semibold ${r.colorClass}`}>{r.desc}</span>
+          {r.detail && <span className="text-txt-tertiary"> — {r.detail}</span>}
+        </p>
+      </div>
+
       {/* Hostile alert */}
       {r.isHostile && (
-        <div className="mt-6 px-3.5 py-2.5 bg-error-subtle rounded-md border border-error-20 text-xs leading-normal"
+        <div className="px-4 sm:px-6 py-2.5 bg-error-subtle border-t border-error-20 text-xs leading-normal"
           style={{ color: 'var(--color-error)' }}>
           No premium selling today. Let&apos;s be disciplined and wait for better days.
         </div>
       )}
-
     </div>
   );
 }

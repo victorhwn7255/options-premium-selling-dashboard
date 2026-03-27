@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 const themeScript = `
 (function() {
   var t = localStorage.getItem('oh-theme');
-  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  if (!t) t = 'dark';
   document.documentElement.setAttribute('data-theme', t);
 })();
 `;
