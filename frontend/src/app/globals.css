@@ -41,8 +41,8 @@
 
   --color-success: #6B8C5A;
   --color-success-subtle: rgba(107, 140, 90, 0.12);
-  --color-warning: #C49A5A;
-  --color-warning-subtle: rgba(196, 154, 90, 0.12);
+  --color-warning: #E08A5E;
+  --color-warning-subtle: rgba(224, 138, 94, 0.12);
   --color-error: #C45A5A;
   --color-error-subtle: rgba(196, 90, 90, 0.12);
 
@@ -56,7 +56,7 @@
   /* Badge text colors */
   --color-badge-sell: #4A6B3A;
   --color-badge-conditional: #9C5D3F;
-  --color-badge-reduce: #8B6B3A;
+  --color-badge-reduce: #C06A3A;
   --color-badge-avoid: #9C3A3A;
 
   /* Row hover */
@@ -128,8 +128,8 @@
 
   --color-success: #82B86E;
   --color-success-subtle: rgba(130, 184, 110, 0.12);
-  --color-warning: #D4AE6E;
-  --color-warning-subtle: rgba(212, 174, 110, 0.12);
+  --color-warning: #D4A574;
+  --color-warning-subtle: rgba(212, 165, 116, 0.10);
   --color-error: #D47272;
   --color-error-subtle: rgba(212, 114, 114, 0.12);
 
@@ -143,7 +143,7 @@
   /* Badge text colors */
   --color-badge-sell: #82B86E;
   --color-badge-conditional: #D4956F;
-  --color-badge-reduce: #D4AE6E;
+  --color-badge-reduce: #E8956A;
   --color-badge-avoid: #D47272;
 
   /* Row hover */
