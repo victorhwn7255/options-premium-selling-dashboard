@@ -1,6 +1,6 @@
 ---
 last_verified: 2026-04-16
-verified_against: 2134cff
+verified_against: dc030c3
 rot_risk: low
 rot_triggers:
   - backend/scorer.py
@@ -19,8 +19,8 @@ Quick-reference definitions for every domain term used in the codebase. Look up 
 **This file covers:** Volatility metrics, structure metrics, trade-level metrics, regime labels, recommendation labels, position terms, key thresholds.
 
 **This file does NOT cover:**
-- Why formulas are shaped this way — see `context/methodology.md`
-- How terms combine into a score — see `context/scoring-and-strategy.md`
+- Why formulas are shaped this way — see `1-domain/methodology.md`
+- How terms combine into a score — see `1-domain/scoring-and-strategy.md`
 - Full metric derivation with code paths — see `references/metrics_report.md`
 
 ---

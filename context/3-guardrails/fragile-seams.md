@@ -1,6 +1,6 @@
 ---
 last_verified: 2026-04-16
-verified_against: 2134cff
+verified_against: dc030c3
 rot_risk: high
 rot_triggers:
   - backend/calculator.py
@@ -17,7 +17,7 @@ audience: both
 
 This file answers: **"What will break if I'm not careful?"** It documents known fragile areas — places where the code, data, or external dependencies have sharp edges that aren't obvious from reading the source alone. Several of these have caused production issues before.
 
-This is not a bug tracker or tech-debt list. Each entry here describes a **hazard that a reasonable contributor could trigger** by touching nearby code without understanding the hidden constraint. If something is a deliberate design choice that *looks* like a bug, it belongs in [`context/decisions/`](decisions/) instead.
+This is not a bug tracker or tech-debt list. Each entry here describes a **hazard that a reasonable contributor could trigger** by touching nearby code without understanding the hidden constraint. If something is a deliberate design choice that *looks* like a bug, it belongs in [`3-guardrails/decisions/`](decisions/) instead.
 
 ## Scope
 
@@ -29,9 +29,9 @@ This is not a bug tracker or tech-debt list. Each entry here describes a **hazar
 - Frontend seams (silent failures, polling assumptions)
 
 **This file does NOT cover:**
-- Deliberate design choices — see `context/decisions/`
-- Scoring formula details — see `context/scoring-and-strategy.md`
-- Deployment configuration — see `context/deployment.md`
+- Deliberate design choices — see `3-guardrails/decisions/`
+- Scoring formula details — see `1-domain/scoring-and-strategy.md`
+- Deployment configuration — see `2-system/deployment.md`
 
 ---
 

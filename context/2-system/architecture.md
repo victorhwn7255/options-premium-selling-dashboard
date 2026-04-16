@@ -1,6 +1,6 @@
 ---
 last_verified: 2026-04-16
-verified_against: 2134cff
+verified_against: dc030c3
 rot_risk: medium
 rot_triggers:
   - docker-compose.yml
@@ -23,10 +23,10 @@ How the pieces fit together — service boundaries, data flow between them, and 
 **This file covers:** Service topology, API proxy, scan lifecycle, frontend data flow, backend/frontend ownership, regime disconnect, external dependencies, module dependency graph.
 
 **This file does NOT cover:**
-- Scoring formula — see `context/scoring-and-strategy.md`
-- SQLite schema and CSV formats — see `context/data-model.md`
-- Deployment commands and env vars — see `context/deployment.md`
-- Domain terminology — see `context/domain-glossary.md`
+- Scoring formula — see `1-domain/scoring-and-strategy.md`
+- SQLite schema and CSV formats — see `2-system/data-model.md`
+- Deployment commands and env vars — see `2-system/deployment.md`
+- Domain terminology — see `1-domain/glossary.md`
 
 ---
 
@@ -128,7 +128,7 @@ Backend TickerResult (snake_case)
   → DashboardTicker[]          → components
 ```
 
-**Regime computation** (`RegimeBanner.tsx:computeRegime()`): runs on the transformed `DashboardTicker[]`, excludes SKIP and NO DATA tickers, produces the NBA-themed market regime. See [scoring-and-strategy.md § Dashboard-Level Market Regime](scoring-and-strategy.md#dashboard-level-market-regime).
+**Regime computation** (`RegimeBanner.tsx:computeRegime()`): runs on the transformed `DashboardTicker[]`, excludes SKIP and NO DATA tickers, produces the NBA-themed market regime. See [scoring-and-strategy.md § Dashboard-Level Market Regime](../1-domain/scoring-and-strategy.md#dashboard-level-market-regime).
 
 ---
 
@@ -143,17 +143,17 @@ The most important architectural invariant: **backend scoring is authoritative.*
 | Per-ticker regime | Backend | Requires term structure + IV rank + RV accel |
 | Recommendation | Backend | Combines score + regime — one decision point |
 | Position construction | Backend | Requires IV rank and VRP magnitude |
-| Earnings gate (DTE ≤ 14 → SKIP) | **Frontend** | See [ADR-003](decisions/003-earnings-gate-frontend-only.md) |
+| Earnings gate (DTE ≤ 14 → SKIP) | **Frontend** | See [ADR-003](../3-guardrails/decisions/003-earnings-gate-frontend-only.md) |
 | Position sizing (Full/Half/Quarter) | **Frontend** | Display concern driven by RV accel threshold |
 | Dashboard market regime (NBA-themed) | **Frontend** | Independent classifier from aggregate ticker data |
 
-See [ADR-001](decisions/001-single-source-scoring.md) for why the frontend doesn't recompute scores.
+See [ADR-001](../3-guardrails/decisions/001-single-source-scoring.md) for why the frontend doesn't recompute scores.
 
 ---
 
 ## Regime Disconnect
 
-Two independent regime classifiers exist. This is deliberate — see [ADR-006](decisions/006-two-independent-regime-classifiers.md).
+Two independent regime classifiers exist. This is deliberate — see [ADR-006](../3-guardrails/decisions/006-two-independent-regime-classifiers.md).
 
 **Backend** (`main.py`, `RegimeSummary`): ELEVATED RISK / CAUTION / OPPORTUNITY / NORMAL. Uses aggregate averages (avg IV rank, avg RV accel, danger count) and SPY's term slope as VIX proxy.
 

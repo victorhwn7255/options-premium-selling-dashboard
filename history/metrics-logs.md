@@ -1,8 +1,29 @@
-# Daily Scan Data — Raw History
+# Daily Scan Data — Raw Metrics Log
 
-All after-market-close scan snapshots. One entry per trading day.
+After-market-close scan snapshots. One entry per trading day, descending order.
 
-> **IMPORTANT:** Entries are in **descending order** (newest first). When adding a new day, insert it immediately below this line, before the previous latest entry.
+---
+
+## Update Protocol
+
+**Trigger:** User pastes raw metrics data copied from the dashboard's clipboard function.
+
+**Steps:**
+1. Receive pasted metrics from the user
+2. Format into the standard table (see column order below)
+3. Insert new entry **at the top** of the log (immediately below the `---` after this protocol section)
+4. Use heading format: `## YYYY-MM-DD (Day of week)`
+5. Sort tickers by score descending within each day's table
+6. Earnings-gated tickers (score = 0) go at the bottom
+
+**Column order:**
+```
+| Ticker | Score | IV | IV Pct | RV30 | VRP | Term Slope | RV Accel | 25D Skew | T/V | Earnings | Regime |
+```
+
+---
+
+> **IMPORTANT:** Entries are in **descending order** (newest first). New entries go immediately below this line.
 
 ---
 
