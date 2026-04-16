@@ -43,6 +43,18 @@ previous day, earnings impacts, sector themes, data quality notes if any]
 
 ---
 
+## 2026-04-16 (Thursday)
+
+**Regime:** DEGRADED DATA | **Tradeable:** 1S / 1C | **Avg VRP:** N/A (unreliable)
+
+**Data quality issue: 13 of 33 tickers returned NO DATA** — SPY, QQQ, IWM, GLD, XLI, XLB, META, TSLA, NFLX, GS all missing IV/VRP entirely. Additionally, 16 of the 20 remaining tickers show term slope of exactly 1.00 (yesterday: varied 0.72–1.48). MarketData.app options chain endpoint likely degraded during scan window. Term structure and skew unreliable across the board.
+
+Of the valid data: **JNJ (68)** sole SELL — VRP widened 7.1→9.0 as IV rose 21.9→24.4, 90d to earnings, RV accel 0.96 (Full size eligible). **UBER (47)** upgraded to CONDITIONAL — VRP 9.7, improving, but term slope 1.00 vs yesterday's 1.09 makes the signal suspect. **MCD** newly gated (21d→7d, crossed 14d threshold). SBUX entered DANGER (slope 1.15, only ticker showing non-1.00 backwardation). NKE surged 15→39 as RV accel collapsed 1.67→0.62 (massive deceleration) but VRP still deeply negative (-21.4). XLE exited DANGER (slope 1.17→0.96, backwardation resolved).
+
+**Position: Cash. Do not trade this scan.** The NO DATA issue across major index ETFs and mega-caps makes aggregate metrics meaningless. JNJ's fundamentals look fine but confirm with tomorrow's scan before acting. Investigate API errors — check if the new MarketData token has different endpoint permissions, or if this is a transient API outage.
+
+---
+
 ## 2026-04-15 (Wednesday)
 
 **Regime:** THE PLAYOFFS (Complacency Phase) | **Tradeable:** 2S / 0C | **Avg VRP:** -0.6
