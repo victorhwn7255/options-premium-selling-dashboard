@@ -1,38 +1,56 @@
 ---
 last_verified: 2026-04-16
-verified_against: 2134cff
+verified_against: dc030c3
+rot_risk: low
+rot_triggers:
+  - context/ (any file added or removed)
+audience: both
 ---
 
 # Context — Theta Harvest
 
-Curated knowledge for onboarding new contributors (human or Claude Code agent) without reading 8,500 lines of source. Each file has a freshness header and explicit scope boundary. Cross-references point to primary sources in [`references/`](../references/) and to the code itself — nothing here duplicates what well-named code already says.
+Curated knowledge for onboarding new contributors (human or Claude Code agent) without reading 8,500 lines of source. Each file has a freshness header and explicit scope boundary.
 
-## What is Theta Harvest?
+This folder is **derived explanation** — it captures *why*, *what's weird*, *how pieces fit together*, and *what will break*. It is not primary source material (that's [`references/`](../references/)) and not a code mirror (well-named source code is its own documentation).
 
-A volatility premium scanner for options sellers. Scans 33 tickers daily after market close, computes implied vs. realized volatility metrics, scores each on a 0–100 scale for premium-selling edge, classifies market regimes, and presents actionable trade construction on a single-page dashboard.
+## Reading Paths
 
-## Reading Order
+**Writing code** (45 min): `1-domain/glossary.md` (terms) → `2-system/architecture.md` (how pieces connect) → `1-domain/scoring-and-strategy.md` (core logic) → `3-guardrails/fragile-seams.md` (what will break).
 
-**If you're about to write code:** Start with `2-system/architecture.md` (how pieces connect), then `1-domain/scoring-and-strategy.md` (the core logic), then `3-guardrails/fragile-seams.md` (what will break).
+**Deploying or debugging ops** (15 min): `2-system/deployment.md` → `3-guardrails/fragile-seams.md`.
 
-**If you're about to deploy or operate:** Start with `2-system/deployment.md`.
+**New to options selling** (30 min): `1-domain/glossary.md` → `1-domain/methodology.md` → [`references/strategy.md`](../references/strategy.md) (primary source — trading thesis).
 
-**If you're new to options selling:** Start with `1-domain/glossary.md`, then read [`references/strategy.md`](../references/strategy.md).
+**Evaluating the model** (20 min): `1-domain/methodology.md` → `1-domain/scoring-and-strategy.md`.
 
-**If you're evaluating the model:** Start with `1-domain/methodology.md`, then `1-domain/scoring-and-strategy.md`.
+**Claude Code agent on a new session**: Loads key files per `CLAUDE.md` imports; pulls specific files on demand from the file map below.
 
-## File Index
+---
 
-| File | Purpose |
-|------|---------|
-| [`architecture.md`](2-system/architecture.md) | Service topology, data flow, ownership boundary, module graph |
-| [`scoring-and-strategy.md`](1-domain/scoring-and-strategy.md) | Scoring formula, gates, regime detection, recommendations, position construction |
-| [`fragile-seams.md`](3-guardrails/fragile-seams.md) | Known fragile areas, hazards, historical incidents |
-| [`data-model.md`](2-system/data-model.md) | SQLite schema (6 tables), CSV formats, data lifecycle |
-| [`deployment.md`](2-system/deployment.md) | Docker stack, env vars, local dev, CLI scripts, operational gotchas |
-| [`methodology.md`](1-domain/methodology.md) | Academic basis, approximation rationale, known model limitations |
-| [`glossary.md`](1-domain/glossary.md) | Term definitions, formulas, thresholds quick reference |
-| [`decisions/`](3-guardrails/decisions/) | Architecture Decision Records (11 ADRs) — non-obvious design choices |
+## File Map
+
+### `1-domain/` — Understand WHAT the system does
+
+| File | Question it answers |
+|------|---------------------|
+| [`glossary.md`](1-domain/glossary.md) | What does this term mean? Definitions, formulas, thresholds for every domain concept. |
+| [`methodology.md`](1-domain/methodology.md) | Why is the math shaped this way? Academic basis, approximations, known limitations. |
+| [`scoring-and-strategy.md`](1-domain/scoring-and-strategy.md) | How does a ticker go from raw data to SELL/SKIP/AVOID? The complete scoring pipeline. |
+
+### `2-system/` — Understand HOW it's built and run
+
+| File | Question it answers |
+|------|---------------------|
+| [`architecture.md`](2-system/architecture.md) | How do the pieces fit together? Service topology, data flow, ownership boundary. |
+| [`data-model.md`](2-system/data-model.md) | Where does data live and what shape is it? SQLite schema, CSV formats, lifecycle. |
+| [`deployment.md`](2-system/deployment.md) | How do I run, build, and deploy this? Docker, env vars, CLI scripts, operational gotchas. |
+
+### `3-guardrails/` — Read BEFORE changing code
+
+| File | Question it answers |
+|------|---------------------|
+| [`fragile-seams.md`](3-guardrails/fragile-seams.md) | What will break if I'm not careful? Known hazards and historical incidents. |
+| [`decisions/`](3-guardrails/decisions/) | Why was this non-obvious choice made? 11 ADRs documenting deliberate design decisions. |
 
 ### Decisions Index
 
@@ -50,6 +68,8 @@ A volatility premium scanner for options sellers. Scans 33 tickers daily after m
 | [010](3-guardrails/decisions/010-holiday-calendar-duplicated.md) | Holiday calendar duplicated in frontend and backend |
 | [011](3-guardrails/decisions/011-additive-scoring-replaces-penalty-based.md) | Additive scoring replaces penalty-based |
 
+---
+
 ## Primary Sources
 
 These are canonical and authoritative — `/context/` links to them but does not duplicate their content:
@@ -59,6 +79,29 @@ These are canonical and authoritative — `/context/` links to them but does not
 | [`references/strategy.md`](../references/strategy.md) | Trading strategy thesis, the 5 signals, daily workflow, position management |
 | [`references/metrics_report.md`](../references/metrics_report.md) | Every metric formula, data source, computation detail |
 
-## Keeping Context Fresh
+---
 
-Every file has a `last_verified` date and `verified_against` git hash in its frontmatter. When you change code listed in a file's `rot_triggers`, update the corresponding context file. High-rot-risk files (`scoring-and-strategy.md`, `fragile-seams.md`) should be re-verified after any change to `scorer.py`, `calculator.py`, `scoring.ts`, or `RegimeBanner.tsx`.
+## Where New Content Goes
+
+| When this happens                                     | Update this file                                    |
+|------------------------------------------------------|-----------------------------------------------------|
+| New domain term or formula                           | `1-domain/glossary.md`                              |
+| Scoring formula or gate change                       | `1-domain/scoring-and-strategy.md`                  |
+| New academic reference or methodology shift          | `1-domain/methodology.md`                           |
+| Service added/removed, module boundary changed       | `2-system/architecture.md`                          |
+| Schema change (SQLite or CSV)                        | `2-system/data-model.md`                            |
+| Deployment, env, or infra change                     | `2-system/deployment.md`                            |
+| New recurring bug, gotcha, or race condition         | `3-guardrails/fragile-seams.md`                     |
+| Non-obvious design choice with rejected alternatives | New ADR in `3-guardrails/decisions/`                |
+
+**Rule of thumb for decisions vs. fragile seams:**
+- If a new contributor would be tempted to "fix" it without reading history → decision (ADR).
+- If it's a bug you've mapped but not fully cured → fragile seam.
+
+---
+
+## Freshness Discipline
+
+Every file has a `last_verified` date and `verified_against` git hash in its frontmatter. When you change code listed in a file's `rot_triggers`, update the corresponding context file. If a header is more than a quarter stale, flag it for re-verification rather than trusting it — stale reference material is worse than none.
+
+High-rot-risk files (`1-domain/scoring-and-strategy.md`, `3-guardrails/fragile-seams.md`) should be re-verified after any change to `scorer.py`, `calculator.py`, `scoring.ts`, or `RegimeBanner.tsx`.

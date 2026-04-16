@@ -1,6 +1,6 @@
 ---
 last_verified: 2026-04-16
-verified_against: 2134cff
+verified_against: dc030c3
 rot_risk: low
 rot_triggers:
   - backend/calculator.py
