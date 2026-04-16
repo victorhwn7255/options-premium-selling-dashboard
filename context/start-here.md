@@ -9,21 +9,55 @@ audience: both
 
 # Context — Theta Harvest
 
+## Agent Onboarding Instructions
+
+**If you are a new Claude Code agent starting a session, follow these steps:**
+
+1. **Read every file in this `/context/` folder** in the order listed below. Do not skip any files.
+2. **Also read** the two primary source files: [`references/strategy.md`](../references/strategy.md) and [`references/metrics.md`](../references/metrics.md).
+3. **Read session memory** — these carry knowledge from previous agents:
+   - [`tasks/lessons.md`](../tasks/lessons.md) — mistakes and patterns from past sessions (learn so you don't repeat them)
+   - [`references/change-logs.md`](../references/change-logs.md) — recent project changes in reverse chronological order
+4. **After reading everything**, respond to the user with a structured summary of your understanding — cover: what the project does, the architecture, the scoring engine, the regime system, key fragile areas, and important design decisions.
+5. **Wait for the user to confirm** your understanding is correct before starting any task.
+
+### Reading Order
+
+Read in this exact sequence:
+
+| Step | File | What you'll learn |
+|------|------|-------------------|
+| 1 | This file (`start-here.md`) | Project overview, file map, how context is organized |
+| 2 | `1-domain/glossary.md` | Domain vocabulary — VRP, IV percentile, skew, regime labels, thresholds |
+| 3 | `1-domain/methodology.md` | Why the math is shaped this way — academic basis, approximations, limitations |
+| 4 | `1-domain/scoring-and-strategy.md` | The complete scoring pipeline — 5 components, gates, regime, recommendations |
+| 5 | `2-system/architecture.md` | Service topology, scan lifecycle, frontend data flow, ownership boundary |
+| 6 | `2-system/data-model.md` | SQLite schema, CSV formats, data lifecycle |
+| 7 | `2-system/deployment.md` | Docker stack, env vars, CLI scripts, operational gotchas |
+| 8 | `3-guardrails/fragile-seams.md` | Known hazards that will break if you're not careful |
+| 9 | `3-guardrails/decisions/` (all 11 ADRs) | Non-obvious design choices — read so you don't accidentally "fix" them |
+| 10 | [`references/strategy.md`](../references/strategy.md) | Trading strategy thesis (primary source) |
+| 11 | [`references/metrics.md`](../references/metrics.md) | Metric formulas and computation details (primary source) |
+| 12 | [`tasks/lessons.md`](../tasks/lessons.md) | Mistakes and patterns from previous agents — avoid repeating them |
+| 13 | [`references/change-logs.md`](../references/change-logs.md) | Recent project changes — know what was last touched and why |
+
+---
+
+## What Is This Folder?
+
 Curated knowledge for onboarding new contributors (human or Claude Code agent) without reading 8,500 lines of source. Each file has a freshness header and explicit scope boundary.
 
 This folder is **derived explanation** — it captures *why*, *what's weird*, *how pieces fit together*, and *what will break*. It is not primary source material (that's [`references/`](../references/)) and not a code mirror (well-named source code is its own documentation).
 
-## Reading Paths
+## Quick Reading Paths (for humans)
 
-**Writing code** (45 min): `1-domain/glossary.md` (terms) → `2-system/architecture.md` (how pieces connect) → `1-domain/scoring-and-strategy.md` (core logic) → `3-guardrails/fragile-seams.md` (what will break).
+**Writing code** (45 min): `1-domain/glossary.md` → `2-system/architecture.md` → `1-domain/scoring-and-strategy.md` → `3-guardrails/fragile-seams.md`.
 
 **Deploying or debugging ops** (15 min): `2-system/deployment.md` → `3-guardrails/fragile-seams.md`.
 
-**New to options selling** (30 min): `1-domain/glossary.md` → `1-domain/methodology.md` → [`references/strategy.md`](../references/strategy.md) (primary source — trading thesis).
+**New to options selling** (30 min): `1-domain/glossary.md` → `1-domain/methodology.md` → [`references/strategy.md`](../references/strategy.md).
 
 **Evaluating the model** (20 min): `1-domain/methodology.md` → `1-domain/scoring-and-strategy.md`.
-
-**Claude Code agent on a new session**: Loads key files per `CLAUDE.md` imports; pulls specific files on demand from the file map below.
 
 ---
 
@@ -77,7 +111,7 @@ These are canonical and authoritative — `/context/` links to them but does not
 | File | What it covers |
 |------|----------------|
 | [`references/strategy.md`](../references/strategy.md) | Trading strategy thesis, the 5 signals, daily workflow, position management |
-| [`references/metrics_report.md`](../references/metrics_report.md) | Every metric formula, data source, computation detail |
+| [`references/metrics.md`](../references/metrics.md) | Every metric formula, data source, computation detail |
 
 ---
 

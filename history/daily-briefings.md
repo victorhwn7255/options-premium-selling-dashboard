@@ -1,6 +1,45 @@
 # Daily Briefings — Analysis Summaries
 
-> **IMPORTANT:** Entries are in **descending order** (newest first). When adding a new day, insert it immediately below this line, before the previous latest entry.
+Trading analysis and recommendations based on each day's scan data.
+
+---
+
+## Update Protocol
+
+**Trigger:** After updating `metrics-logs.md` with the day's raw data.
+
+**Steps:**
+1. Analyse the metrics — compare against previous day(s) for trends
+2. Present analysis and trade recommendations to the user in chat
+3. After user discussion, write the briefing entry here
+4. Insert new entry **at the top** of the log (immediately below the `---` after this protocol section)
+
+**Entry format:**
+```
+## YYYY-MM-DD (Day of week)
+
+**Regime:** [NBA regime] ([phase/qualifier]) | **Tradeable:** [X]S / [Y]C | **Avg VRP:** [value]
+
+[1-2 paragraph narrative analysis covering: regime shifts, top signals, key movements from
+previous day, earnings impacts, sector themes, data quality notes if any]
+
+**Position: [specific recommendations with sizing]**
+```
+
+**Analysis should cover:**
+- Regime status and any shifts from previous day
+- Top SELL and CONDITIONAL signals with scores
+- Day-over-day changes for key tickers (score, VRP, slope, regime changes)
+- Earnings gate impacts (newly gated/ungated tickers)
+- Aggregate stats (avg VRP, % negative VRP, RV accel trends)
+- Any data quality issues observed
+- Actionable position recommendations with sizing (Full/Half/Quarter)
+
+**Tone:** Concise, data-driven, opinionated. Reference specific numbers. Flag uncertainty.
+
+---
+
+> **IMPORTANT:** Entries are in **descending order** (newest first). New entries go immediately below this line.
 
 ---
 

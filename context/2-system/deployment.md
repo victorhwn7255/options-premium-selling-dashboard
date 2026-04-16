@@ -7,6 +7,9 @@ rot_triggers:
   - backend/Dockerfile
   - frontend/Dockerfile
   - frontend/next.config.js
+  - backend/backfill.py
+  - backend/repair_rv.py
+  - utils/verify_metrics.py
 audience: both
 ---
 
@@ -18,7 +21,7 @@ How to run, build, and deploy the system. Lookup reference for commands, environ
 
 ## Scope
 
-**This file covers:** Docker stack, env vars, local dev, rebuild workflow, volumes, Cloudflare tunnel, CLI scripts, operational gotchas.
+**This file covers:** Docker stack, env vars, local dev, rebuild workflow, volumes, Cloudflare tunnel, CLI scripts (backfill, repair, verify), tests, operational gotchas.
 
 **This file does NOT cover:**
 - Architecture and data flow — see `2-system/architecture.md`
@@ -87,32 +90,79 @@ Frontend proxies `/api/*` to `http://localhost:8030` by default (see `next.confi
 
 ## CLI Scripts
 
-**Backfill** — populate historical IV for IV Rank/Percentile (requires `MARKETDATA_TOKEN`):
+### Backfill (`backend/backfill.py`)
+
+Populates historical IV for IV Rank/Percentile calculations. Requires `MARKETDATA_TOKEN`.
+
+**How it works:** Two-step API approach per ticker per date — fetches option chain for contract symbols, then fetches quotes for nearest-ATM contracts and solves Black-Scholes for IV. Stores results in `daily_iv` table and daily CSVs.
 
 ```bash
 cd backend
-python backfill.py --days 252 --verbose          # Full year
-python backfill.py --days 5 --tickers SPY --dry-run  # Preview
-python backfill.py --resume --verbose              # Skip existing dates
+python backfill.py --days 252 --verbose              # Full year for all tickers
+python backfill.py --days 5 --tickers SPY --dry-run  # Preview without API calls
+python backfill.py --resume --verbose                 # Skip dates already in DB
 python backfill.py --batch-size 30 --credit-limit 1000  # Controlled run
 ```
 
-**Repair** — fix stock-split-corrupted RV30/VRP:
+| Flag | Default | Purpose |
+|------|---------|---------|
+| `--days` | 252 | Trading days to backfill (~1 year) |
+| `--tickers` | all | Comma-separated subset (e.g., `SPY,QQQ`) |
+| `--resume` | off | Skip (ticker, date) pairs already in `daily_iv` |
+| `--dry-run` | off | Show plan without making API calls |
+| `--batch-size` | unlimited | Max trading days per run |
+| `--credit-limit` | 1000 | Stop when API credits drop below this |
+| `--verbose` | off | Per-ticker per-date debug logs |
+
+**Cost:** ~11 API calls per ticker per date. Rate-limited to 15 calls/min internally. A full 252-day × 33-ticker run is ~90k calls — use `--batch-size` and `--resume` to spread across sessions.
+
+**Safe to interrupt:** Commits to SQLite and appends CSVs per-item. Re-run with `--resume` to pick up where you left off.
+
+### Repair (`backend/repair_rv.py`)
+
+Fixes stock-split-corrupted RV30/VRP values in both SQLite and CSVs. Run this when you see absurd RV30 spikes (e.g., 657% instead of ~30%) after a stock split.
+
+**How it works:** Fetches fresh adjusted bars, detects splits via single-day |log-return| > 0.5 (~65% move), recomputes RV30 and VRP for affected dates, updates both `daily_iv` rows and `data/daily/{TICKER}.csv`.
 
 ```bash
 cd backend
-python repair_rv.py --tickers NFLX --dry-run     # Preview
+python repair_rv.py --tickers NFLX --dry-run     # Preview changes
 python repair_rv.py --tickers NFLX               # Apply fix
-python repair_rv.py --all                         # Fix entire universe
+python repair_rv.py --tickers NFLX,AMZN          # Multiple tickers
+python repair_rv.py --all                         # Entire universe
 ```
 
-**Tests** (manual, no CI):
+**When to run:** After a stock split, if RV30 or VRP values look nonsensical for that ticker. The scan pipeline now fetches adjusted bars, so new data is fine — this fixes historical rows computed from unadjusted bars.
+
+### Verify (`utils/verify_metrics.py`)
+
+Independent cross-check of dashboard metrics against Yahoo Finance. Runs 14 checks per ticker (price ±1%, RV ±3 vol points, VRP formula consistency, IV range, ATR ±5%, SPY IV vs VIX ±5 pts) plus earnings date verification (±3-7 days tolerance).
+
+```bash
+python utils/verify_metrics.py --verbose                              # All tickers
+python utils/verify_metrics.py --tickers SPY,GOOG --api-url http://localhost:8030
+```
+
+**Automatic vs. manual:** Post-scan, `main.py` runs earnings verification automatically (Yahoo override on >5-day FMP discrepancy). The full metrics verification is manual — run it after data fixes or when metrics look suspicious.
+
+**Output:** Colored PASS/WARN/FAIL per check. Results stored in `verification_results` and `earnings_verification_results` tables.
+
+---
+
+## Tests
+
+Manual test suite, no CI. Run after modifying `calculator.py`, `scorer.py`, or `filter_liquid_contracts()`.
 
 ```bash
 cd backend
 python test_calculator.py                         # 5 tests
-python -m pytest test_liquidity_filter.py -v      # 6 tests
+python -m pytest test_liquidity_filter.py -v      # 9 tests
 ```
+
+| Test file | Tests | What it covers |
+|-----------|-------|----------------|
+| `test_calculator.py` | 5 | RV computation (10/20/30/60-day), ATM IV interpolation, IV rank edge cases, scoring (SELL + DANGER scenarios), database round-trip |
+| `test_liquidity_filter.py` | 9 | Bid/ask spread filter (50% threshold), zero-bid rejection, boundary cases, integration impact on skew and ATM IV |
 
 ---
 
