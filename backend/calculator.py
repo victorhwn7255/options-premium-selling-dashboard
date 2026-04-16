@@ -314,7 +314,19 @@ def find_atm_greeks(
         return None, None
 
     nearest = min(near_atm, key=lambda c: abs(c.strike - spot_price))
-    return nearest.theta, nearest.vega
+    return nearest.theta, _normalize_vega(nearest.vega)
+
+
+def _normalize_vega(vega: Optional[float]) -> Optional[float]:
+    # MarketData.app intermittently returns raw BSM vega (per 1.0 change in sigma)
+    # instead of the per-1%-IV convention (per 0.01 change). Raw values are ~100x
+    # larger. Autodetect by magnitude: per-1% vega for US equity options almost
+    # never exceeds ~5; anything above that is raw and needs /100.
+    if vega is None:
+        return None
+    if abs(vega) > 5:
+        return vega / 100.0
+    return vega
 
 
 # ── ATR 14 ─────────────────────────────────────────────
