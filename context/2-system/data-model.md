@@ -21,7 +21,7 @@ Where data lives, what shape it takes, and how it flows through persistence laye
 **This file does NOT cover:**
 - Database function signatures — read `backend/database.py`
 - CSV helper implementation — read `backend/csv_store.py`
-- Backfill script internals — see `context/deployment.md`
+- Backfill script internals — see `2-system/deployment.md`
 - How metrics are computed from this data — see `references/metrics_report.md`
 
 ---
@@ -119,7 +119,7 @@ date,spot,atm_iv,rv30,vrp,term_slope
 2026-04-15,548.90,18.12,14.28,3.84,0.931
 ```
 
-**Write behavior:** `append_daily_csv()` reads the entire file, appends the new row, sorts by date descending, and rewrites. Deduplicates by date. See [fragile-seams.md § CSV daily file rewrite](fragile-seams.md#csv-daily-file-rewrite) for the race condition risk.
+**Write behavior:** `append_daily_csv()` reads the entire file, appends the new row, sorts by date descending, and rewrites. Deduplicates by date. See [fragile-seams.md § CSV daily file rewrite](../3-guardrails/fragile-seams.md#csv-daily-file-rewrite) for the race condition risk.
 
 ### `data/quotes/{TICKER}.csv`
 
@@ -137,8 +137,8 @@ Option symbol format: `{TICKER}{YYYYMMDD}{C|P}{strike×1000 zero-padded to 8 dig
 
 **Daily accumulation:** Each scan stores one row per ticker in `daily_iv` and appends to both CSV files. Over time, `daily_iv` builds the 252-day history needed for IV Rank and IV Percentile.
 
-**Historical backfill:** `backfill.py` populates `daily_iv` retroactively using a two-step historical chain→quote fetch with BSM IV solving. See `context/deployment.md` for usage.
+**Historical backfill:** `backfill.py` populates `daily_iv` retroactively using a two-step historical chain→quote fetch with BSM IV solving. See `2-system/deployment.md` for usage.
 
-**Earnings pipeline:** FMP → SQLite cache → MarketData.app fallback → Yahoo Finance post-scan verification (backfill missing, override >5-day discrepancies). See [fragile-seams.md § FMP earnings date drift](fragile-seams.md#fmp-earnings-date-drift).
+**Earnings pipeline:** FMP → SQLite cache → MarketData.app fallback → Yahoo Finance post-scan verification (backfill missing, override >5-day discrepancies). See [fragile-seams.md § FMP earnings date drift](../3-guardrails/fragile-seams.md#fmp-earnings-date-drift).
 
 **Pruning:** `scan_results`, `verification_results`, and `earnings_verification_results` auto-prune to 50 rows on each insert. `daily_iv` and `scan_log` are never pruned.

@@ -14,14 +14,14 @@ audience: both
 
 Why the math is shaped the way it is. This file explains the academic basis, the approximations we accept, and the limitations we live with. A quant-literate reader should leave with a clear understanding of what the model captures, what it doesn't, and where the known gaps are.
 
-For the actual scoring formula and breakpoints, see [`context/scoring-and-strategy.md`](scoring-and-strategy.md). For domain term definitions, see [`context/domain-glossary.md`](domain-glossary.md). For the trading strategy built on top of this methodology, see [`references/strategy.md`](../references/strategy.md).
+For the actual scoring formula and breakpoints, see [`1-domain/scoring-and-strategy.md`](scoring-and-strategy.md). For domain term definitions, see [`1-domain/glossary.md`](glossary.md). For the trading strategy built on top of this methodology, see [`references/strategy.md`](../../references/strategy.md).
 
 ## Scope
 
 **This file covers:** Academic basis for VRP harvesting, IV approximation choices, RV computation choices, scoring shape rationale, liquidity filter design, known limitations.
 
 **This file does NOT cover:**
-- Scoring formula and breakpoints — see `context/scoring-and-strategy.md`
+- Scoring formula and breakpoints — see `1-domain/scoring-and-strategy.md`
 - Metric computation details — see `references/metrics_report.md`
 - Trading strategy and position management — see `references/strategy.md`
 
@@ -111,7 +111,7 @@ Before any metric is computed, the options chain passes through `filter_liquid_c
 | bid = 0 | Reject | No buyer exists — price is meaningless |
 | (ask - bid) / mid > 50% | Reject | Spread too wide for reliable mid-price IV extraction |
 
-After filtering, `_count_atm_contracts()` checks whether ≥ 3 liquid contracts exist in the ATM bucket (within 3% of spot, near 30 DTE). If not, `iv_current` is set to `None` and the ticker receives NO DATA — see [ADR-002](decisions/002-no-data-over-computed-from-rejected.md).
+After filtering, `_count_atm_contracts()` checks whether ≥ 3 liquid contracts exist in the ATM bucket (within 3% of spot, near 30 DTE). If not, `iv_current` is set to `None` and the ticker receives NO DATA — see [ADR-002](../3-guardrails/decisions/002-no-data-over-computed-from-rejected.md).
 
 The 3-contract minimum was determined empirically: with 1–2 contracts, ATM IV is dominated by a single strike's bid-ask midpoint noise. At 3+, the average of put+call IV at the nearest strike provides enough signal for the daily scanner's purposes.
 
@@ -127,4 +127,4 @@ The 3-contract minimum was determined empirically: with 1–2 contracts, ATM IV 
 
 **Skew measurement gaps.** 5+ tickers regularly lack sufficient liquid 25-delta puts, producing `skew_25d = 0`. This is a data availability problem, not a model error — but it means the skew component contributes nothing for those names, understating their score by up to 10 points.
 
-**RV10 noise.** A 10-day window is sensitive to individual outlier closes. The sizing system (Full/Half/Quarter) uses thresholds on `rv10/rv30`, which means a single noisy print can change the sizing recommendation. See [fragile-seams.md § RV10 window sensitivity](fragile-seams.md#rv10-window-sensitivity).
+**RV10 noise.** A 10-day window is sensitive to individual outlier closes. The sizing system (Full/Half/Quarter) uses thresholds on `rv10/rv30`, which means a single noisy print can change the sizing recommendation. See [fragile-seams.md § RV10 window sensitivity](../3-guardrails/fragile-seams.md#rv10-window-sensitivity).

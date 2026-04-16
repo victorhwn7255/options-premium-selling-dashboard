@@ -16,7 +16,7 @@ audience: both
 
 This file answers: **"How does a ticker go from raw market data to a SELL / SKIP / AVOID decision?"** It documents the composite scoring formula, the gates that override it, the regime system that modifies recommendations, and where each piece lives in code. It is the single source of truth for the scoring engine's current behavior.
 
-For the trading *strategy* behind these choices (when to trade, daily workflow, position management), see [`references/strategy.md`](../references/strategy.md). For the *academic rationale* behind the formula's shape (why VRP ratio, why a dead zone at 1.15, why close-to-close RV), see [`context/methodology.md`](methodology.md). For domain term definitions, see [`context/domain-glossary.md`](domain-glossary.md).
+For the trading *strategy* behind these choices (when to trade, daily workflow, position management), see [`references/strategy.md`](../../references/strategy.md). For the *academic rationale* behind the formula's shape (why VRP ratio, why a dead zone at 1.15, why close-to-close RV), see [`1-domain/methodology.md`](methodology.md). For domain term definitions, see [`1-domain/glossary.md`](glossary.md).
 
 ## Scope
 
@@ -29,11 +29,11 @@ For the trading *strategy* behind these choices (when to trade, daily workflow, 
 - Which code owns which piece (backend vs. frontend)
 
 **This file does NOT cover:**
-- Academic basis for VRP or why specific approximations were chosen — see `context/methodology.md`
-- Known fragile areas in the scoring pipeline — see `context/fragile-seams.md`
+- Academic basis for VRP or why specific approximations were chosen — see `1-domain/methodology.md`
+- Known fragile areas in the scoring pipeline — see `3-guardrails/fragile-seams.md`
 - Strategy thesis, daily workflow, position management rules — see `references/strategy.md`
 - Metric formulas (how ATM IV is interpolated, how RV is computed) — see `references/metrics_report.md`
-- Deliberate design decisions (why earnings gate is frontend-only, why negative VRP cap is 44) — see `context/decisions/`
+- Deliberate design decisions (why earnings gate is frontend-only, why negative VRP cap is 44) — see `3-guardrails/decisions/`
 
 ---
 
@@ -43,7 +43,7 @@ The scoring engine lives in `backend/scorer.py` (`score_opportunity()`). It prod
 
 ### Design principles
 
-The score is **purely additive**. There are no penalties that subtract from the total, no multipliers, no regime-based deductions. Every component contributes 0 to its maximum — a ticker with weak skew gets 0 skew points, not negative points. This replaced an earlier penalty-based scorer — see [ADR-011](decisions/011-additive-scoring-replaces-penalty-based.md) for the rationale. The additive design means the score has a clean interpretation: it answers "how much edge is present?" without conflating edge measurement with risk adjustment. Risk adjustment happens separately through the regime system and position sizing.
+The score is **purely additive**. There are no penalties that subtract from the total, no multipliers, no regime-based deductions. Every component contributes 0 to its maximum — a ticker with weak skew gets 0 skew points, not negative points. This replaced an earlier penalty-based scorer — see [ADR-011](../3-guardrails/decisions/011-additive-scoring-replaces-penalty-based.md) for the rationale. The additive design means the score has a clean interpretation: it answers "how much edge is present?" without conflating edge measurement with risk adjustment. Risk adjustment happens separately through the regime system and position sizing.
 
 The score also has **no cliff effects**. Every component is continuous and piecewise-linear. A VRP ratio of 1.14 scores 0 and a ratio of 1.16 scores a small positive number — there is no jump where a 0.01 change in one input swings the score by 10 points. This matters because the underlying data has measurement noise (ATM IV interpolation, thin option chains, RV window sensitivity), and cliff effects would turn input noise into output instability.
 
@@ -139,21 +139,21 @@ Three gates can override the composite score. They are evaluated independently �
 
 **Negative VRP gate** — backend, `scorer.py`
 
-When VRP is negative (realized vol exceeds implied vol), the core thesis does not hold — there is no premium edge to harvest. The gate caps the composite score at 44, one point below the CONDITIONAL threshold of 45. This ensures that even if all other components are strong (deep contango, high IV percentile, moderate skew), a negative-VRP ticker cannot reach a tradeable recommendation. The cap is at 44 specifically, not 0, so the score still reflects the quality of other conditions — useful for monitoring tickers that might become attractive once VRP turns positive. See [ADR-004](decisions/004-negative-vrp-cap-at-44.md) for why 44 and not 45.
+When VRP is negative (realized vol exceeds implied vol), the core thesis does not hold — there is no premium edge to harvest. The gate caps the composite score at 44, one point below the CONDITIONAL threshold of 45. This ensures that even if all other components are strong (deep contango, high IV percentile, moderate skew), a negative-VRP ticker cannot reach a tradeable recommendation. The cap is at 44 specifically, not 0, so the score still reflects the quality of other conditions — useful for monitoring tickers that might become attractive once VRP turns positive. See [ADR-004](../3-guardrails/decisions/004-negative-vrp-cap-at-44.md) for why 44 and not 45.
 
 **No-data gate** — backend, `scorer.py`
 
-If `iv_current` is `None` (the liquidity filter in `calculator.py` found fewer than 3 liquid ATM contracts near 30 DTE), the scorer returns immediately with `signal_score=0` and `recommendation="NO DATA"`. No components are evaluated. This is preferred over computing from rejected low-quality contracts — see [ADR-002](decisions/002-no-data-over-computed-from-rejected.md).
+If `iv_current` is `None` (the liquidity filter in `calculator.py` found fewer than 3 liquid ATM contracts near 30 DTE), the scorer returns immediately with `signal_score=0` and `recommendation="NO DATA"`. No components are evaluated. This is preferred over computing from rejected low-quality contracts — see [ADR-002](../3-guardrails/decisions/002-no-data-over-computed-from-rejected.md).
 
 **Earnings gate** — frontend only, `scoring.ts`
 
-If a non-ETF ticker has `earnings_dte ≤ 14`, the frontend overrides the backend score to 0 and sets `action="SKIP"`. The original backend score is preserved as `preGateScore` for display (so users can see the underlying quality for post-earnings monitoring). The backend has no knowledge of this gate — it sends the full computed score. See [ADR-003](decisions/003-earnings-gate-frontend-only.md) for why this lives in the frontend.
+If a non-ETF ticker has `earnings_dte ≤ 14`, the frontend overrides the backend score to 0 and sets `action="SKIP"`. The original backend score is preserved as `preGateScore` for display (so users can see the underlying quality for post-earnings monitoring). The backend has no knowledge of this gate — it sends the full computed score. See [ADR-003](../3-guardrails/decisions/003-earnings-gate-frontend-only.md) for why this lives in the frontend.
 
 ---
 
 ## Per-Ticker Regime Detection
 
-Regime detection is **separate from scoring** — it does not modify the numeric score. Instead, it overrides the recommendation that maps from the score. This separation is the core design choice of [ADR-011](decisions/011-additive-scoring-replaces-penalty-based.md).
+Regime detection is **separate from scoring** — it does not modify the numeric score. Instead, it overrides the recommendation that maps from the score. This separation is the core design choice of [ADR-011](../3-guardrails/decisions/011-additive-scoring-replaces-penalty-based.md).
 
 Detection runs in `scorer.py` after scoring, using term structure slope and the IV Rank + RV acceleration combination:
 
@@ -222,7 +222,7 @@ This is independent of the score and recommendation. A ticker with SELL PREMIUM 
 
 ## Dashboard-Level Market Regime
 
-The frontend computes an **overall market regime** from the per-ticker data. This is a separate classifier from the backend's `RegimeSummary` — see [ADR-006](decisions/006-two-independent-regime-classifiers.md).
+The frontend computes an **overall market regime** from the per-ticker data. This is a separate classifier from the backend's `RegimeSummary` — see [ADR-006](../3-guardrails/decisions/006-two-independent-regime-classifiers.md).
 
 Computation lives in `RegimeBanner.tsx:computeRegime()`. It first excludes earnings-gated (SKIP) and NO DATA tickers as they would contaminate aggregate metrics. From the eligible set:
 
@@ -254,10 +254,10 @@ Hierarchy: OFF SEASON > REGULAR SEASON > THE FINALS > THE PLAYOFFS. The regime b
 | Recommendation name mapping | **Frontend** | `scoring.ts` |
 | Dashboard market regime (NBA-themed) | **Frontend** | `RegimeBanner.tsx` |
 
-The key principle: **backend scoring is authoritative.** The frontend passes through the backend's `signal_score` and `recommendation` unchanged, except for the earnings gate override and the recommendation name mapping. The frontend never recomputes the composite score. See [ADR-001](decisions/001-single-source-scoring.md).
+The key principle: **backend scoring is authoritative.** The frontend passes through the backend's `signal_score` and `recommendation` unchanged, except for the earnings gate override and the recommendation name mapping. The frontend never recomputes the composite score. See [ADR-001](../3-guardrails/decisions/001-single-source-scoring.md).
 
 ---
 
 ## Known Discrepancy
 
-The methodology footer in `page.tsx` (line 216) displays a stale Phase-1 scoring formula that does not match the actual backend. See [fragile-seams.md § Stale methodology footer](fragile-seams.md#stale-methodology-footer-in-pagetsx) for details.
+The methodology footer in `page.tsx` (line 216) displays a stale Phase-1 scoring formula that does not match the actual backend. See [fragile-seams.md § Stale methodology footer](../3-guardrails/fragile-seams.md#stale-methodology-footer-in-pagetsx) for details.

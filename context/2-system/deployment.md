@@ -21,8 +21,8 @@ How to run, build, and deploy the system. Lookup reference for commands, environ
 **This file covers:** Docker stack, env vars, local dev, rebuild workflow, volumes, Cloudflare tunnel, CLI scripts, operational gotchas.
 
 **This file does NOT cover:**
-- Architecture and data flow — see `context/architecture.md`
-- Database schema — see `context/data-model.md`
+- Architecture and data flow — see `2-system/architecture.md`
+- Database schema — see `2-system/data-model.md`
 
 ---
 
@@ -118,10 +118,10 @@ python -m pytest test_liquidity_filter.py -v      # 6 tests
 
 ## Operational Gotchas
 
-**SGT timezone host.** The production host is in UTC+8. All trading logic uses ET explicitly via `zoneinfo.ZoneInfo("America/New_York")`. Any new time-sensitive code must pass the timezone — `datetime.now()` without `tz=` returns SGT. See [fragile-seams.md § Timezone Seams](fragile-seams.md#host-timezone-vs-trading-timezone).
+**SGT timezone host.** The production host is in UTC+8. All trading logic uses ET explicitly via `zoneinfo.ZoneInfo("America/New_York")`. Any new time-sensitive code must pass the timezone — `datetime.now()` without `tz=` returns SGT. See [fragile-seams.md § Timezone Seams](../3-guardrails/fragile-seams.md#host-timezone-vs-trading-timezone).
 
 **Earnings counter resets on restart.** The daily limit for `POST /api/earnings/refresh` is in-memory (`_earnings_refresh_tracker`). Container restart, Docker rebuild, or uvicorn reload resets it to zero.
 
 **Frontend build-time BACKEND_URL.** The API proxy destination is baked into the Next.js build via `BACKEND_URL` arg. Changing the backend address requires rebuilding the frontend container.
 
-**Rate limit is 10/min.** The MarketData.app token bucket is set to 10 calls/min (API supports 50). Scans take ~13 minutes. See [ADR-005](decisions/005-rate-limit-10-per-minute.md) for why.
+**Rate limit is 10/min.** The MarketData.app token bucket is set to 10 calls/min (API supports 50). Scans take ~13 minutes. See [ADR-005](../3-guardrails/decisions/005-rate-limit-10-per-minute.md) for why.
