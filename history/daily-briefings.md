@@ -43,6 +43,18 @@ previous day, earnings impacts, sector themes, data quality notes if any]
 
 ---
 
+## 2026-04-17 (Friday)
+
+**Regime:** THE PLAYOFFS (Complacency Phase) | **Tradeable:** 1S / 2C | **Avg VRP:** 0.2
+
+**First clean scan from Lightsail** — all 33 tickers returned data, NO DATA issue fully resolved (was 10 tickers yesterday due to late scan timing). Term slopes now varied and realistic (0.68–2.51 vs yesterday's suspect 1.00 wall). Data verified against external sources (earnings dates, VIX, NFLX post-earnings). Contango deepened across the board: SPY 0.68, QQQ 0.73, NVDA 0.72 — deepest of the series. Index VRP still negative (SPY -4.0, QQQ -3.2, IWM -3.0) — IV crashing faster than RV, classic complacency. Strait of Hormuz reopened, Dow +1000, oil crashed 11.5% — risk-off fear draining rapidly.
+
+**JNJ (68→70 SELL)** — strengthening. VRP stable at 8.8, slope 1.00→0.91 (contango restored). RV accel crossed 1.0 to 1.05 — minor flag but not disqualifying. Full size, 89d to earnings. **MCD (gated→64 CONDITIONAL)** — back in play after earnings refresh corrected date to 20d. VRP narrowed 7.2→5.8 but slope fixed to genuine 0.86 contango. **UBER (47→56 CONDITIONAL)** — biggest mover, +9 pts from slope normalizing (1.00→0.85). Approaching SELL threshold. **NFLX (49 AVOID/DANGER)** — post-earnings distortion: reported Apr 16 after close, stock -9.7%. Slope 2.51 (extreme backwardation), skew -30.0, IV 60 at 99th pctl. Pure noise, untradeable. 2 DANGER (NFLX, XLV), 1 CAUTION (XLI). 11 tickers earnings-gated (mega-caps report next week). 9/22 non-gated tickers have negative VRP.
+
+**Position: JNJ Full. MCD Half (VRP narrowing, monitor). UBER watch — upgrade if it crosses 60 next scan. Cash otherwise.** Real opportunity comes post-earnings next week when mega-cap IV crushes widen VRP into this deep contango.
+
+---
+
 ## 2026-04-16 (Thursday)
 
 **Regime:** DEGRADED DATA | **Tradeable:** 1S / 1C | **Avg VRP:** N/A (unreliable)
