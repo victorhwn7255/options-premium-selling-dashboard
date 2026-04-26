@@ -43,6 +43,56 @@ previous day, earnings impacts, sector themes, data quality notes if any]
 
 ---
 
+## 2026-04-24 (Friday)
+
+**Regime:** THE PLAYOFFS (Pre-Earnings Lockdown) | **Tradeable:** 1S / 1C | **Avg VRP:** -0.4
+
+WMT pulled back 77→66 (-11) as slope loosened 0.87→0.94 and skew flipped negative (-2.0), but core thesis intact — VRP 9.8, IV pct 93, accel 0.84 (Full). Still the sole SELL. NVDA's edge evaporated: VRP compressed 9.5→5.8 as IV continued dropping (pct 49→43), score fell 55→42 (NO EDGE). JNJ staged a surprise +11 bounce (39→50, CONDITIONAL) on IV pct spike 78→92 and VRP widening 5.5→8.5, but RV accel at 1.20 (and rising) disqualifies it — likely a dead-cat bounce. TSLA post-earnings crush arrived: IV 56.2→41.6, IV pct 60→2, VRP flipped to -2.8. Textbook. MCD and CAT both newly earnings-gated (13d and 6d respectively) after TBD dates finally resolved — tradeable universe shrunk from 3 to 2 signals. XLE recovered (slope 1.15→0.97, exited DANGER). Net stress at 10% (2/20) — cleanest reading in over a week, but partially an artifact of 13 tickers being gated. Pre-earnings backwardation hit new extremes: MSFT slope 1.77 (series high), AMZN 1.68, META 1.60, SBUX 1.74, AAPL 1.27 (joining the extreme club). Mega-caps report in 4-6d.
+
+**Position: WMT Hold SELL (Full — slope pullback, not structural breakdown). JNJ pass (accel 1.20 = dead-cat bounce). NVDA exit (VRP dried up). Cash otherwise. Mega-cap earnings next week (MSFT/AMZN/META/GOOG Apr 29-30, AAPL Apr 30) — slope compression from 1.60-1.77 to sub-0.90 will create the fattest VRP + contango combo of the year. The spring has never been this coiled.**
+
+---
+
+## 2026-04-23 (Thursday)
+
+**Regime:** THE PLAYOFFS (Stabilizing) | **Tradeable:** 1S / 2C | **Avg VRP:** +0.5
+
+WMT earned SELL at 77 (+14, second consecutive double-digit gain) — first SELL signal since JNJ on Apr 17 and highest non-gated score since MSFT's 83 on Apr 14. Every component strengthened: VRP 8.8→10.3, IV pct 90→93, slope 0.94→0.87 (contango deepening), skew 0.6→1.8. NVDA pulled back slightly (57→55) but thesis intact — VRP 9.5, slope 0.85, accel 0.81 (Full). JNJ collapse complete: 59→39 (-20) on VRP drop to 5.5 and RV accel spike to 1.17. Six-session decline 70→39 confirms exit was correct. TSLA post-earnings anomaly: IV *rose* 46.7→56.2 (unusual — no crush), VRP 10.8 (fattest in universe), slope 0.84 (contango). But score 42 (NO EDGE), accel 1.12 (Half). Monitor for accel drop. CAT ungated (TBD) but slope 1.38 = DANGER. Slope stress partially resolved: JNJ, GLD, GS all exited CAUTION. New CAUTION: EEM (1.12), XLF (1.06). Net stress 5/21 = 24%, below REGULAR SEASON. Pre-earnings backwardation extreme: SBUX 1.64, MSFT 1.62, AMZN 1.43. Mega-cap reports in 5-6d. MCD earnings TBD persists (4th session). XLB NO DATA again.
+
+**Position: WMT Full SELL (hold/add — confirming strongly). NVDA Full CONDITIONAL (hold). TSLA watch (if accel <1.10 and score >45). Post-earnings mega-cap setup coiling — MSFT slope 1.62 will compress to sub-0.90, creating massive term structure + VRP opportunity.**
+
+---
+
+## 2026-04-22 (Wednesday)
+
+**Regime:** THE PLAYOFFS (Stress Rising — 25% threshold) | **Tradeable:** 0S / 3C | **Avg VRP:** +0.3
+
+WMT breakout: +17 to 63 (biggest single-day move of the series) as RV accel collapsed 1.17→0.87 (Full sizing), VRP widened 7.0→8.8, IV pct climbed to 90. NVDA continued strengthening (+6 to 57, third straight gain). But backwardation is spreading beyond earnings names — JNJ slope 0.98→1.15 (entered CAUTION, recommendation AVOID despite score 59), HD 1.10→1.17 (entered DANGER), GLD 0.94→1.10 (entered CAUTION), GS 1.02→1.09 (CAUTION), IWM 0.90→1.04 (lost CONDITIONAL). Stress count reached 5/20 (25%) — right at REGULAR SEASON threshold. Tradeable narrowed from 6C to 3C despite WMT breakout: JNJ regime-blocked, UBER earnings-gated (hit 14d), IWM slope-killed. RV deceleration wave (SPY 0.77→0.57, WMT 1.17→0.87, JNJ 1.15→0.97) offset by broad slope deterioration. MCD slope crossed 1.01 (backwardation) at 15d to earnings — one session from gate. TSLA reported today (0d). 13 tickers earnings-gated. Post-earnings thesis needs caveat: non-earnings slope deterioration may indicate broader market structure stress, not just pre-earnings anomaly. SPY slope 0.78→0.84 — watch closely.
+
+**Position: WMT Full (VRP 8.8, IV pct 90, accel 0.87, slope 0.94, 29d to earnings). NVDA Full (VRP 9.5, slope 0.78, accel 0.70, 28d to earnings). JNJ exit — CAUTION regime, slope trend broken. Close both at 50% profit.**
+
+---
+
+## 2026-04-21 (Tuesday)
+
+**Regime:** THE PLAYOFFS (Phase Transition — IV Expanding) | **Tradeable:** 0S / 6C | **Avg VRP:** +0.2
+
+Potential inflection point. IV expanded across the entire universe for the first time in weeks — SPY +1.3, IWM +1.7, NVDA +2.5, UBER +3.2. Aggregate VRP turned positive (+0.2, was -0.9) for the first time since Apr 13. Negative VRP count dropped from 52% to 43%. Three new CONDITIONAL signals (NVDA, IWM, WMT) brought the tradeable count to 6 — most since Apr 13. NVDA was the breakout (+9 to 51) on VRP widening 5.7→8.8 with slope 0.78 and RV accel 0.70. JNJ continued its four-session slide (70→55) as RV accel hit 1.15 (zero RV Stability points) and slope reached 0.98. MCD took the #1 spot (56) but earnings TBD persists. Contango loosened broadly — SPY 0.67→0.78, QQQ 0.71→0.81, IWM 0.74→0.90. The "deepest contango of the series" is fading. Earnings names showed violent backwardation: AMZN 0.76→1.55 (extreme), CAT 1.04→1.24, KO 1.03→1.21, MSFT 0.85→1.03. Market pricing significant binary risk for next week's mega-cap reports. EEM and HD entered CAUTION; XLB recovered from NO DATA (22). TSLA reports tomorrow. Clean scan, all 33 tickers returned data.
+
+**Position: NVDA Full (best risk-reward: VRP 8.8, slope 0.78, accel 0.70, 29d to earnings). JNJ exit/reduce — trend broken. MCD pass until earnings verified. Everything else cash. Post-earnings mega-cap thesis intact — AMZN's 1.55 slope will collapse post-report, creating massive VRP.**
+
+---
+
+## 2026-04-20 (Monday)
+
+**Regime:** THE PLAYOFFS (Deep Complacency — Phase 4) | **Tradeable:** 0S / 3C | **Avg VRP:** -0.9
+
+Zero SELL signals for the first time since Apr 14. JNJ dropped 9 points (70→61) over the weekend — VRP narrowed 8.8→7.8, slope worsened 0.91→0.94, IV pct declined 86→83. Edge eroding across all five components simultaneously. MCD (-6 to 58) and UBER (-6 to 50) also weakened. 11/21 eligible tickers (52%) have negative VRP; avg VRP -0.9. Index ETFs improved slightly (SPY VRP -4.0→-2.8, IWM -3.0→-0.8) but still negative. Contango remains the strongest signal — SPY 0.67 (deepest of the series), QQQ 0.71. Structure perfect, premium absent. NFLX post-earnings distortion fully resolved (slope 2.51→0.86, IV 60→29.9) but VRP deeply negative (-10.2). XLV exited DANGER (slope 1.16→1.00), XLI exited CAUTION (slope 1.10→1.00), XLE entered CAUTION (slope 1.04→1.08). PLTR newly earnings-gated (17d→14d). CAT ungated (13d→TBD, FMP drift). MCD earnings TBD — verify before trading. 11 tickers earnings-gated with mega-cap reports in 8-10d (MSFT, AMZN, META, GOOG, AAPL). TSLA reports in 2d. XLB NO DATA again. Clean scan otherwise (32/33 tickers).
+
+**Position: JNJ Half (weakening trend, close at 50% profit). MCD pass until earnings date verified. UBER pass (score 50, too thin). Cash otherwise. Wait for post-earnings mega-cap IV crush (Apr 30–May 2) — MSFT pre-gate profile (IV pct 95, VRP 8.6, slope 0.85) suggests 75+ post-earnings. The spring is coiled.**
+
+---
+
 ## 2026-04-17 (Friday)
 
 **Regime:** THE PLAYOFFS (Complacency Phase) | **Tradeable:** 1S / 2C | **Avg VRP:** 0.2
