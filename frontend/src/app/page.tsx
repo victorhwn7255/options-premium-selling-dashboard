@@ -7,8 +7,10 @@ import RegimeGuideModal from '@/components/RegimeGuideModal';
 import Leaderboard from '@/components/Leaderboard';
 import { useTheme } from '@/hooks/useTheme';
 import { buildScoredData } from '@/lib/scoring';
-import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus, fetchVerificationLatest, fetchEarningsVerificationLatest, fetchComparison } from '@/lib/api';
-import type { ScanResponse, VerificationResult, EarningsVerificationResult, TickerDelta } from '@/lib/types';
+import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus, fetchVerificationLatest, fetchEarningsVerificationLatest, fetchComparison, fetchVrpHistory } from '@/lib/api';
+import type { ScanResponse, VerificationResult, EarningsVerificationResult, TickerDelta, VrpHistoryPoint } from '@/lib/types';
+
+const VRP_GRID_YEAR = 2026;
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
@@ -23,12 +25,14 @@ export default function Home() {
   const [verification, setVerification] = useState<VerificationResult | null>(null);
   const [earningsVerification, setEarningsVerification] = useState<EarningsVerificationResult | null>(null);
   const [deltaMap, setDeltaMap] = useState<Record<string, TickerDelta>>({});
+  const [vrpHistory, setVrpHistory] = useState<VrpHistoryPoint[]>([]);
 
   // Fetch earnings remaining count + verification status on mount
   useEffect(() => {
     fetchEarningsRemaining().then(r => setEarningsRemaining(r.remaining)).catch(() => {});
     fetchVerificationLatest().then(v => setVerification(v)).catch(() => {});
     fetchEarningsVerificationLatest().then(v => setEarningsVerification(v)).catch(() => {});
+    fetchVrpHistory(VRP_GRID_YEAR).then(r => setVrpHistory(r.points)).catch(() => {});
   }, []);
 
   // Fetch real data on mount
@@ -109,6 +113,7 @@ export default function Home() {
       if (fresh.tickers?.length > 0) {
         setApiData(fresh);
       }
+      fetchVrpHistory(VRP_GRID_YEAR).then(r => setVrpHistory(r.points)).catch(() => {});
       // Verification runs as background task after scan — poll for it
       setTimeout(async () => {
         let metricsFound = false;
@@ -201,7 +206,7 @@ export default function Home() {
           <>
             {/* Zone 1: Market Regime */}
             <div className="mb-5">
-              <RegimeBanner data={scoredData} />
+              <RegimeBanner data={scoredData} vrpHistory={vrpHistory} vrpYear={VRP_GRID_YEAR} />
             </div>
 
             {/* Zone 2: Opportunity Leaderboard (detail expands inline) */}

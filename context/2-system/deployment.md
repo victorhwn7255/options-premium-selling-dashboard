@@ -1,6 +1,6 @@
 ---
-last_verified: 2026-04-16
-verified_against: dc030c3
+last_verified: 2026-04-27
+verified_against: 0fd80ce
 rot_risk: medium
 rot_triggers:
   - docker-compose.yml
@@ -10,6 +10,7 @@ rot_triggers:
   - backend/backfill.py
   - backend/repair_rv.py
   - utils/verify_metrics.py
+  - prompts/deploy-lightsail.md
 audience: both
 ---
 
@@ -21,7 +22,7 @@ How to run, build, and deploy the system. Lookup reference for commands, environ
 
 ## Scope
 
-**This file covers:** Docker stack, env vars, local dev, rebuild workflow, volumes, Cloudflare tunnel, CLI scripts (backfill, repair, verify), tests, operational gotchas.
+**This file covers:** Docker stack, env vars, local dev, rebuild workflow, volumes, Cloudflare tunnel, AWS Lightsail production deployment, CLI scripts (backfill, repair, verify), tests, operational gotchas.
 
 **This file does NOT cover:**
 - Architecture and data flow — see `2-system/architecture.md`
@@ -49,6 +50,28 @@ docker compose logs -f backend         # Tail backend logs
 **Backend source is baked into the Docker image.** Any `.py` edit requires `docker compose up -d --build backend`. The `data/` directory is bind-mounted, so SQLite and CSVs survive rebuilds. The `utils/` directory is also bind-mounted for the post-scan verification import.
 
 **Healthcheck:** `python -c "import httpx; httpx.get('http://localhost:8000/api/health')"` every 60s, 3 retries, 10s start period.
+
+---
+
+## AWS Lightsail (Production)
+
+Production runs on an **AWS Lightsail** instance (Ubuntu 24.04, 2 GB RAM, $10/mo) in `us-east-1`. Same Docker Compose stack as local, with the Cloudflare tunnel routing `theta.thevixguy.com` through the Lightsail instance.
+
+**Key differences from local:**
+- Timezone set to `America/New_York` (fixes `date.today()` alignment with US market dates)
+- 2 GB swap configured (Next.js build peaks at 1.5–2.5 GB RAM, exceeds the 2 GB instance memory)
+- Docker log rotation enabled (`10m × 3 files`) to prevent disk fill
+- Automatic security updates via `unattended-upgrades`
+
+**Canonical deployment guide:** [`prompts/deploy-lightsail.md`](../../prompts/deploy-lightsail.md) — 6-phase runbook covering instance provisioning, SSH config, Docker setup, data transfer from MacBook, Cloudflare tunnel cutover, and ongoing operations (logs, updates, snapshots, troubleshooting).
+
+**Common operations on the instance:**
+```bash
+ssh option-harvest                         # Connect (configured in ~/.ssh/config)
+cd ~/option-harvest && git pull && docker compose up --build -d   # Deploy update
+docker compose logs -f backend             # Tail backend logs
+docker stats                               # Live resource usage
+```
 
 ---
 
@@ -134,6 +157,19 @@ python repair_rv.py --all                         # Entire universe
 
 **When to run:** After a stock split, if RV30 or VRP values look nonsensical for that ticker. The scan pipeline now fetches adjusted bars, so new data is fine — this fixes historical rows computed from unadjusted bars.
 
+### Import Metrics Log (`backend/import_metrics_log.py`)
+
+Backfills `daily_iv` from human-maintained `history/metrics-logs.md` markdown tables. Useful when local DB is behind production (e.g., after the Lightsail cutover) and you want historical aggregates available locally without re-scanning.
+
+```bash
+cd backend
+python import_metrics_log.py                 # newer-than-DB dates, dry run
+python import_metrics_log.py --apply         # newer-than-DB dates, write
+python import_metrics_log.py --apply --all   # all dates in the log (overwrites)
+```
+
+**Default behavior:** only inserts dates strictly newer than `MAX(date)` in `daily_iv`. Markdown values are 1-decimal-place rounded; `--all` overwrites overlapping dates with the rounded values, so prefer the default unless you know what you're doing. Skips NO DATA rows (IV = "N/A").
+
 ### Verify (`utils/verify_metrics.py`)
 
 Independent cross-check of dashboard metrics against Yahoo Finance. Runs 14 checks per ticker (price ±1%, RV ±3 vol points, VRP formula consistency, IV range, ATR ±5%, SPY IV vs VIX ±5 pts) plus earnings date verification (±3-7 days tolerance).
@@ -168,7 +204,7 @@ python -m pytest test_liquidity_filter.py -v      # 9 tests
 
 ## Operational Gotchas
 
-**SGT timezone host.** The production host is in UTC+8. All trading logic uses ET explicitly via `zoneinfo.ZoneInfo("America/New_York")`. Any new time-sensitive code must pass the timezone — `datetime.now()` without `tz=` returns SGT. See [fragile-seams.md § Timezone Seams](../3-guardrails/fragile-seams.md#host-timezone-vs-trading-timezone).
+**Timezone matters.** Production (Lightsail) is set to `America/New_York`. Previous hosting (MacBook in Singapore) was UTC+8. All trading logic uses ET explicitly via `zoneinfo.ZoneInfo("America/New_York")`. Any new time-sensitive code must pass the timezone — never use bare `datetime.now()` without `tz=`. See [fragile-seams.md § Timezone Seams](../3-guardrails/fragile-seams.md#host-timezone-vs-trading-timezone).
 
 **Earnings counter resets on restart.** The daily limit for `POST /api/earnings/refresh` is in-memory (`_earnings_refresh_tracker`). Container restart, Docker rebuild, or uvicorn reload resets it to zero.
 

@@ -1,6 +1,6 @@
 ---
-last_verified: 2026-04-16
-verified_against: dc030c3
+last_verified: 2026-04-27
+verified_against: 0fd80ce
 rot_risk: low
 rot_triggers:
   - context/ (any file added or removed)
@@ -40,6 +40,7 @@ Read in this exact sequence:
 | 11 | [`references/metrics.md`](../references/metrics.md) | Metric formulas and computation details (primary source) |
 | 12 | [`tasks/lessons.md`](../tasks/lessons.md) | Mistakes and patterns from previous agents — avoid repeating them |
 | 13 | [`references/change-logs.md`](../references/change-logs.md) | Recent project changes — know what was last touched and why |
+| 14 | [`history/daily-briefings.md`](../history/daily-briefings.md) (latest 2-3 entries) | Recent trading analysis — regime context, active positions, market state |
 
 ---
 
@@ -86,6 +87,15 @@ This folder is **derived explanation** — it captures *why*, *what's weird*, *h
 | [`fragile-seams.md`](3-guardrails/fragile-seams.md) | What will break if I'm not careful? Known hazards and historical incidents. |
 | [`decisions/`](3-guardrails/decisions/) | Why was this non-obvious choice made? 11 ADRs documenting deliberate design decisions. |
 
+### `history/` — Daily operational artifacts
+
+| File | Question it answers |
+|------|---------------------|
+| [`metrics-logs.md`](../history/metrics-logs.md) | What were the raw scan numbers? One table per trading day with all 33 tickers, sorted by score. |
+| [`daily-briefings.md`](../history/daily-briefings.md) | What was the analysis? Regime assessment, day-over-day deltas, trade recommendations, position calls. |
+
+These files are maintained through the **Daily Scan Workflow** (see `CLAUDE.md`). When the user pastes metrics, the agent analyses, recommends, and logs to both files.
+
 ### Decisions Index
 
 | ADR | Title |
@@ -127,6 +137,7 @@ These are canonical and authoritative — `/context/` links to them but does not
 | Deployment, env, or infra change                     | `2-system/deployment.md`                            |
 | New recurring bug, gotcha, or race condition         | `3-guardrails/fragile-seams.md`                     |
 | Non-obvious design choice with rejected alternatives | New ADR in `3-guardrails/decisions/`                |
+| User pastes daily scan metrics                       | `history/metrics-logs.md` + `history/daily-briefings.md` (see Daily Scan Workflow in CLAUDE.md) |
 
 **Rule of thumb for decisions vs. fragile seams:**
 - If a new contributor would be tempted to "fix" it without reading history → decision (ADR).

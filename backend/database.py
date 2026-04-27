@@ -189,6 +189,36 @@ def get_historical_series(
     return rows
 
 
+def get_vrp_history_by_date(start: str, end: str, min_tickers: int = 30) -> list[dict]:
+    """
+    Aggregate avg VRP across all tickers per date for a date range (inclusive).
+    Used by the activity grid in the regime banner.
+
+    Dates with fewer than `min_tickers` ticker rows are omitted — partial scans
+    (e.g. an interrupted run) would otherwise produce a "33-ticker mean" that
+    isn't actually computed over 33 tickers and silently disagree with the
+    component caption.
+    """
+    conn = get_connection()
+    cursor = conn.execute(
+        """
+        SELECT date, AVG(vrp) AS avg_vrp, COUNT(*) AS n
+        FROM daily_iv
+        WHERE date >= ? AND date <= ? AND vrp IS NOT NULL
+        GROUP BY date
+        HAVING n >= ?
+        ORDER BY date ASC
+        """,
+        (start, end, min_tickers),
+    )
+    rows = [
+        {"date": row[0], "avg_vrp": float(row[1]), "ticker_count": int(row[2])}
+        for row in cursor.fetchall()
+    ]
+    conn.close()
+    return rows
+
+
 def log_scan(tickers_scanned: int, duration: float, errors: list[str] = None):
     """Log a scan run for debugging."""
     conn = get_connection()

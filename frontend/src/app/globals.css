@@ -93,6 +93,13 @@
   --color-range-track: #D1C7B8;
   --color-range-thumb: #C47B5A;
   --color-range-thumb-border: white;
+
+  /* Activity grid (sage ramp, GitHub-style 5-step) */
+  --grid-l0: #E8E5DD;
+  --grid-l1: #C7D1B8;
+  --grid-l2: #9DAD8A;
+  --grid-l3: #7D8C6E;
+  --grid-l4: #4F5C42;
 }
 
 [data-theme="dark"] {
@@ -180,6 +187,13 @@
   --color-range-track: rgba(237, 232, 227, 0.12);
   --color-range-thumb: #D4956F;
   --color-range-thumb-border: #2B2621;
+
+  /* Activity grid (sage ramp, GitHub-style 5-step) */
+  --grid-l0: #2F2D29;
+  --grid-l1: #3D4A38;
+  --grid-l2: #5C6E50;
+  --grid-l3: #92A87E;
+  --grid-l4: #B8CC9F;
 }
 
 /* ── Base layer ─────────────────────────────────────── */
