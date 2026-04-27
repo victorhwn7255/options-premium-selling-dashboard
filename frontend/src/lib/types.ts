@@ -199,3 +199,14 @@ export interface ComparisonResponse {
   tickers: TickerComparison[];
 }
 
+export interface VrpHistoryPoint {
+  date: string;
+  avg_vrp: number;
+  ticker_count: number;
+}
+
+export interface VrpHistoryResponse {
+  year: number;
+  points: VrpHistoryPoint[];
+}
+

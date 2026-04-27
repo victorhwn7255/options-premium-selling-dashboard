@@ -115,3 +115,14 @@ class HealthResponse(BaseModel):
     db_initialized: bool
     tickers_configured: int
     historical_data_points: int
+
+
+class VrpHistoryPoint(BaseModel):
+    date: str
+    avg_vrp: float
+    ticker_count: int
+
+
+class VrpHistoryResponse(BaseModel):
+    year: int
+    points: list[VrpHistoryPoint]

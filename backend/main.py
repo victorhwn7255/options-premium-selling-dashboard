@@ -39,11 +39,13 @@ from database import (
     clear_earnings_cache, update_latest_scan_earnings,
     store_verification_result, get_latest_verification,
     store_earnings_verification, get_latest_earnings_verification,
+    get_vrp_history_by_date,
 )
 from models import (
     ScanResponse, TickerResult, RegimeSummary,
     HistoricalPoint, HealthResponse, TermStructurePointOut, SkewPointOut,
     TickerDelta, TickerComparison, ComparisonResponse,
+    VrpHistoryPoint, VrpHistoryResponse,
 )
 
 
@@ -853,6 +855,21 @@ async def ticker_history(ticker: str, days: int = Query(default=120, le=365)):
 
     series = get_historical_series(ticker, lookback_days=days)
     return {"ticker": ticker, "history": series}
+
+
+@app.get("/api/vrp-history", response_model=VrpHistoryResponse)
+async def vrp_history(year: int = Query(default=None, ge=2020, le=2099)):
+    """
+    Daily Avg VRP across the full ticker universe for a calendar year.
+    Powers the activity grid in the regime banner.
+    """
+    if year is None:
+        year = date.today().year
+    rows = get_vrp_history_by_date(f"{year}-01-01", f"{year}-12-31")
+    return VrpHistoryResponse(
+        year=year,
+        points=[VrpHistoryPoint(**row) for row in rows],
+    )
 
 
 @app.get("/api/universe")

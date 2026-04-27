@@ -1,9 +1,12 @@
 'use client';
 
-import type { DashboardTicker } from '@/lib/types';
+import type { DashboardTicker, VrpHistoryPoint } from '@/lib/types';
+import VrpActivityGrid from './VrpActivityGrid';
 
 interface RegimeBannerProps {
   data: DashboardTicker[];
+  vrpHistory?: VrpHistoryPoint[];
+  vrpYear?: number;
 }
 
 export function computeRegime(data: DashboardTicker[]) {
@@ -69,11 +72,24 @@ export function computeRegime(data: DashboardTicker[]) {
   };
 }
 
-export default function RegimeBanner({ data }: RegimeBannerProps) {
+export default function RegimeBanner({ data, vrpHistory, vrpYear }: RegimeBannerProps) {
   const r = computeRegime(data);
 
-  const metrics = [
-    { label: 'Avg VRP', value: r.avgVRP.toFixed(1), good: r.avgVRP > 5 },
+  const metrics: Array<{
+    label: string;
+    value: string;
+    good: boolean;
+    tooltip?: { title: string; body: string };
+  }> = [
+    {
+      label: 'Avg VRP',
+      value: r.avgVRP.toFixed(1),
+      good: r.avgVRP > 5,
+      tooltip: {
+        title: 'Eligible-set mean',
+        body: `Averaged over the ${r.eligibleCount} tickers that aren't earnings-gated (DTE ≤ 14) or NO DATA. The heatmap below uses the full 33-ticker universe, so the two values can differ.`,
+      },
+    },
     { label: 'Term Slope', value: r.avgTermSlope.toFixed(2), good: r.avgTermSlope < 0.95 },
     { label: 'RV Accel', value: r.avgRVAccel.toFixed(2), good: r.avgRVAccel < 1.08 },
     { label: 'Tradeable', value: `${r.tradeableCount}/${r.eligibleCount}`, good: r.tradeableCount > 3 },
@@ -97,18 +113,77 @@ export default function RegimeBanner({ data }: RegimeBannerProps) {
 
         {/* Metrics — inline row, grows to fill */}
         <div className="flex-1 grid grid-cols-4 gap-3 sm:gap-4">
-          {metrics.map(m => (
-            <div key={m.label} className="text-center sm:text-center">
-              <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block">
+          {metrics.map(m => {
+            const labelEl = (
+              <span className="inline-flex items-center gap-1 font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
                 {m.label}
+                {m.tooltip && (
+                  <svg
+                    className="w-2.5 h-2.5 opacity-60"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4M12 8h.01" />
+                  </svg>
+                )}
               </span>
-              <span className={`font-mono text-lg sm:text-xl font-semibold block mt-0.5 ${m.good ? 'text-txt' : 'text-warning'}`}>
+            );
+            const valueEl = (
+              <span
+                className={`font-mono text-lg sm:text-xl font-semibold block mt-0.5 ${m.good ? 'text-txt' : 'text-warning'}`}
+              >
                 {m.value}
               </span>
-            </div>
-          ))}
+            );
+
+            if (!m.tooltip) {
+              return (
+                <div key={m.label} className="text-center">
+                  <span className="block">{labelEl}</span>
+                  {valueEl}
+                </div>
+              );
+            }
+
+            return (
+              <div key={m.label} className="text-center relative group cursor-help">
+                <span className="block">{labelEl}</span>
+                {valueEl}
+                <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 origin-top">
+                  <span
+                    className="block rounded-lg px-4 py-3 text-left"
+                    style={{
+                      background: 'var(--color-tooltip-bg)',
+                      color: 'var(--color-tooltip-text)',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                      width: 360,
+                    }}
+                  >
+                    <span
+                      className="block text-[9px] font-semibold uppercase tracking-widest mb-1.5"
+                      style={{ color: 'var(--color-tooltip-label)' }}
+                    >
+                      {m.tooltip.title}
+                    </span>
+                    <span className="block text-[11px] leading-relaxed">{m.tooltip.body}</span>
+                  </span>
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* Activity grid: daily Avg VRP heatmap */}
+      {vrpHistory && vrpHistory.length > 0 && (
+        <div className="px-4 sm:px-6 py-6 sm:py-7 border-t border-border-subtle">
+          <VrpActivityGrid year={vrpYear ?? new Date().getFullYear()} points={vrpHistory} />
+        </div>
+      )}
 
       {/* Bottom strip: description */}
       <div className="px-4 sm:px-6 py-2.5 border-t border-border-subtle bg-surface-alt">
