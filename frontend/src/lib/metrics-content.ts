@@ -127,18 +127,20 @@ export const METRICS: MetricDefinition[] = [
     id: 'rv-accel',
     emoji: '\uD83D\uDE80',
     name: 'RV Acceleration',
-    tag: 'Speed gauge',
+    tag: 'Environment cleanliness',
     section: 'structure',
     explain:
-      'Is volatility <strong>speeding up or slowing down?</strong> We compare recent volatility (last 10 days) to the longer average (last 30 days). If the ratio is above 1.0, the market is getting <em>more</em> wild lately. If below 1.0, it\u2019s calming down. This drives both a <strong>scoring penalty</strong> (\u22126 pts above 1.05, \u221215 pts above 1.15) and <strong>position sizing</strong> (how big your bets should be).',
+      'Is volatility <strong>speeding up or slowing down?</strong> We compare recent volatility (last 10 days) to the longer average (last 30 days). If the ratio is above 1.0, the market is getting <em>more</em> wild lately. If below 1.0, it\u2019s calming down. This drives the <strong>RV Stability score</strong> (0\u201315 pts) and surfaces a five-tier <strong>RV Accel Status</strong> chip on the dashboard. The status answers <em>"is the environment clean enough to sell puts?"</em> \u2014 it does <em>not</em> tell you how big to size.',
     analogy:
-      'A car\u2019s speedometer vs. average speed. If you\u2019re doing 90mph right now but your trip average is 60mph, you\u2019re accelerating \u2014 things are getting riskier. We shrink our bets when acceleration is high because the road ahead might be bumpy.',
+      'A car\u2019s speedometer vs. average speed. If you\u2019re doing 90mph right now but your trip average is 60mph, you\u2019re accelerating \u2014 the road just got bumpier. The status tells you whether the road is clean; <em>you</em> decide how fast to drive.',
     formulaLabel: 'Formula',
     formulas: ['RV Acceleration = RV10 / RV30'],
     readings: [
-      { label: '\u2264 1.10 = stable \u2192 Full size', color: 'good' },
-      { label: '1.10\u20131.20 = accelerating \u2192 Half size', color: 'ok' },
-      { label: '> 1.20 = spiking \u2192 Quarter size', color: 'bad' },
+      { label: '\u2264 0.85 = Excellent (vol decelerating)', color: 'good' },
+      { label: '0.85\u20131.00 = Good (stable to declining)', color: 'good' },
+      { label: '1.00\u20131.10 = Acceptable (mildly rising)', color: 'ok' },
+      { label: '1.10\u20131.20 = Caution (vol heating up)', color: 'ok' },
+      { label: '> 1.20 = Avoid / Wait (vol spiking)', color: 'bad' },
     ],
   },
   {
@@ -253,22 +255,28 @@ export const METRICS: MetricDefinition[] = [
     ],
   },
   {
-    id: 'position-sizing',
+    id: 'vol-environment-status',
     emoji: '\uD83C\uDF9A\uFE0F',
-    name: 'Position Sizing',
-    tag: 'Full \u00B7 Half \u00B7 Quarter',
+    name: 'RV Accel Status',
+    tag: 'Volatility environment',
     section: 'scoring',
     explain:
-      'How much to bet, based on how wild the market is <em>right now</em>. When recent vol is stable, you can go Full size. When it\u2019s accelerating, you shrink to Half or Quarter. This is your <strong>seatbelt</strong> \u2014 it doesn\u2019t tell you <em>what</em> to trade, it tells you <em>how much</em>.',
+      'A five-tier label \u2014 <strong>Excellent / Good / Acceptable / Caution / Avoid \u00B7 Wait</strong> \u2014 derived from RV Acceleration. It answers <em>"is the environment clean enough to sell puts?"</em>, not <em>"how much should I size?"</em> Position size is a trader-controlled decision and should be recorded in your trade journal, not prescribed by the dashboard. The status chip surfaces on the dashboard only when the environment is degraded (Caution or Avoid \u00B7 Wait).',
     analogy:
-      'How hard you push in a race. Dry road? Full throttle. Wet road? Ease off. Icy road? Crawl. You still want to get there, but you adjust speed for conditions. Same thing \u2014 same trades, just different amounts.',
+      'A weather report at the trailhead. Clear, breezy, fog rolling in, storm warning, evacuation. The report tells you about conditions \u2014 <em>you</em> decide whether to hike, and how heavy a pack to carry.',
     formulaLabel: 'Logic (based on RV Acceleration)',
     formulas: [
-      'if RV Acceleration > 1.20 \u2192 Quarter  (vol spiking)',
-      'if RV Acceleration > 1.10 \u2192 Half     (vol rising)',
-      'otherwise                \u2192 Full     (vol stable)',
+      'if RV Acceleration \u2264 0.85 \u2192 Excellent',
+      'if RV Acceleration \u2264 1.00 \u2192 Good',
+      'if RV Acceleration \u2264 1.10 \u2192 Acceptable',
+      'if RV Acceleration \u2264 1.20 \u2192 Caution',
+      'otherwise                  \u2192 Avoid / Wait',
     ],
-    readings: [],
+    readings: [
+      { label: 'Excellent / Good = clean environment', color: 'good' },
+      { label: 'Acceptable = trade selectively', color: 'ok' },
+      { label: 'Caution / Avoid \u00B7 Wait = require strong confirmation or wait', color: 'bad' },
+    ],
   },
 ];
 

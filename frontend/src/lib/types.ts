@@ -1,5 +1,17 @@
 /* ── Dashboard Types ──────────────────────────────────── */
 
+export type RvAccelStatusLabel =
+  | 'Excellent'
+  | 'Good'
+  | 'Acceptable'
+  | 'Caution'
+  | 'Avoid / Wait';
+
+export interface RvAccelStatus {
+  label: RvAccelStatusLabel;
+  description: string;
+}
+
 export interface DashboardTicker {
   sym: string;
   name: string;
@@ -26,7 +38,10 @@ export interface DashboardTicker {
   action: 'SELL' | 'CONDITIONAL' | 'WATCHLIST' | 'NO EDGE' | 'AVOID' | 'SKIP' | 'NO DATA';
   actionReason: string | null;
   preGateScore?: number;  // Score computed before earnings gate (display-only, present only when gated and > 0)
-  sizing?: string;
+  // RV Acceleration Status — display-only environment-cleanliness label.
+  // Replaces the pre-Phase-2C `sizing` (Full/Half/Quarter) prescription.
+  // Position size is a trader-controlled decision, not dashboard output.
+  rvAccelStatus?: RvAccelStatus;
   regime: 'NORMAL' | 'CAUTION' | 'DANGER';
   // QA Phase 1 additions (see references/dashboard-behavior-qa-report.md)
   vrpRatio: number | null;

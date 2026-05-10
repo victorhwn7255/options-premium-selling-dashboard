@@ -52,12 +52,17 @@ RV_n = std(last n log_returns, ddof=1) × √252 × 100
 RV Acceleration = RV10 / RV30
 ```
 
-**Interpretation:**
-- `< 0.85` — vol decelerating strongly (favorable)
-- `0.85–1.0` — vol stable to declining (good)
-- `1.0–1.10` — vol rising slightly (neutral)
-- `1.10–1.20` — vol accelerating (caution, reduce size)
-- `> 1.20` — vol spiking (danger, quarter size)
+**Interpretation — environment cleanliness:**
+
+| RV Accel | Status | Signal interpretation |
+| -------- | ------ | --------------------- |
+| ≤ 0.85 | Excellent | Realized volatility is decelerating strongly; clean environment for put selling |
+| 0.85–1.00 | Good | Realized volatility is stable to declining; favorable environment |
+| 1.00–1.10 | Acceptable | Realized volatility is rising slightly; setup is less clean |
+| 1.10–1.20 | Caution | Realized volatility is heating up; require stronger confirmation from VRP, term structure, and skew |
+| > 1.20 | Avoid / Wait | Realized volatility is spiking; avoid new naked put entries unless manually overridden |
+
+> RV Acceleration is **not** used to prescribe position size. It is used to classify the cleanliness of the volatility environment. Actual position size is a trader-controlled decision and should be recorded in the trade journal, not dictated by the edge score.
 
 **Scoring impact (backend):** Additive component, 0–15 points:
 
@@ -67,8 +72,6 @@ elif accel ≥ 1.15:  0 pts
 elif accel ≤ 1.0:   10 + (1.0 - accel) / 0.15 × 5    (linear 10→15)
 else:               10 × (1.15 - accel) / 0.15        (linear 10→0)
 ```
-
-**Sizing impact (frontend):** `> 1.10` = Half size, `> 1.20` = Quarter size.
 
 ---
 
@@ -267,7 +270,7 @@ True Range = max(High - Low, |High - Prev Close|, |Low - Prev Close|)
 ATR 14 = mean(last 14 True Range values)
 ```
 
-**Usage:** Position sizing reference — helps determine stop-loss width and strike spacing for credit spreads.
+**Usage:** Strike-width and stop-loss reference — helps determine stop-loss width and strike spacing for credit spreads. Not used as a position-size prescription.
 
 **Scoring impact:** None. Display only.
 
@@ -335,13 +338,19 @@ The backend computes a single **0–100 composite score** per ticker. The fronte
 | NO EDGE | NO EDGE |
 | NO DATA | NO DATA |
 
-### Position Sizing (frontend, based on RV Acceleration)
+### RV Acceleration Status (frontend display)
 
-| RV Accel | Sizing |
-|----------|--------|
-| ≤ 1.10 | **Full** (standard allocation) |
-| 1.10–1.20 | **Half** (50% of standard) |
-| > 1.20 | **Quarter** (25% of standard) |
+The frontend renders an **RV Acceleration Status** chip that classifies the volatility environment. It is informational — it does **not** drive a position-size prescription.
+
+| RV Accel | Status | Meaning |
+|----------|--------|---------|
+| ≤ 0.85 | Excellent | Realized vol decelerating; clean environment |
+| 0.85–1.00 | Good | Stable-to-declining vol; favorable |
+| 1.00–1.10 | Acceptable | Mildly rising vol; less clean setup |
+| 1.10–1.20 | Caution | Vol heating up; require strong confirmation |
+| > 1.20 | Avoid / Wait | Vol spiking; avoid new naked put entries |
+
+Actual position size is a trader-controlled decision recorded in the trade journal.
 
 ---
 
@@ -354,7 +363,7 @@ Computed from all eligible tickers (excluding earnings-gated and NO DATA tickers
 | Regime | Trigger | Dashboard Behavior |
 |--------|---------|-------------------|
 | **OFF SEASON** | > 40% of tickers in DANGER | Hostile — no premium selling |
-| **REGULAR SEASON** | > 25% of tickers in DANGER or CAUTION | Caution — defined-risk only, reduced sizing |
+| **REGULAR SEASON** | > 25% of tickers in DANGER or CAUTION | Caution — defined-risk only, demand cleaner setups |
 | **THE FINALS** | Avg VRP > 8 AND avg term slope < 0.90 | Favorable — widest statistical edge |
 | **THE PLAYOFFS** | Default (none of above) | Normal — execute standard playbook |
 

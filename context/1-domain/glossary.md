@@ -129,8 +129,8 @@ Computed in `RegimeBanner.tsx` from per-ticker regime data. Independent of backe
 | DANGER trigger | Slope > 1.15 | `scorer.py` | Per-ticker regime |
 | CAUTION trigger | Slope > 1.05 | `scorer.py` | Per-ticker regime |
 | Earnings gate | DTE ≤ 14 | `scoring.ts` (frontend) | Forces score to 0 |
-| Sizing: Half | RV accel > 1.10 | `scoring.ts` (frontend) | Reduce position size |
-| Sizing: Quarter | RV accel > 1.20 | `scoring.ts` (frontend) | Minimal exposure |
+| RV Accel Status: Caution | RV accel > 1.10 | `scoring.ts` (frontend) | Display chip — environment heating up |
+| RV Accel Status: Avoid / Wait | RV accel > 1.20 | `scoring.ts` (frontend) | Display chip — vol spiking, do not enter |
 | ATM range | ±3% of spot | `calculator.py` | Strike filter for ATM IV |
 | Min ATM contracts | 3 | `calculator.py` | Below this → NO DATA |
 | Max spread ratio | 50% | `calculator.py` | Liquidity filter |

@@ -90,10 +90,7 @@ RV Acceleration = RV10 / RV30
 | 1.0–1.15 | 0–10 | Rising — caution |
 | ≥ 1.15 | 0 | Spiking — dangerous |
 
-This metric also drives **position sizing** on the frontend:
-- Accel ≤ 1.10 → Full size
-- Accel 1.10–1.20 → Half size
-- Accel > 1.20 → Quarter size
+The frontend also renders an **RV Acceleration Status** chip (Excellent / Good / Acceptable / Caution / Avoid-Wait) so the trader can read environment cleanliness at a glance. See the §RV Acceleration Interpretation section for the mapping. This is informational — it does not prescribe position size.
 
 ### 5. Skew (0–10 points) — "Is there put demand to harvest?"
 
@@ -206,11 +203,19 @@ Based on VRP magnitude and regime:
 - **IV Rank ≥ 80**: 30–45 DTE (optimal theta decay with fat premium)
 - **Default**: 45–60 DTE (more time, narrower strikes)
 
-### Position Sizing
-Based on RV Acceleration (vol momentum):
-- **Accel ≤ 1.10**: Full standard allocation (2–5% portfolio notional)
-- **Accel 1.10–1.20**: Half (vol rising, reduce exposure)
-- **Accel > 1.20**: Quarter (vol spiking, minimal exposure)
+### RV Acceleration Interpretation
+
+RV Acceleration measures whether realized volatility is calming down or heating up. **It does not determine position size.** It determines whether the environment is clean enough for selling puts. Actual position size is handled by the trader and recorded in the trade journal.
+
+| RV Accel | Status | Action bias |
+| -------- | ------ | ----------- |
+| ≤ 0.85 | Excellent | Clean environment; normal put-selling playbook applies if VRP and term structure confirm |
+| 0.85–1.00 | Good | Favorable; proceed if other signals confirm |
+| 1.00–1.10 | Acceptable | Trade selectively; require stronger VRP and supportive term structure |
+| 1.10–1.20 | Caution | Wait, use further OTM strikes, or require exceptional setup quality |
+| > 1.20 | Avoid / Wait | Realized volatility is spiking; avoid new naked put entries |
+
+Position size should still be recorded in the trade journal for post-trade review, but it is not part of the edge score.
 
 ---
 
@@ -238,7 +243,7 @@ ETFs are excluded from earnings checks. All tickers must have liquid options cha
 1. **6:30 PM ET**: Automated scan runs (cron, trading days only)
 2. **Check regime**: If OFF SEASON → no action. If REGULAR SEASON → caution.
 3. **Review SELL signals**: Highest-scoring tickers with NORMAL regime. Verify score components make sense.
-4. **Check sizing**: Respect Half/Quarter sizing from RV acceleration. Don't override.
+4. **Check RV Acceleration status**: if realized volatility is heating up, require stronger confirmation from VRP, term structure, and skew, or wait. The status chip is informational — actual position size is the trader's call (record it in the trade journal).
 5. **Check earnings proximity**: Even if a ticker isn't gated (>14d), earnings within 21d warrant smaller size.
 6. **Enter positions**: Use the suggested delta, structure, and DTE. Defined risk always in REGULAR SEASON.
 7. **Manage at 50% profit**: Close winning positions at 50% of max profit. Don't wait for expiration.

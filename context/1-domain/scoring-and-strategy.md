@@ -25,7 +25,7 @@ For the trading *strategy* behind these choices (when to trade, daily workflow, 
 - The 3 gates that cap or zero-out the score
 - Per-ticker regime detection and how it overrides recommendations
 - Dashboard-level market regime (frontend-computed)
-- Position construction and sizing logic
+- Position construction and the RV Acceleration Status display
 - Which code owns which piece (backend vs. frontend)
 
 **This file does NOT cover:**
@@ -43,7 +43,7 @@ The scoring engine lives in `backend/scorer.py` (`score_opportunity()`). It prod
 
 ### Design principles
 
-The score is **purely additive**. There are no penalties that subtract from the total, no multipliers, no regime-based deductions. Every component contributes 0 to its maximum — a ticker with weak skew gets 0 skew points, not negative points. This replaced an earlier penalty-based scorer — see [ADR-011](../3-guardrails/decisions/011-additive-scoring-replaces-penalty-based.md) for the rationale. The additive design means the score has a clean interpretation: it answers "how much edge is present?" without conflating edge measurement with risk adjustment. Risk adjustment happens separately through the regime system and position sizing.
+The score is **purely additive**. There are no penalties that subtract from the total, no multipliers, no regime-based deductions. Every component contributes 0 to its maximum — a ticker with weak skew gets 0 skew points, not negative points. This replaced an earlier penalty-based scorer — see [ADR-011](../3-guardrails/decisions/011-additive-scoring-replaces-penalty-based.md) for the rationale. The additive design means the score has a clean interpretation: it answers "how much edge is present?" without conflating edge measurement with risk adjustment. Risk adjustment happens separately through the regime system and trader-controlled position sizing (recorded in the trade journal, not prescribed by the dashboard).
 
 The score also has **no cliff effects**. Every component is continuous and piecewise-linear. A VRP ratio of 1.14 scores 0 and a ratio of 1.16 scores a small positive number — there is no jump where a 0.01 change in one input swings the score by 10 points. This matters because the underlying data has measurement noise (ATM IV interpolation, thin option chains, RV window sensitivity), and cliff effects would turn input noise into output instability.
 
@@ -206,17 +206,21 @@ The logic lives in `scorer.py` (lines 229–254). Note that IV Rank drives posit
 
 ---
 
-## Position Sizing
+## RV Acceleration Status (display)
 
-Sizing is **frontend-computed** in `scoring.ts`, based solely on RV Acceleration:
+The dashboard does **not** prescribe position size. Instead the frontend renders an **RV Acceleration Status** chip — computed in `scoring.ts:getRvAccelStatus()` — that classifies the volatility environment into five tiers:
 
-| RV Acceleration | Sizing | Rationale |
-|-----------------|--------|-----------|
-| ≤ 1.10 | Full | Vol stable or decelerating — standard allocation |
-| 1.10–1.20 | Half | Vol rising — reduce exposure |
-| > 1.20 | Quarter | Vol spiking — minimal exposure |
+| RV Acceleration | Status | Meaning |
+|-----------------|--------|---------|
+| ≤ 0.85 | Excellent | Realized vol decelerating; clean environment for put selling |
+| 0.85–1.00 | Good | Stable-to-declining vol; favorable |
+| 1.00–1.10 | Acceptable | Mildly rising vol; less clean setup |
+| 1.10–1.20 | Caution | Vol heating up; require strong confirmation |
+| > 1.20 | Avoid / Wait | Vol spiking; avoid new naked put entries |
 
-This is independent of the score and recommendation. A ticker with SELL PREMIUM and a score of 80 still gets Half sizing if RV accel is 1.15. The sizing chip appears next to the action chip in the leaderboard.
+This is independent of the score and recommendation. A ticker with SELL PREMIUM and a score of 80 still surfaces a "Caution" status chip if RV accel is 1.15 — the trader uses that to decide whether to wait or demand stronger setup confirmation. **Actual position size is the trader's decision and is recorded in the trade journal, not by the dashboard.**
+
+Pre-Phase-2C the dashboard prescribed Full / Half / Quarter sizing from this same RV-Accel input. That prescription was removed because (a) the strategy is anchored on a pre-approved universe of names the trader is willing to own, and (b) sizing is a portfolio-level decision that belongs to the trader, not the scanner.
 
 ---
 
@@ -249,7 +253,7 @@ Hierarchy: OFF SEASON > REGULAR SEASON > THE FINALS > THE PLAYOFFS. The regime b
 | Negative VRP gate (cap at 44) | Backend | `scorer.py` |
 | No-data gate (score 0) | Backend | `scorer.py` |
 | Earnings gate (DTE ≤ 14 → SKIP) | **Frontend** | `scoring.ts` |
-| Position sizing (Full/Half/Quarter) | **Frontend** | `scoring.ts` |
+| RV Acceleration Status (5-tier display label) | **Frontend** | `scoring.ts` |
 | θ/ν ratio (|theta/vega|) | **Frontend** | `scoring.ts` |
 | Recommendation name mapping | **Frontend** | `scoring.ts` |
 | Dashboard market regime (NBA-themed) | **Frontend** | `RegimeBanner.tsx` |

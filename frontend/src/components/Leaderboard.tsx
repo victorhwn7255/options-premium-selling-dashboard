@@ -2,7 +2,7 @@
 
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import DetailPanel from '@/components/DetailPanel';
-import type { DashboardTicker, TickerDelta } from '@/lib/types';
+import type { DashboardTicker, RvAccelStatus, TickerDelta } from '@/lib/types';
 
 interface LeaderboardProps {
   data: DashboardTicker[];
@@ -159,19 +159,24 @@ function DeltaChip({ value, precision = 1 }: { value: number | null | undefined;
   );
 }
 
-function SizingChip({ sizing }: { sizing?: string }) {
-  if (!sizing || sizing === 'Full') return null;
-  const isHalf = sizing === 'Half';
+function RvAccelStatusChip({ status }: { status?: RvAccelStatus }) {
+  // Only surface a chip when the volatility environment is degraded enough to
+  // warrant trader attention. Excellent / Good / Acceptable stay silent so the
+  // signal column doesn't carry visual noise on every clean row.
+  if (!status) return null;
+  if (status.label !== 'Caution' && status.label !== 'Avoid / Wait') return null;
+  const isCaution = status.label === 'Caution';
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${
-        isHalf
+      title={`RV Accel — ${status.label}: ${status.description}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border ${
+        isCaution
           ? 'text-warning bg-warning-subtle border-warning-30'
           : 'text-error bg-error-subtle border-error-20'
       }`}
     >
-      &darr; {sizing}
+      RV {status.label}
     </span>
   );
 }
@@ -224,7 +229,7 @@ function MobileTickerCard({
           <EarningsWarningBadge warning={row.earningsWarningKind} label={row.earningsWarningLabel} detail={row.earningsWarningDetail} />
           <CautionPill reason={row.action === 'NO EDGE' ? row.cautionReason : undefined} />
           <ThinPremiumBadge visible={row.thinPremium} />
-          <SizingChip sizing={row.sizing} />
+          <RvAccelStatusChip status={row.rvAccelStatus} />
           <ActionChip action={row.displayAction || row.action} reason={row.actionReason} />
         </div>
       </div>
@@ -465,7 +470,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData, de
                       <DeltaChip value={delta?.term_slope} precision={2} />
                     </td>
 
-                    {/* RV Accel + sizing */}
+                    {/* RV Accel */}
                     <td
                       className="px-4 py-3.5 text-right transition-colors"
                       style={{ background: isSelected ? 'var(--color-primary-subtle)' : 'transparent' }}
@@ -522,7 +527,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData, de
                         <EarningsWarningBadge warning={row.earningsWarningKind} label={row.earningsWarningLabel} detail={row.earningsWarningDetail} />
                         <CautionPill reason={row.action === 'NO EDGE' ? row.cautionReason : undefined} />
                         <ThinPremiumBadge visible={row.thinPremium} />
-                        <SizingChip sizing={row.sizing} />
+                        <RvAccelStatusChip status={row.rvAccelStatus} />
                         <ActionChip action={row.displayAction || row.action} reason={row.actionReason} />
                       </div>
                     </td>
