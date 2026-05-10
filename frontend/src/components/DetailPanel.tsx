@@ -52,6 +52,10 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
       bgClass: 'bg-warning-subtle', colorStyle: 'var(--color-badge-reduce)',
       borderClass: 'border-warning-30', label: 'CONDITIONAL',
     },
+    WATCHLIST: {
+      bgClass: 'bg-accent-subtle', colorStyle: 'var(--color-accent)',
+      borderClass: 'border-accent-30', label: 'WATCHLIST',
+    },
     'NO EDGE': {
       bgClass: 'bg-surface-alt', colorStyle: 'var(--color-txt-tertiary)',
       borderClass: 'border-border-subtle', label: 'NO EDGE',
@@ -59,6 +63,10 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
     AVOID: {
       bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
       borderClass: 'border-error-20', label: 'AVOID',
+    },
+    'REDUCE SIZE': {
+      bgClass: 'bg-warning-subtle', colorStyle: 'var(--color-warning)',
+      borderClass: 'border-warning-30', label: 'REDUCE SIZE',
     },
     SKIP: {
       bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
@@ -77,6 +85,32 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
       style={{ color: c.colorStyle }}
     >
       {c.label}
+    </span>
+  );
+}
+
+function ThinPremiumBadge({ visible }: { visible: boolean }) {
+  if (!visible) return null;
+  return (
+    <span
+      title="VRP ratio just above 1.15 dead zone — premium is thin"
+      className="inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border border-warning-30 bg-warning-subtle text-warning whitespace-nowrap"
+    >
+      Thin Premium
+    </span>
+  );
+}
+
+function EarningsWarningBadge({
+  warning, label, detail,
+}: { warning?: string | null; label?: string; detail?: string }) {
+  if (!warning || !label) return null;
+  return (
+    <span
+      title={detail || label}
+      className="inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border border-warning-30 bg-warning-subtle text-warning whitespace-nowrap"
+    >
+      {label}
     </span>
   );
 }
@@ -153,6 +187,8 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
   const isSkipped = ticker.action === 'SKIP';
   const isAvoided = ticker.action === 'AVOID';
   const isNoData = ticker.action === 'NO DATA';
+  const isWatchlist = ticker.action === 'WATCHLIST';
+  const isSuppressed = ticker.suppressedByScanQuality === true;
 
   // Trade construction from API
   const suggestDelta = ticker.suggestedDelta
@@ -193,8 +229,8 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
     {
       label: 'Earnings',
       value: ticker.earningsDTE != null ? `${ticker.earningsDTE}d` : (ticker.isEtf ? 'ETF' : '\u2014'),
-      sub: ticker.earningsWarning ? '\u26A0 Within DTE window' : ticker.earningsDTE != null ? 'Clear' : (ticker.isEtf ? 'No earnings risk' : 'Not available'),
-      highlight: false, warn: ticker.earningsWarning ?? false,
+      sub: ticker.earningsGateActive ? '\u26A0 Within DTE window' : ticker.earningsDTE != null ? 'Clear' : (ticker.isEtf ? 'No earnings risk' : 'Not available'),
+      highlight: false, warn: ticker.earningsGateActive ?? false,
     },
   ];
 
@@ -203,7 +239,7 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
   return (
     <div
       className="bg-surface rounded-lg border border-border overflow-hidden"
-      style={{ borderTop: `3px solid ${isSkipped || isAvoided ? colors.error : isNoData ? colors.textTertiary : colors.primary}` }}
+      style={{ borderTop: `3px solid ${isSkipped || isAvoided ? colors.error : isNoData || isWatchlist ? colors.textTertiary : colors.primary}` }}
     >
       {/* Header */}
       <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
@@ -214,7 +250,9 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
               <span className="text-sm text-txt-tertiary">{ticker.name}</span>
             </div>
             <div className="flex gap-2 mt-2 flex-wrap items-center">
-              <ActionChip action={ticker.action} reason={ticker.actionReason} />
+              <ActionChip action={ticker.displayAction || ticker.action} reason={ticker.actionReason} />
+              <EarningsWarningBadge warning={ticker.earningsWarningKind} label={ticker.earningsWarningLabel} detail={ticker.earningsWarningDetail} />
+              <ThinPremiumBadge visible={ticker.thinPremium} />
               <SizingChip sizing={ticker.sizing} />
               {ticker.regime !== 'NORMAL' && (
                 <span
@@ -277,8 +315,10 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
         })}
       </div>
 
-      {/* Position Construction -- only if actionable */}
-      {!isSkipped && !isAvoided && !isNoData && ticker.action !== 'NO EDGE' && (
+      {/* Position Construction -- only if actionable
+          (Suppressed rows display action='NO EDGE' so they fall through here automatically;
+          the explicit !isSuppressed guard documents the intent.) */}
+      {!isSkipped && !isAvoided && !isNoData && !isWatchlist && !isSuppressed && ticker.action !== 'NO EDGE' && (
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
           <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block mb-3">
             Position Construction
@@ -333,7 +373,13 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
           <div className="px-4 py-3.5 bg-error-subtle rounded-md border border-error-20 text-xs leading-normal"
             style={{ color: 'var(--color-error)' }}>
-            <p><strong>{ticker.regime === 'DANGER' ? 'Danger regime' : 'Caution regime'}:</strong> Do not sell premium on this ticker. {ticker.regime === 'DANGER' ? 'Deep backwardation or acute stress detected.' : 'Elevated risk — reduce exposure, defined risk only.'}</p>
+            <p>
+              {ticker.regime === 'DANGER' ? (
+                <><strong>Avoid — term structure is in DANGER.</strong> Do not sell premium here. Deep backwardation or acute stress detected.</>
+              ) : (
+                <><strong>Caution — structure is less clean.</strong> If traded at all, use defined-risk only. Elevated risk; reduce exposure.</>
+              )}
+            </p>
           </div>
           {ticker.flags && ticker.flags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
@@ -357,6 +403,79 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
             <div className="mt-3 flex flex-wrap gap-1.5">
               {ticker.flags.map((flag, i) => (
                 <span key={i} className="text-2xs px-2 py-0.5 rounded-full bg-surface-alt border border-border-subtle text-txt-tertiary">
+                  {flag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Scan-quality suppression audit note. Renders for any row whose
+          recommendation was downgraded by Phase 1's degraded-scan suppression.
+          Shows what the raw model would have said before the safety override. */}
+      {isSuppressed && (
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
+          <div className="px-4 py-3.5 bg-error-subtle rounded-md border border-error-30 text-xs leading-normal text-txt-secondary">
+            <p>
+              <strong style={{ color: 'var(--color-error)' }}>Raw signal suppressed because scan data is degraded.</strong>{' '}
+              {ticker.preSuppressionAction && (
+                <>
+                  Raw signal before suppression: <strong>{ticker.preSuppressionAction}</strong>
+                  {ticker.preSuppressionScore != null && (
+                    <> (score <span className="font-mono">{ticker.preSuppressionScore}</span>)</>
+                  )}
+                  .{' '}
+                </>
+              )}
+              No Position Construction is shown.{' '}
+              {ticker.scanQualitySuppressionReason && (
+                <span className="text-txt-tertiary">
+                  Suppression reason: <em>{ticker.scanQualitySuppressionReason}</em>.
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Phase 2B — earnings warning prose. Cautionary (yellow), independent of
+          action state; renders for any ticker carrying earningsWarningKind. */}
+      {ticker.earningsWarningKind && (
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
+          <div className="px-4 py-3.5 bg-warning-subtle rounded-md border border-warning-30 text-xs leading-normal text-txt-secondary">
+            <p>
+              <strong className="text-warning">
+                {ticker.earningsWarningKind === 'DATE_CONFLICT'
+                  ? 'Earnings date conflict.'
+                  : 'Earnings date unverified.'}
+              </strong>{' '}
+              {ticker.earningsWarningDetail || (
+                ticker.earningsWarningKind === 'DATE_CONFLICT'
+                  ? 'Earnings sources disagree. Confirm manually before trading.'
+                  : 'Earnings date is missing or unverified. Confirm manually before trading.'
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Watchlist explanation: structure clean, premium too thin */}
+      {isWatchlist && (
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-border-subtle">
+          <div className="px-4 py-3.5 bg-accent-subtle rounded-md border border-accent-30 text-xs leading-normal text-txt-secondary">
+            <p>
+              <strong style={{ color: 'var(--color-accent)' }}>Watchlist — structure clean, but premium too thin.</strong>{' '}
+              VRP ratio {ticker.vrpRatio != null ? ticker.vrpRatio.toFixed(2) : 'N/A'} is below the 1.15 dead zone, so the
+              core thesis (implied vol exceeding realized) doesn&apos;t hold yet despite favorable term structure / RV stability.
+              Score {ticker.score} reflects edge-quality components only — no position is suggested.
+              Wait for VRP ratio to push past 1.20 before considering entry.
+            </p>
+          </div>
+          {ticker.flags && ticker.flags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {ticker.flags.map((flag, i) => (
+                <span key={i} className="text-2xs px-2 py-0.5 rounded-full bg-accent-subtle border border-accent-30" style={{ color: 'var(--color-accent)' }}>
                   {flag}
                 </span>
               ))}

@@ -20,14 +20,36 @@ export interface DashboardTicker {
   rvAccel: number;
   ivPct: number;
   thetaVega?: number;
-  earningsWarning?: boolean;
+  earningsGateActive?: boolean;
   // Scored
   score: number;
-  action: 'SELL' | 'CONDITIONAL' | 'NO EDGE' | 'AVOID' | 'SKIP' | 'NO DATA';
+  action: 'SELL' | 'CONDITIONAL' | 'WATCHLIST' | 'NO EDGE' | 'AVOID' | 'SKIP' | 'NO DATA';
   actionReason: string | null;
   preGateScore?: number;  // Score computed before earnings gate (display-only, present only when gated and > 0)
   sizing?: string;
   regime: 'NORMAL' | 'CAUTION' | 'DANGER';
+  // QA Phase 1 additions (see references/dashboard-behavior-qa-report.md)
+  vrpRatio: number | null;
+  thinPremium: boolean;  // 1.15 ≤ vrp_ratio < 1.25 AND action === 'CONDITIONAL'
+  // QA Phase 1 — scan-quality suppression diagnostics. When the scan is DEGRADED,
+  // SELL / CONDITIONAL / WATCHLIST rows are downgraded to NO EDGE for trading safety
+  // but the original signal context is preserved here for the DetailPanel audit note.
+  suppressedByScanQuality: boolean;
+  preSuppressionRecommendation?: string;  // raw backend rec ("SELL PREMIUM" / "CONDITIONAL" / "WATCHLIST")
+  preSuppressionAction?: 'SELL' | 'CONDITIONAL' | 'WATCHLIST';  // frontend-derived from above
+  preSuppressionScore?: number;
+  scanQualitySuppressionReason?: string;
+  // Phase 2B — decision-clarity metadata. Display-only; never affects filters/counts.
+  // Earnings warning: TBD/null for non-ETF, or FMP/Yahoo drift > 5d.
+  // Renamed to *Kind to avoid clashing with the Phase-1 boolean `earningsGateActive`
+  // (used for the ⚠ DTE chevron when DTE ≤ 14).
+  earningsWarningKind?: 'DATE_UNVERIFIED' | 'DATE_CONFLICT' | null;
+  earningsWarningLabel?: string;
+  earningsWarningDetail?: string;
+  // Display-only action label so Leaderboard can show CAUTION+REDUCE SIZE distinctly
+  // from DANGER+AVOID without changing the canonical `action` field used by counts.
+  displayAction?: string;
+  cautionReason?: string;
   // API data (attached for detail panel)
   termStructurePoints?: TermStructurePoint[];
   recommendation?: string;
@@ -97,6 +119,11 @@ export interface TickerResult {
   atr14: number | null;
   term_structure_points: TermStructurePoint[];
   skew_points: SkewPoint[];
+  // Scan-quality suppression diagnostics (optional for old cached scans)
+  suppressed_by_scan_quality?: boolean;
+  pre_suppression_recommendation?: string | null;
+  pre_suppression_score?: number | null;
+  scan_quality_suppression_reason?: string | null;
 }
 
 export interface RegimeSummary {
@@ -127,6 +154,9 @@ export interface ScanResponse {
   scanned_at: string | null;
   cached: boolean;
   message?: string;
+  // QA Phase 1: surfaces "OK" or "DEGRADED" with reason for the banner
+  scan_quality?: string;
+  scan_quality_reason?: string | null;
 }
 
 export interface HealthResponse {

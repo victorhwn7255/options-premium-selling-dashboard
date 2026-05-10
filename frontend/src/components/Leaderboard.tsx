@@ -73,6 +73,10 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
       bgClass: 'bg-warning-subtle', colorStyle: 'var(--color-badge-reduce)',
       borderClass: 'border-warning-30', label: 'CONDITIONAL',
     },
+    WATCHLIST: {
+      bgClass: 'bg-accent-subtle', colorStyle: 'var(--color-accent)',
+      borderClass: 'border-accent-30', label: 'WATCHLIST',
+    },
     'NO EDGE': {
       bgClass: 'bg-surface-alt', colorStyle: 'var(--color-txt-tertiary)',
       borderClass: 'border-border-subtle', label: 'NO EDGE',
@@ -80,6 +84,10 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
     AVOID: {
       bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
       borderClass: 'border-error-20', label: 'AVOID',
+    },
+    'REDUCE SIZE': {
+      bgClass: 'bg-warning-subtle', colorStyle: 'var(--color-warning)',
+      borderClass: 'border-warning-30', label: 'REDUCE SIZE',
     },
     SKIP: {
       bgClass: 'bg-error-subtle', colorStyle: 'var(--color-badge-avoid)',
@@ -98,6 +106,44 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
       style={{ color: c.colorStyle }}
     >
       {c.label}
+    </span>
+  );
+}
+
+function ThinPremiumBadge({ visible }: { visible: boolean }) {
+  if (!visible) return null;
+  return (
+    <span
+      title="VRP ratio just above 1.15 dead zone — premium is thin"
+      className="inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border border-warning-30 bg-warning-subtle text-warning whitespace-nowrap"
+    >
+      Thin Premium
+    </span>
+  );
+}
+
+function CautionPill({ reason }: { reason?: string }) {
+  if (!reason) return null;
+  return (
+    <span
+      title={`Caution regime — ${reason}`}
+      className="inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border border-warning-30 bg-warning-subtle text-warning whitespace-nowrap"
+    >
+      CAUTION
+    </span>
+  );
+}
+
+function EarningsWarningBadge({
+  warning, label, detail,
+}: { warning?: string | null; label?: string; detail?: string }) {
+  if (!warning || !label) return null;
+  return (
+    <span
+      title={detail || label}
+      className="inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border border-warning-30 bg-warning-subtle text-warning whitespace-nowrap"
+    >
+      {label}
     </span>
   );
 }
@@ -164,10 +210,22 @@ function MobileTickerCard({
         <div className="font-mono text-sm text-txt-secondary mt-1.5">
           VRP {row.vrp != null ? row.vrp.toFixed(1) : 'N/A'} · Term {row.termSlope.toFixed(2)} · RV {row.rvAccel.toFixed(2)}
         </div>
+        {/* Suppression hint (mobile cards only — desktop keeps the row clean) */}
+        {row.suppressedByScanQuality && (
+          <div className="text-[10px] text-txt-tertiary italic mt-1">
+            Suppressed by degraded scan
+            {row.preSuppressionAction && (
+              <> · was {row.preSuppressionAction}</>
+            )}
+          </div>
+        )}
         {/* Line 3: Action chips */}
-        <div className="flex items-center justify-end gap-1.5 mt-2">
+        <div className="flex items-center justify-end gap-1.5 mt-2 flex-wrap">
+          <EarningsWarningBadge warning={row.earningsWarningKind} label={row.earningsWarningLabel} detail={row.earningsWarningDetail} />
+          <CautionPill reason={row.action === 'NO EDGE' ? row.cautionReason : undefined} />
+          <ThinPremiumBadge visible={row.thinPremium} />
           <SizingChip sizing={row.sizing} />
-          <ActionChip action={row.action} reason={row.actionReason} />
+          <ActionChip action={row.displayAction || row.action} reason={row.actionReason} />
         </div>
       </div>
       {/* Expandable detail */}
@@ -423,8 +481,8 @@ export default function Leaderboard({ data, selected, onSelect, selectedData, de
                       style={{ background: isSelected ? 'var(--color-primary-subtle)' : 'transparent' }}
                     >
                       {row.earningsDTE ? (
-                        <span className={`font-mono text-sm ${row.earningsWarning ? 'text-error' : 'text-txt'}`}>
-                          {row.earningsDTE}d {row.earningsWarning && '\u26A0'}
+                        <span className={`font-mono text-sm ${row.earningsGateActive ? 'text-error' : 'text-txt'}`}>
+                          {row.earningsDTE}d {row.earningsGateActive && '\u26A0'}
                         </span>
                       ) : (
                         <span className="font-mono text-sm text-txt-tertiary">
@@ -455,9 +513,17 @@ export default function Leaderboard({ data, selected, onSelect, selectedData, de
                         borderRadius: isSelected ? '0 8px 8px 0' : '0',
                       }}
                     >
-                      <div className="flex items-center justify-end gap-1.5">
+                      <div
+                        className="flex items-center justify-end gap-1.5 flex-wrap"
+                        title={row.suppressedByScanQuality
+                          ? `Suppressed by degraded scan${row.preSuppressionAction ? ` (was ${row.preSuppressionAction})` : ''}`
+                          : undefined}
+                      >
+                        <EarningsWarningBadge warning={row.earningsWarningKind} label={row.earningsWarningLabel} detail={row.earningsWarningDetail} />
+                        <CautionPill reason={row.action === 'NO EDGE' ? row.cautionReason : undefined} />
+                        <ThinPremiumBadge visible={row.thinPremium} />
                         <SizingChip sizing={row.sizing} />
-                        <ActionChip action={row.action} reason={row.actionReason} />
+                        <ActionChip action={row.displayAction || row.action} reason={row.actionReason} />
                       </div>
                     </td>
                   </tr>

@@ -364,6 +364,9 @@ input[type="range"]::-moz-range-thumb {
   .border-secondary-30 {
     border-color: color-mix(in srgb, var(--color-secondary) 30%, transparent);
   }
+  .border-accent-30 {
+    border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
   .border-txt-inverse-30 {
     border-color: color-mix(in srgb, var(--color-txt-inverse) 30%, transparent);
   }

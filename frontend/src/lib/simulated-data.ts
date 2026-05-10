@@ -98,7 +98,7 @@ type EnrichedTicker = RawTicker & {
   rvAccel: number;
   ivPct: number;
   thetaVega: number;
-  earningsWarning: boolean;
+  earningsGateActive: boolean;
 };
 
 export function enrichData(universe: RawTicker[]): EnrichedTicker[] {
@@ -109,7 +109,7 @@ export function enrichData(universe: RawTicker[]): EnrichedTicker[] {
     const vrp = +(t.iv - t.rv30).toFixed(1);
     const rvAccel = +(t.rv10 / t.rv30).toFixed(2);
     const thetaVega = +Math.abs(t.theta / t.vega).toFixed(2);
-    const earningsWarning = t.earningsDTE !== null && t.earningsDTE <= 14;
-    return { ...t, vrp, rvAccel, ivPct, thetaVega, earningsWarning };
+    const earningsGateActive = t.earningsDTE !== null && t.earningsDTE <= 14;
+    return { ...t, vrp, rvAccel, ivPct, thetaVega, earningsGateActive };
   });
 }

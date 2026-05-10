@@ -6,7 +6,7 @@ import RegimeBanner, { computeRegime } from '@/components/RegimeBanner';
 import RegimeGuideModal from '@/components/RegimeGuideModal';
 import Leaderboard from '@/components/Leaderboard';
 import { useTheme } from '@/hooks/useTheme';
-import { buildScoredData } from '@/lib/scoring';
+import { buildScoredData, enrichWithEarningsWarnings } from '@/lib/scoring';
 import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus, fetchVerificationLatest, fetchEarningsVerificationLatest, fetchComparison, fetchVrpHistory } from '@/lib/api';
 import type { ScanResponse, VerificationResult, EarningsVerificationResult, TickerDelta, VrpHistoryPoint } from '@/lib/types';
 
@@ -79,7 +79,10 @@ export default function Home() {
       .catch(() => {});
   }, [apiData?.scanned_at]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const scoredData = useMemo(() => buildScoredData(apiData), [apiData]);
+  const scoredData = useMemo(() => {
+    const base = buildScoredData(apiData);
+    return enrichWithEarningsWarnings(base, earningsVerification?.checks);
+  }, [apiData, earningsVerification]);
   const currentRegime = useMemo(() => computeRegime(scoredData).regime, [scoredData]);
 
   const selectedData = useMemo(
@@ -204,6 +207,27 @@ export default function Home() {
           </div>
         ) : (
           <>
+            {/* Scan-Quality Banner — only when DEGRADED, sits above the regime banner */}
+            {apiData?.scan_quality === 'DEGRADED' && (
+              <div className="mb-5 px-4 sm:px-5 py-3.5 rounded-lg border-2 border-error-30 bg-error-subtle">
+                <div className="flex items-start gap-3">
+                  <span
+                    className="font-primary text-[10px] font-semibold uppercase tracking-widest px-2 py-0.5 rounded-full border border-error-30"
+                    style={{ color: 'var(--color-error)', background: 'var(--color-error-subtle)' }}
+                  >
+                    Degraded Scan
+                  </span>
+                  <div className="text-xs leading-relaxed text-txt-secondary flex-1">
+                    <strong style={{ color: 'var(--color-error)' }}>Data quality issue detected.</strong>{' '}
+                    {apiData.scan_quality_reason || 'Scan returned unreliable data.'}{' '}
+                    Actionable recommendations have been suppressed for this scan — no SELL or CONDITIONAL signals
+                    will display, and the regime banner&apos;s aggregate metrics may be unreliable. Wait for the next
+                    scan or investigate the API source before trading on these results.
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Zone 1: Market Regime */}
             <div className="mb-5">
               <RegimeBanner data={scoredData} vrpHistory={vrpHistory} vrpYear={VRP_GRID_YEAR} />
@@ -218,10 +242,11 @@ export default function Home() {
             <div className="px-4 sm:px-5 py-4 bg-surface-alt rounded-lg border border-border-subtle">
               <div className="text-xs text-txt-tertiary leading-loose">
                 <strong className="text-txt-secondary">Scoring:</strong>{' '}
-                VRP magnitude (0-40) + Term structure (0-25) + IV percentile (0-20) &minus; RV acceleration penalty (0-15).
-                Gated by earnings proximity and backwardation.{' '}
+                VRP Quality (30) + IV Percentile (25) + Term Structure (20) + RV Stability (15) + 25Δ Put Skew (10).
+                Negative VRP caps scores at 44. Earnings within 14 days forces SKIP for non-ETF tickers.
+                DANGER regimes override to AVOID. Otherwise-actionable signals with VRP ratio below 1.15 are shown as WATCHLIST, not tradeable.{' '}
                 <strong className="text-txt-secondary">Sizing:</strong>{' '}
-                Full if RV Accel &lt; 1.10, half if &lt; 1.20, quarter above.{' '}
+                Full if RV Accel &lt; 1.10, Half if &lt; 1.20, Quarter above.{' '}
                 <span className="text-secondary">Live data — not financial advice.</span>
               </div>
             </div>
