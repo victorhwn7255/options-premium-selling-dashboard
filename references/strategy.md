@@ -2,7 +2,7 @@
 
 ## The Core Thesis
 
-Options are systematically overpriced. Implied volatility (what the market expects) consistently exceeds realized volatility (what actually happens) because investors overpay for protection. This gap — the **Volatility Risk Premium (VRP)** — is the edge we harvest by selling options.
+Options are systematically overpriced. Implied volatility (what the market expects) consistently exceeds realized volatility (what actually happens) because investors overpay for protection. This gap — the **Volatility Risk Premium (VRP)** — is the edge we harvest by selling options. We sell puts on pre-approved quality underlyings when implied volatility is rich relative to realized volatility and market structure is supportive.
 
 We don't predict direction. We sell inflated insurance premiums and collect theta (time decay) as the options expire worthless or are bought back cheaply.
 
