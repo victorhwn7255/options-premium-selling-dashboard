@@ -23,6 +23,7 @@ import logging
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -47,6 +48,19 @@ from models import (
     TickerDelta, TickerComparison, ComparisonResponse,
     VrpHistoryPoint, VrpHistoryResponse,
 )
+from scan_quality import compute_scan_quality, suppress_actionable
+
+
+def _apply_scan_quality(tickers: list) -> tuple[str, Optional[str]]:
+    """
+    Compute scan-quality on a TickerResult list and suppress actionable rows
+    in-place if degraded. Used for both fresh scans and cached reads so the
+    QA gate applies uniformly. Returns (quality, reason).
+    """
+    quality, reason = compute_scan_quality(tickers)
+    if quality == "DEGRADED":
+        suppress_actionable(tickers, reason)
+    return quality, reason
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -398,6 +412,14 @@ async def run_full_scan() -> ScanResponse:
     # Sort by score descending
     results.sort(key=lambda r: r.signal_score, reverse=True)
 
+    # ── Scan Quality Detection ──────────────────────
+    # See references/dashboard-behavior-qa-report.md §5.6 / §7.3.
+    # When DEGRADED, downgrade SELL/CONDITIONAL/WATCHLIST → NO EDGE so the
+    # dashboard doesn't surface tradeable signals from unreliable inputs.
+    scan_quality, scan_quality_reason = _apply_scan_quality(results)
+    if scan_quality == "DEGRADED":
+        logger.warning(f"Scan quality DEGRADED: {scan_quality_reason}")
+
     # Compute regime summary
     if results:
         avg_iv_rank = sum(r.iv_rank for r in results) / len(results)
@@ -466,6 +488,8 @@ async def run_full_scan() -> ScanResponse:
         historical=historical,
         scanned_at=scanned_at,
         cached=False,
+        scan_quality=scan_quality,
+        scan_quality_reason=scan_quality_reason,
     )
 
     # Persist to SQLite for cached retrieval
@@ -597,16 +621,21 @@ async def get_latest_cached_scan():
         if t.get("ticker") in UNIVERSE:
             t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
 
+    ticker_models = [TickerResult(**t) for t in cached["tickers"]]
+    quality, reason = _apply_scan_quality(ticker_models)
+
     return ScanResponse(
         timestamp=cached["scanned_at"],
         regime=RegimeSummary(**cached["regime"]),
-        tickers=[TickerResult(**t) for t in cached["tickers"]],
+        tickers=ticker_models,
         historical={
             k: [HistoricalPoint(**p) for p in v]
             for k, v in cached["historical"].items()
         },
         scanned_at=cached["scanned_at"],
         cached=True,
+        scan_quality=quality,
+        scan_quality_reason=reason,
     )
 
 
@@ -695,10 +724,12 @@ async def trigger_scan():
             for t in cached["tickers"]:
                 if t.get("ticker") in UNIVERSE:
                     t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
+            ticker_models = [TickerResult(**t) for t in cached["tickers"]]
+            quality, reason = _apply_scan_quality(ticker_models)
             return ScanResponse(
                 timestamp=cached["scanned_at"],
                 regime=RegimeSummary(**cached["regime"]),
-                tickers=[TickerResult(**t) for t in cached["tickers"]],
+                tickers=ticker_models,
                 historical={
                     k: [HistoricalPoint(**p) for p in v]
                     for k, v in cached["historical"].items()
@@ -706,6 +737,8 @@ async def trigger_scan():
                 scanned_at=cached["scanned_at"],
                 cached=True,
                 message="Market is closed today. Showing last available scan.",
+                scan_quality=quality,
+                scan_quality_reason=reason,
             )
         return JSONResponse({"status": "closed", "message": "Market is closed today"})
 
@@ -717,10 +750,12 @@ async def trigger_scan():
             for t in cached["tickers"]:
                 if t.get("ticker") in UNIVERSE:
                     t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
+            ticker_models = [TickerResult(**t) for t in cached["tickers"]]
+            quality, reason = _apply_scan_quality(ticker_models)
             return ScanResponse(
                 timestamp=cached["scanned_at"],
                 regime=RegimeSummary(**cached["regime"]),
-                tickers=[TickerResult(**t) for t in cached["tickers"]],
+                tickers=ticker_models,
                 historical={
                     k: [HistoricalPoint(**p) for p in v]
                     for k, v in cached["historical"].items()
@@ -728,6 +763,8 @@ async def trigger_scan():
                 scanned_at=cached["scanned_at"],
                 cached=True,
                 message="Scan available after 6:30 PM ET.",
+                scan_quality=quality,
+                scan_quality_reason=reason,
             )
         return JSONResponse({"status": "waiting", "message": "Scan available after 6:30 PM ET"})
 
@@ -737,16 +774,20 @@ async def trigger_scan():
         for t in cached["tickers"]:
             if t.get("ticker") in UNIVERSE:
                 t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
+        ticker_models = [TickerResult(**t) for t in cached["tickers"]]
+        quality, reason = _apply_scan_quality(ticker_models)
         return ScanResponse(
             timestamp=cached["scanned_at"],
             regime=RegimeSummary(**cached["regime"]),
-            tickers=[TickerResult(**t) for t in cached["tickers"]],
+            tickers=ticker_models,
             historical={
                 k: [HistoricalPoint(**p) for p in v]
                 for k, v in cached["historical"].items()
             },
             scanned_at=cached["scanned_at"],
             cached=True,
+            scan_quality=quality,
+            scan_quality_reason=reason,
         )
 
     # If a scan is already running, return status

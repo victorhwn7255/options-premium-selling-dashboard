@@ -50,6 +50,15 @@ class TickerResult(BaseModel):
     atr14: Optional[float] = None
     term_structure_points: list[TermStructurePointOut] = []
     skew_points: list[SkewPointOut] = []
+    # ── Scan-quality suppression audit (QA Phase 1 diagnostics) ──
+    # When DEGRADED scan suppression downgrades SELL/CONDITIONAL/WATCHLIST → NO EDGE,
+    # the original recommendation/score are preserved here so the frontend can
+    # render an audit note. signal_score itself is *not* zeroed by suppression
+    # (pre_suppression_score is a redundant explicit copy for clarity).
+    suppressed_by_scan_quality: bool = False
+    pre_suppression_recommendation: Optional[str] = None
+    pre_suppression_score: Optional[int] = None
+    scan_quality_suppression_reason: Optional[str] = None
 
 
 class RegimeSummary(BaseModel):
@@ -80,6 +89,11 @@ class ScanResponse(BaseModel):
     scanned_at: Optional[str] = None
     cached: bool = False
     message: Optional[str] = None
+    # Scan-quality detection (QA Phase 1, see references/dashboard-behavior-qa-report.md §5.6)
+    # "OK" or "DEGRADED". When DEGRADED, actionable recommendations are suppressed
+    # and the frontend renders a prominent banner.
+    scan_quality: str = "OK"
+    scan_quality_reason: Optional[str] = None
 
 
 

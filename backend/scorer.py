@@ -226,10 +226,33 @@ def score_opportunity(
     else:
         rec = "NO EDGE"
 
+    # ── VRP-Ratio Actionability Gate ──────────────────
+    # The score formula has a documented "VRP dead zone below 1.15" — the VRP
+    # component scores 0 there — but other components (term, RV stability, IV pct,
+    # skew) can still push the composite to 45+. Without this gate, structure-only
+    # signals masquerade as CONDITIONAL.
+    # See references/dashboard-behavior-qa-report.md §5.4 for the 8 false positives
+    # observed across 28 days (IWM ×3, QQQ ×2, XLF ×2, SBUX ×1).
+    # Gate maps sub-1.15 ratios to WATCHLIST — score is preserved, but no Position
+    # Construction is offered. Only fires for SELL PREMIUM / CONDITIONAL (i.e. the
+    # NORMAL-regime tradeable states); CAUTION/DANGER paths are unaffected.
+    if (
+        rec in ("SELL PREMIUM", "CONDITIONAL")
+        and surface.vrp_ratio is not None
+        and surface.vrp_ratio < 1.15
+    ):
+        rec = "WATCHLIST"
+        flags.append("Structure clean, but premium too thin (VRP ratio < 1.15)")
+
     # ── Position Construction ─────────────────────────
     if regime == "DANGER":
         delta = "N/A"
         structure = "No position recommended"
+        dte = "N/A"
+        notional = "0%"
+    elif rec == "WATCHLIST":
+        delta = "N/A"
+        structure = "Watchlist — VRP below dead zone (1.15). Wait for premium to expand."
         dte = "N/A"
         notional = "0%"
     elif regime == "CAUTION":
