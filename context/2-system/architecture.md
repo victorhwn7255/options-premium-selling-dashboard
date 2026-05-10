@@ -122,7 +122,7 @@ Backend TickerResult (snake_case)
   → convertApiTicker()
     ├── mapRecommendation()     "SELL PREMIUM" → "SELL", "REDUCE SIZE" → "AVOID"
     ├── Earnings gate           DTE ≤ 14 → score=0, action=SKIP, preGateScore saved
-    ├── Sizing                  RV accel > 1.20 → Quarter, > 1.10 → Half, else Full
+    ├── RV Accel Status         5-tier label (Excellent / Good / Acceptable / Caution / Avoid·Wait) — display only
     └── θ/ν ratio               |theta / vega|
   → buildScoredData()          sort by score descending
   → DashboardTicker[]          → components
@@ -144,7 +144,7 @@ The most important architectural invariant: **backend scoring is authoritative.*
 | Recommendation | Backend | Combines score + regime — one decision point |
 | Position construction | Backend | Requires IV rank and VRP magnitude |
 | Earnings gate (DTE ≤ 14 → SKIP) | **Frontend** | See [ADR-003](../3-guardrails/decisions/003-earnings-gate-frontend-only.md) |
-| Position sizing (Full/Half/Quarter) | **Frontend** | Display concern driven by RV accel threshold |
+| RV Accel Status (5-tier display label) | **Frontend** | Display-only environment classifier; does not prescribe size |
 | Dashboard market regime (NBA-themed) | **Frontend** | Independent classifier from aggregate ticker data |
 
 See [ADR-001](../3-guardrails/decisions/001-single-source-scoring.md) for why the frontend doesn't recompute scores.

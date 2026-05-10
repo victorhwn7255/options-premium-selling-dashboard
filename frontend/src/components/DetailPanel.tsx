@@ -6,7 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import type { DashboardTicker, VolHistoryPoint, TermStructurePoint2, TickerDelta } from '@/lib/types';
+import type { DashboardTicker, RvAccelStatus, VolHistoryPoint, TermStructurePoint2, TickerDelta } from '@/lib/types';
 import { fetchTickerHistory } from '@/lib/api';
 import { useCssColors } from '@/hooks/useCssColors';
 
@@ -115,19 +115,23 @@ function EarningsWarningBadge({
   );
 }
 
-function SizingChip({ sizing }: { sizing?: string }) {
-  if (!sizing || sizing === 'Full') return null;
-  const isHalf = sizing === 'Half';
+function RvAccelStatusChip({ status }: { status?: RvAccelStatus }) {
+  // Mirrors Leaderboard.tsx: hide on Excellent / Good / Acceptable, show on
+  // Caution / Avoid-Wait. Display-only — does not prescribe size.
+  if (!status) return null;
+  if (status.label !== 'Caution' && status.label !== 'Avoid / Wait') return null;
+  const isCaution = status.label === 'Caution';
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${
-        isHalf
+      title={`RV Accel — ${status.label}: ${status.description}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border ${
+        isCaution
           ? 'text-warning bg-warning-subtle border-warning-30'
           : 'text-error bg-error-subtle border-error-20'
       }`}
     >
-      &darr; {sizing}
+      RV {status.label}
     </span>
   );
 }
@@ -201,8 +205,10 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
         : 'Narrow put spread (defined risk)');
   const suggestDTE = ticker.suggestedDte
     ?? (ticker.ivPct >= 80 ? '30-38 DTE' : '38-45 DTE');
-  const suggestSize = ticker.sizing === 'Half' ? '\u00BD standard' :
-    ticker.sizing === 'Quarter' ? '\u00BC standard' : 'Standard';
+  // Phase 2C \u2014 display-only: classify the volatility environment instead of
+  // prescribing Full / Half / Quarter. Position size is the trader's call.
+  const rvAccelStatusLabel = ticker.rvAccelStatus?.label ?? 'Acceptable';
+  const rvAccelStatusDesc = ticker.rvAccelStatus?.description ?? '';
 
   const metricsGrid = [
     { label: 'VRP', value: ticker.vrp != null ? ticker.vrp.toFixed(1) : 'N/A', sub: ticker.iv != null ? `IV ${ticker.iv.toFixed(1)} \u2212 RV ${ticker.rv30.toFixed(1)}` : 'No reliable IV', highlight: ticker.vrp != null && ticker.vrp >= 8, warn: false },
@@ -253,7 +259,7 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
               <ActionChip action={ticker.displayAction || ticker.action} reason={ticker.actionReason} />
               <EarningsWarningBadge warning={ticker.earningsWarningKind} label={ticker.earningsWarningLabel} detail={ticker.earningsWarningDetail} />
               <ThinPremiumBadge visible={ticker.thinPremium} />
-              <SizingChip sizing={ticker.sizing} />
+              <RvAccelStatusChip status={ticker.rvAccelStatus} />
               {ticker.regime !== 'NORMAL' && (
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-primary text-2xs font-semibold tracking-wide border ${
@@ -325,10 +331,10 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
           </span>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
             {[
-              { label: 'Target Delta', value: suggestDelta },
-              { label: 'Structure', value: suggestStructure },
-              { label: 'DTE', value: suggestDTE },
-              { label: 'Sizing', value: suggestSize },
+              { label: 'Target Delta', value: suggestDelta, sub: undefined as string | undefined },
+              { label: 'Structure', value: suggestStructure, sub: undefined },
+              { label: 'DTE', value: suggestDTE, sub: undefined },
+              { label: 'RV Accel Status', value: rvAccelStatusLabel, sub: rvAccelStatusDesc },
             ].map(item => (
               <div key={item.label} className="bg-bg-alt rounded-md px-3.5 py-3 border border-border-subtle">
                 <div className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-wider uppercase mb-1">
@@ -337,8 +343,16 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
                 <div className="font-primary text-xs font-medium text-txt leading-snug">
                   {item.value}
                 </div>
+                {item.sub && (
+                  <div className="font-primary text-[10px] text-txt-tertiary mt-0.5 leading-snug">
+                    {item.sub}
+                  </div>
+                )}
               </div>
             ))}
+          </div>
+          <div className="mt-2 text-[10px] text-txt-tertiary italic">
+            Position size is a trader-controlled decision — record it in your trade journal.
           </div>
           {/* Flags from API */}
           {ticker.flags && ticker.flags.length > 0 && (

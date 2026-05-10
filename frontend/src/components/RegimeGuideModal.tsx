@@ -59,7 +59,7 @@ const REGIME_DATA = [
     ],
     dos: [
       'Use defined-risk only — credit spreads, iron condors, iron butterflies',
-      'Cut position size to Half or Quarter of normal',
+      'Demand a clean RV Accel status (Excellent / Good) before entering — wait if it reads Caution or Avoid',
       'Tighten DTE — 21-30 days max to reduce time exposure',
       'Focus on the highest-scoring tickers only (65+)',
       'Set hard exit rules before entering',
@@ -68,7 +68,7 @@ const REGIME_DATA = [
       'Sell naked options — undefined risk in accelerating vol is how accounts blow up',
       'Sell in tickers showing backwardation individually, even if the market-level regime is only REGULAR SEASON',
       'Add to losing positions — if a trade goes against you, take the loss',
-      'Ignore the sizing chip — if it says Quarter, trade Quarter',
+      'Ignore the RV Accel status — if it says Caution or Avoid / Wait, wait',
     ],
     example: {
       tag: 'Hypothetical',
@@ -76,10 +76,10 @@ const REGIME_DATA = [
         { label: 'Ticker', value: 'AAPL' },
         { label: 'Structure', value: 'Put Spread' },
         { label: 'DTE', value: '25 days' },
-        { label: 'Sizing', value: 'Half' },
+        { label: 'RV Accel', value: 'Caution' },
       ],
       narrative:
-        'AAPL scores 68 with a VRP of 9.2 and contango term structure (0.88). But RV accel is 1.14, so the regime is REGULAR SEASON. You sell a 25-DTE put credit spread at the 15-delta strike instead of a naked put, at half your normal contract count. Max loss is defined at entry.',
+        'AAPL scores 68 with a VRP of 9.2 and contango term structure (0.88). But RV accel is 1.14 — the status reads Caution and the regime is REGULAR SEASON. You demand stronger setup confirmation, sell a 25-DTE put credit spread at the 15-delta strike instead of a naked put, and document your contract count and max loss in the trade journal. The dashboard tells you the environment is not clean; the trader decides the size.',
     },
   },
   {
@@ -94,11 +94,11 @@ const REGIME_DATA = [
     ],
     explanation: [
       "Normal conditions. Most tickers are in NORMAL regime — term structures in contango, realized vol stable, no systemic stress signals. The VRP exists but isn't unusually wide.",
-      'This is where you spend most of your time as a premium seller — roughly 60-70% of trading days. Run your standard playbook: sell premium on high-scoring tickers at normal sizing, using whatever structures your system calls for. Nothing to get excited about, nothing to worry about.',
+      'This is where you spend most of your time as a premium seller — roughly 60-70% of trading days. Run your standard playbook: sell premium on high-scoring tickers using whatever structures your system calls for. Nothing to get excited about, nothing to worry about.',
     ],
     dos: [
       'Execute your standard strategy on tickers scoring ≥ 50',
-      'Use Full or Half sizing as indicated by the sizing chip',
+      'Confirm the RV Accel status is Acceptable or better before entering',
       'Mix structures — strangles, spreads, and iron condors are all appropriate',
       'Target 30-45 DTE for optimal theta decay',
       'Manage winners at 50% of max profit',
@@ -107,7 +107,7 @@ const REGIME_DATA = [
       'Get complacent — THE PLAYOFFS can transition to REGULAR SEASON quickly',
       'Over-concentrate in one sector — spread across at least 3-4 sectors',
       "Ignore the scoring — just because the regime is normal doesn't mean every ticker is tradeable",
-      'Size up beyond what the system recommends just because conditions are calm',
+      "Override your own position-sizing discipline because conditions are calm — record every entry's contract count in the trade journal",
     ],
     example: {
       tag: 'Hypothetical',
@@ -115,10 +115,10 @@ const REGIME_DATA = [
         { label: 'Ticker', value: 'QQQ' },
         { label: 'Structure', value: 'Strangle' },
         { label: 'DTE', value: '38 days' },
-        { label: 'Sizing', value: 'Full' },
+        { label: 'RV Accel', value: 'Good' },
       ],
       narrative:
-        'QQQ scores 72 with VRP of 10.4, deep contango (term slope 0.82), and stable RV accel (1.03). The regime is THE PLAYOFFS with 12 of 25 tickers tradeable. You sell a 38-DTE strangle at 16-delta on both sides, Full size. Textbook premium harvest — collect theta, manage at 50% profit.',
+        'QQQ scores 72 with VRP of 10.4, deep contango (term slope 0.82), and stable RV accel (1.03 — RV Accel status: Good). The regime is THE PLAYOFFS with 12 of 25 tickers tradeable. You sell a 38-DTE strangle at 16-delta on both sides; the dashboard tells you the environment is clean and the trader chooses the contract count. Textbook premium harvest — collect theta, manage at 50% profit.',
     },
   },
   {
@@ -136,7 +136,7 @@ const REGIME_DATA = [
     ],
     dos: [
       'Be more aggressive — this is the regime where edge is widest',
-      'Use Full sizing on tickers scoring ≥ 50',
+      'Trade tickers scoring ≥ 50 when RV Accel status confirms a clean environment (Excellent / Good)',
       'Consider wider strangles to capture elevated premium at further OTM strikes',
       'Extend DTE to 35-50 days to ride the IV mean-reversion',
       'Trade more tickers — when VRP is broad, diversification amplifies edge',
@@ -153,10 +153,10 @@ const REGIME_DATA = [
         { label: 'Ticker', value: 'AMZN' },
         { label: 'Structure', value: 'Strangle' },
         { label: 'DTE', value: '45 days' },
-        { label: 'Sizing', value: 'Full' },
+        { label: 'RV Accel', value: 'Excellent' },
       ],
       narrative:
-        'Market regime flips to THE FINALS after a vol spike subsides — avg VRP jumps to 11.2 with term slope at 0.84. AMZN scores 81 with VRP 14.8 and deep contango. You sell a 45-DTE strangle at 20-delta (wider than usual to capture the elevated premium at further strikes), Full size. The statistical edge is at its fattest — this is why you stay patient during Off Season.',
+        'Market regime flips to THE FINALS after a vol spike subsides — avg VRP jumps to 11.2 with term slope at 0.84. AMZN scores 81 with VRP 14.8, deep contango, and an Excellent RV Accel status (0.82). You sell a 45-DTE strangle at 20-delta (wider than usual to capture the elevated premium at further strikes); contract count is your call and goes in the trade journal. The statistical edge is at its fattest — this is why you stay patient during Off Season.',
     },
   },
 ] as const;

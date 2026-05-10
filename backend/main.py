@@ -442,7 +442,7 @@ async def run_full_scan() -> ScanResponse:
         elif caution_count >= 3 or avg_rv_accel > 1.1:
             overall = "CAUTION"
             color = "#C49A5A"
-            desc = "Rising realized vol — tighten position sizing, favor defined-risk structures"
+            desc = "Rising realized vol — environment less clean, favor defined-risk structures and require strong confirmation"
         elif avg_iv_rank > 80:
             overall = "OPPORTUNITY"
             color = "#C47B5A"

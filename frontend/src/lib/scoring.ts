@@ -1,4 +1,19 @@
-import type { DashboardTicker, ScanResponse, TickerResult, EarningsCheck } from './types';
+import type { DashboardTicker, RvAccelStatus, ScanResponse, TickerResult, EarningsCheck } from './types';
+
+/**
+ * Phase 2C — RV Acceleration Status (display-only).
+ * Classifies the volatility environment so the trader can read setup
+ * cleanliness at a glance. Does NOT prescribe position size — actual
+ * sizing is a trader-controlled decision recorded in the trade journal.
+ * See references/strategy.md §RV Acceleration Interpretation.
+ */
+export function getRvAccelStatus(accel: number): RvAccelStatus {
+  if (accel <= 0.85) return { label: 'Excellent', description: 'Realized vol decelerating' };
+  if (accel <= 1.00) return { label: 'Good', description: 'Stable-to-declining vol' };
+  if (accel <= 1.10) return { label: 'Acceptable', description: 'Less clean, mildly rising vol' };
+  if (accel <= 1.20) return { label: 'Caution', description: 'Vol heating up' };
+  return { label: 'Avoid / Wait', description: 'Vol spiking' };
+}
 
 /**
  * Map backend recommendation string to frontend action type.
@@ -44,9 +59,7 @@ export function convertApiTicker(t: TickerResult): DashboardTicker {
     actionReason = `Earnings in ${t.earnings_dte}d`;
   }
 
-  let sizing = 'Full';
-  if (rvAccel > 1.10) sizing = 'Half';
-  if (rvAccel > 1.20) sizing = 'Quarter';
+  const rvAccelStatus = getRvAccelStatus(rvAccel);
 
   // Thin Premium badge: CONDITIONAL with VRP ratio just above the dead zone.
   // Range 1.15–1.25 = "made it past the gate but premium isn't fat" — warn, don't block.
@@ -129,7 +142,7 @@ export function convertApiTicker(t: TickerResult): DashboardTicker {
     action,
     actionReason,
     preGateScore,
-    sizing,
+    rvAccelStatus,
     regime: t.regime as DashboardTicker['regime'],
     termStructurePoints: t.term_structure_points,
     recommendation: t.recommendation,

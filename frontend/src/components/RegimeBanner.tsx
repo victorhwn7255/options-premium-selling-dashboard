@@ -47,7 +47,7 @@ export function computeRegime(data: DashboardTicker[]) {
     colorClass = 'text-warning';
     borderClass = 'border-l-warning';
     desc = 'Every possession counts — play tight, no turnovers';
-    detail = `${stressPctStr}% stressed (${dangerCount} DANGER, ${stressCount - dangerCount} CAUTION). Defined-risk only, reduced sizing.`;
+    detail = `${stressPctStr}% stressed (${dangerCount} DANGER, ${stressCount - dangerCount} CAUTION). Defined-risk only; demand cleaner setups before entering.`;
   } else if (avgVRP > 8 && avgTermSlope < 0.90) {
     regime = 'THE FINALS';
     colorClass = 'text-accent';
