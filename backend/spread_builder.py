@@ -670,6 +670,11 @@ def build_credit_put_spread_candidates(
             vrp_history_60d=vrp_history_60d.get(ticker),
             asof=asof,
         )
+        # WAIT is intentionally included alongside SELL_CPS/WATCH_CPS: the
+        # base hard-gate path emits WAIT when RV Accel exceeds CPS_RV_ACCEL_WAIT
+        # (see passes_base_hard_gates + _action_from_reason). Surfacing WAIT
+        # candidates lets the UI explain "edge present but environment dirty"
+        # rather than silently dropping them. Locked by test_rv_accel_shock_rejects.
         if outcome.candidate is not None and outcome.action in (
             "SELL_CPS", "WATCH_CPS", "WAIT"
         ):

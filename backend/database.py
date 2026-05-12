@@ -347,6 +347,13 @@ def get_consecutive_sell_days(
 
     Streaks are based on calendar dates *we have data for* — not strict
     consecutive calendar days — so weekends don't break the streak.
+
+    Note on `scan_date <= ?`: this is `<=` (inclusive), not `<`. In the
+    production flow, `_build_cps_response()` calls this function BEFORE it
+    calls `record_cps_candidate()` for today, so today's row doesn't exist
+    yet and the bound is functionally equivalent to a strict `<`. Tests
+    pre-populate the asof-day row to verify "today eligible + N prior days
+    eligible → streak = N+1" — that contract requires the inclusive bound.
     """
     asof = asof or date.today()
     conn = get_connection()
