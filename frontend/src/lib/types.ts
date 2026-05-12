@@ -255,3 +255,136 @@ export interface VrpHistoryResponse {
   points: VrpHistoryPoint[];
 }
 
+
+/* ── Credit Put Spreads ───────────────────────────────────
+ * Phase 1 — additive, no impact on existing types.
+ * CPS is a defined-risk expression of the SAME volatility edge used by the
+ * Naked Puts tab; candidates are ranked by Base Edge Score after binary
+ * construction + execution filters. See references/credit-put-spreads.md.
+ */
+
+export type CreditPutSpreadAction =
+  | 'SELL_CPS'
+  | 'WATCH_CPS'
+  | 'WAIT'
+  | 'AVOID'
+  | 'NO_EDGE'
+  | 'NO_DATA';
+
+// UNKNOWN — yfinance feed unavailable, overlay surfaces a warning but
+// candidates are NOT blocked (per Phase-1 clarification §1).
+export type RegimeOverlayStatus = 'NORMAL' | 'CAUTION' | 'DANGER' | 'UNKNOWN';
+
+export interface CreditPutSpreadLeg {
+  strike: number;
+  expiration: string;
+  dte: number;
+  delta?: number;
+  bid: number;
+  ask: number;
+  mid: number;
+  iv?: number;
+  theta?: number;
+  vega?: number;
+  openInterest?: number;
+  volume?: number;
+  // bid_ask_ratio = (ask - bid) / mid. Never `spreadRatio` — see build plan §1.2.
+  bidAskRatio?: number;
+}
+
+export interface RegimeOverlay {
+  status: RegimeOverlayStatus;
+  vix?: number;
+  vix3m?: number;
+  vvix?: number;
+  vixBackwardation?: boolean;
+  warnings: string[];
+}
+
+export interface CreditPutSpreadCandidate {
+  ticker: string;
+  spot: number;
+
+  action: CreditPutSpreadAction;
+  baseScore: number;
+  rankScore: number;
+  regime: string;
+
+  expiration: string;
+  dte: number;
+
+  shortPut: CreditPutSpreadLeg;
+  longPut: CreditPutSpreadLeg;
+
+  // Per-share economics (multiply by 100 for per-contract dollars).
+  width: number;
+  netCredit: number;
+  maxLoss: number;
+  creditToWidth: number;
+  breakeven: number;
+
+  atr14?: number;
+  expectedMove?: number;
+  expectedMoveLower?: number;
+  widthToAtr?: number;
+  widthToExpectedMove?: number;
+
+  vrp?: number;
+  vrpRatio?: number;
+  vrpZscore60d?: number;
+  ivPercentile?: number;
+  termSlope?: number;
+  rvAccel?: number;
+  rvAccelStatus?: string;
+  skew?: number;
+  earningsDte?: number;
+
+  // Ticker-level streak gates SELL_CPS. Exact-spread streak is display-only.
+  consecutiveSellDays: number;
+  exactSpreadConsecutiveDays: number;
+
+  vix?: number;
+  vix3m?: number;
+  vvix?: number;
+  regimeOverlayStatus?: RegimeOverlayStatus;
+
+  notes: string[];
+  warnings: string[];
+  rejectionReasons: string[];
+}
+
+export interface CPSRejectionSummary {
+  checked: number;
+  actionable: number;
+  rejectedByBaseGate: number;
+  rejectedByConstruction: number;
+  rejectedByExecution: number;
+  rejectedByOverlay: number;
+  rejectedByConfirmation: number;
+}
+
+export interface CreditPutSpreadsResponse {
+  scanDate: string;
+  marketRegime: string;
+  cpsUniverse: string[];
+  regimeOverlay: RegimeOverlay;
+  candidates: CreditPutSpreadCandidate[];
+  message?: string;
+  rejectionSummary?: CPSRejectionSummary;
+}
+
+// Mirror of backend SpreadExitAction enum. Used by frontend exit-badge.
+export type SpreadExitAction =
+  | 'HOLD'
+  | 'CLOSE_PROFIT_TARGET'
+  | 'CLOSE_DEFENSIVE'
+  | 'CLOSE_TIME'
+  | 'CLOSE_PIN_RISK'
+  | 'CLOSE_EVENT_RISK';
+
+export interface SpreadExitDecision {
+  action: SpreadExitAction;
+  reason: string;
+  notes: string[];
+}
+

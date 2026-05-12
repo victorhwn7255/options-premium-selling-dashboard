@@ -41,14 +41,24 @@ from database import (
     store_verification_result, get_latest_verification,
     store_earnings_verification, get_latest_earnings_verification,
     get_vrp_history_by_date,
+    # ── Credit Put Spreads (Phase 3) ──
+    get_vrp_history, record_cps_candidate, get_consecutive_sell_days,
+    get_consecutive_exact_spread_days,
+    save_cps_scan_response, get_latest_cps_scan_response,
 )
 from models import (
     ScanResponse, TickerResult, RegimeSummary,
     HistoricalPoint, HealthResponse, TermStructurePointOut, SkewPointOut,
     TickerDelta, TickerComparison, ComparisonResponse,
     VrpHistoryPoint, VrpHistoryResponse,
+    # ── Credit Put Spreads ──
+    CreditPutSpreadsResponse, CPSRejectionSummary, RegimeOverlay,
 )
 from scan_quality import compute_scan_quality, suppress_actionable
+# ── Credit Put Spreads (Phase 3) ──
+import config as cfg
+from regime_overlay import fetch_regime_overlay
+from spread_builder import build_candidate_outcome_for_ticker
 
 
 def _apply_scan_quality(tickers: list) -> tuple[str, Optional[str]]:
@@ -68,44 +78,10 @@ logger = logging.getLogger("option-harvest")
 
 
 # ── Ticker Universe ─────────────────────────────────────
-# Add or remove tickers here. Each needs a display name and sector.
-UNIVERSE = {
-    # ETFs
-    "SPY":  {"name": "S&P 500 ETF",        "sector": "Index",      "etf": True},
-    "QQQ":  {"name": "Nasdaq 100 ETF",      "sector": "Index",      "etf": True},
-    "IWM":  {"name": "Russell 2000 ETF",     "sector": "Index",      "etf": True},
-    "EEM":  {"name": "Emerging Markets ETF", "sector": "Index",      "etf": True},
-    "GLD":  {"name": "SPDR Gold Trust",      "sector": "Commodities","etf": True},
-    "TLT":  {"name": "20+ Year Treasury ETF","sector": "Fixed Income","etf": True},
-    "XLE":  {"name": "Energy Select SPDR",   "sector": "Sector ETF", "etf": True},
-    "XLF":  {"name": "Financial Select SPDR","sector": "Sector ETF", "etf": True},
-    "XLV":  {"name": "Health Care Select SPDR","sector": "Sector ETF","etf": True},
-    "XLI":  {"name": "Industrial Select SPDR","sector": "Sector ETF", "etf": True},
-    "XLB":  {"name": "Materials Select SPDR", "sector": "Sector ETF", "etf": True},
-    # Stocks
-    "AAPL": {"name": "Apple",                "sector": "Tech"},
-    "MSFT": {"name": "Microsoft",            "sector": "Tech"},
-    "GOOG": {"name": "Alphabet",             "sector": "Tech"},
-    "AMZN": {"name": "Amazon",               "sector": "Consumer"},
-    "META": {"name": "Meta Platforms",        "sector": "Tech"},
-    "NVDA": {"name": "NVIDIA",               "sector": "Tech"},
-    "TSLA": {"name": "Tesla",                "sector": "Consumer"},
-    "NFLX": {"name": "Netflix",              "sector": "Consumer"},
-    "PLTR": {"name": "Palantir",             "sector": "Tech"},
-    "HOOD": {"name": "Robinhood Markets",    "sector": "Financials"},
-    "GS":   {"name": "Goldman Sachs",        "sector": "Financials"},
-    "JPM":  {"name": "JPMorgan Chase",       "sector": "Financials"},
-    "XOM":  {"name": "Exxon Mobil",          "sector": "Energy"},
-    "WMT":  {"name": "Walmart",              "sector": "Consumer"},
-    "MCD":  {"name": "McDonald's",           "sector": "Consumer"},
-    "KO":   {"name": "Coca-Cola",            "sector": "Consumer"},
-    "CAT":  {"name": "Caterpillar",          "sector": "Industrials"},
-    "UBER": {"name": "Uber Technologies",    "sector": "Tech"},
-    "JNJ":  {"name": "Johnson & Johnson",    "sector": "Healthcare"},
-    "SBUX": {"name": "Starbucks",            "sector": "Consumer"},
-    "NKE":  {"name": "Nike",                 "sector": "Consumer"},
-    "HD":   {"name": "Home Depot",           "sector": "Consumer"},
-}
+# Universe (33 tickers) and CPS_UNIVERSE live in backend/config.py.
+# The `UNIVERSE` name is kept as a module-level alias so backfill.py /
+# repair_rv.py / cached-scan enrichment code still imports cleanly.
+from config import NAKED_PUT_UNIVERSE as UNIVERSE  # noqa: E402
 
 
 # ── Application Lifecycle ───────────────────────────────
@@ -306,6 +282,11 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
             "theta": theta,
             "vega": vega,
             "atr14": atr14,
+            # ── Phase 3: pass raw chain + spot through for CPS construction.
+            # Only used downstream when ticker is in CPS_UNIVERSE; cheap to
+            # always include because both already live in this function scope.
+            "_contracts": contracts,
+            "_spot": snapshot.price,
         }
 
     except PermissionError as e:
@@ -314,6 +295,171 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
     except Exception as e:
         logger.error(f"{ticker}: Error during scan — {type(e).__name__}: {e}")
         return None
+
+
+def _classify_rejection_reasons(reasons: list[str]) -> str:
+    """Bucket a CPS rejection-reason list into one summary category."""
+    text = " ".join(reasons).lower()
+    if "regime overlay" in text:
+        return "overlay"
+    if any(k in text for k in ("avoid:", "no_edge: vrp", "wait: rv_accel", "earnings")):
+        return "base_gate"
+    if "consecutive_sell_days" in text:
+        return "confirmation"
+    if any(k in text for k in ("bid_ask_ratio", "oi ", "volume")):
+        return "execution"
+    return "construction"
+
+
+def _build_cps_response(
+    results: list[TickerResult],
+    cps_raw_inputs: dict[str, dict],
+    market_regime_label: str,
+    scanned_at: str,
+) -> CreditPutSpreadsResponse:
+    """Build the /api/credit-put-spreads/latest response payload.
+
+    Runs after the Naked Puts scoring loop completes. Reads only from
+    inputs hydrated during the scan — no extra MarketData calls. Failure
+    in any one ticker is caught and reported in `rejection_summary`
+    rather than propagated.
+    """
+    scan_date = datetime.utcnow().date().isoformat()
+
+    # One overlay fetch per scan (not per ticker).
+    try:
+        overlay = fetch_regime_overlay()
+    except Exception as e:  # network / dependency / unknown
+        logger.warning("Regime overlay fetch failed: %s", e)
+        overlay = RegimeOverlay(
+            status="UNKNOWN",
+            warnings=[f"Regime overlay fetch errored ({type(e).__name__}); candidates not blocked."],
+        )
+
+    candidates = []
+    summary = CPSRejectionSummary()
+    by_ticker = {r.ticker: r for r in results}
+
+    for ticker in cfg.CPS_UNIVERSE:
+        tr = by_ticker.get(ticker)
+        raw = cps_raw_inputs.get(ticker, {})
+        spot = raw.get("spot", 0.0)
+        if tr is None or spot <= 0:
+            # Ticker didn't even produce a TickerResult — count as NO_DATA construction.
+            summary.checked += 1
+            summary.rejected_by_construction += 1
+            try:
+                record_cps_candidate(
+                    scan_date=scan_date, ticker=ticker, action="NO_DATA",
+                    sell_eligible=False, passed_filters=False,
+                )
+            except Exception:
+                logger.exception("record_cps_candidate failed for %s", ticker)
+            continue
+
+        summary.checked += 1
+        try:
+            vrp_hist = get_vrp_history(ticker, days=60)
+        except Exception:
+            vrp_hist = None
+
+        try:
+            consec = get_consecutive_sell_days(ticker)
+        except Exception:
+            consec = 0
+
+        outcome = build_candidate_outcome_for_ticker(
+            ticker=ticker,
+            ticker_result=tr,
+            chain=raw.get("contracts") or [],
+            spot=spot,
+            atr14=raw.get("atr14"),
+            regime_overlay=overlay,
+            consecutive_sell_days=consec,
+            exact_spread_consecutive_days=0,  # filled in below if candidate built
+            vrp_history_60d=vrp_hist,
+        )
+
+        # Compute exact-spread streak NOW that we know the strike pair.
+        if outcome.candidate is not None:
+            try:
+                exact = get_consecutive_exact_spread_days(
+                    ticker=ticker,
+                    expiration=outcome.candidate.expiration,
+                    short_strike=outcome.candidate.short_put.strike,
+                    long_strike=outcome.candidate.long_put.strike,
+                )
+                outcome.candidate.exact_spread_consecutive_days = exact
+            except Exception:
+                pass  # display-only context; never block on this
+
+        # Bucket for the rejection summary.
+        if outcome.action in ("SELL_CPS", "WATCH_CPS", "WAIT"):
+            summary.actionable += 1
+            if outcome.candidate is not None:
+                candidates.append(outcome.candidate)
+        else:
+            bucket = _classify_rejection_reasons(outcome.rejection_reasons)
+            if bucket == "overlay":
+                summary.rejected_by_overlay += 1
+            elif bucket == "base_gate":
+                summary.rejected_by_base_gate += 1
+            elif bucket == "confirmation":
+                summary.rejected_by_confirmation += 1
+            elif bucket == "execution":
+                summary.rejected_by_execution += 1
+            else:
+                summary.rejected_by_construction += 1
+
+        # Persist for tomorrow's confirmation lookup. Eligibility means
+        # "passed every filter that does NOT depend on confirmation/overlay" —
+        # i.e. the ticker would have been SELL_CPS-or-WATCH_CPS today.
+        sell_eligible = outcome.action in ("SELL_CPS", "WATCH_CPS")
+        try:
+            cand = outcome.candidate
+            record_cps_candidate(
+                scan_date=scan_date,
+                ticker=ticker,
+                action=outcome.action,
+                expiration=cand.expiration if cand else None,
+                short_strike=cand.short_put.strike if cand else None,
+                long_strike=cand.long_put.strike if cand else None,
+                credit_to_width=cand.credit_to_width if cand else None,
+                base_score=cand.base_score if cand else None,
+                regime=cand.regime if cand else None,
+                passed_filters=sell_eligible,
+                sell_eligible=sell_eligible,
+            )
+        except Exception:
+            logger.exception("record_cps_candidate failed for %s", ticker)
+
+    # Top-level ranking — same key as build_credit_put_spread_candidates().
+    _action_order = {"SELL_CPS": 0, "WATCH_CPS": 1, "WAIT": 2}
+    _rv_order = {"Excellent": 0, "Good": 1, "Acceptable": 2, "Caution": 3, "Avoid / Wait": 4}
+    candidates.sort(key=lambda c: (
+        _action_order.get(c.action, 9),
+        -c.base_score,
+        -c.credit_to_width,
+        _rv_order.get(c.rv_accel_status or "Acceptable", 2),
+        c.term_slope if c.term_slope is not None else 1.0,
+    ))
+
+    message = None
+    if not candidates:
+        message = (
+            "No Credit Put Spread candidates passed today's filters. "
+            "Check rejection_summary for the dominant reason."
+        )
+
+    return CreditPutSpreadsResponse(
+        scan_date=scan_date,
+        market_regime=market_regime_label,
+        cps_universe=list(cfg.CPS_UNIVERSE),
+        regime_overlay=overlay,
+        candidates=candidates,
+        message=message,
+        rejection_summary=summary,
+    )
 
 
 async def run_full_scan() -> ScanResponse:
@@ -351,6 +497,10 @@ async def run_full_scan() -> ScanResponse:
     tasks = [_scan_with_limit(t, m) for t, m in UNIVERSE.items()]
     scan_results = await asyncio.gather(*tasks, return_exceptions=True)
 
+    # Phase 3: capture raw chain + spot for CPS-universe tickers so the
+    # spread builder can run after the scoring loop without re-fetching.
+    cps_raw_inputs: dict[str, dict] = {}
+
     for result in scan_results:
         if isinstance(result, Exception):
             errors.append(str(result))
@@ -359,6 +509,13 @@ async def run_full_scan() -> ScanResponse:
         if data is None:
             errors.append(f"{ticker}: scan returned no data")
             continue
+
+        if ticker in cfg.CPS_UNIVERSE:
+            cps_raw_inputs[ticker] = {
+                "contracts": data.get("_contracts") or [],
+                "spot": data.get("_spot") or 0.0,
+                "atr14": data.get("atr14"),
+            }
 
         scored = score_opportunity(
             surface=data["surface"],
@@ -499,6 +656,28 @@ async def run_full_scan() -> ScanResponse:
         tickers=[t.model_dump() for t in results],
         historical={k: [p.model_dump() for p in v] for k, v in historical.items()},
     )
+
+    # ── Phase 3: Credit Put Spreads candidate build + cache ─────────
+    # Runs after Naked Puts persistence so a CPS failure can never affect
+    # the existing scan result. Any exception is logged and swallowed.
+    try:
+        cps_response = _build_cps_response(
+            results=results,
+            cps_raw_inputs=cps_raw_inputs,
+            market_regime_label=regime.overall_regime,
+            scanned_at=scanned_at,
+        )
+        save_cps_scan_response(
+            scan_date=cps_response.scan_date,
+            response_dict=cps_response.model_dump(),
+        )
+        logger.info(
+            "CPS scan: %d actionable / %d checked",
+            cps_response.rejection_summary.actionable if cps_response.rejection_summary else 0,
+            cps_response.rejection_summary.checked if cps_response.rejection_summary else 0,
+        )
+    except Exception:
+        logger.exception("CPS build/persist failed — Naked Puts unaffected")
 
     return response
 
@@ -885,6 +1064,34 @@ async def get_scan_comparison():
         previous_scanned_at=previous["scanned_at"] if previous else None,
         tickers=comparisons,
     )
+
+
+@app.get("/api/credit-put-spreads/latest", response_model=CreditPutSpreadsResponse)
+async def get_credit_put_spreads_latest():
+    """Return the most recent cached Credit Put Spreads response.
+
+    Built and persisted by `run_full_scan()` after the existing Naked Puts
+    scoring loop. This endpoint never re-runs the builder — it just reads
+    whatever the most recent scan produced. When no scan has produced a CPS
+    response yet (fresh deploy, empty DB), returns an empty shell with
+    `regime_overlay.status="UNKNOWN"` and a clear `message`.
+    """
+    cached = get_latest_cps_scan_response()
+    if cached is None:
+        return CreditPutSpreadsResponse(
+            scan_date=datetime.utcnow().date().isoformat(),
+            market_regime="UNKNOWN",
+            cps_universe=list(cfg.CPS_UNIVERSE),
+            regime_overlay=RegimeOverlay(
+                status="UNKNOWN",
+                warnings=["No scan has produced a Credit Put Spreads response yet."],
+            ),
+            candidates=[],
+            message="No cached CPS response yet — wait for the next scan.",
+            rejection_summary=CPSRejectionSummary(),
+        )
+    # Re-parse via Pydantic so the response matches the declared model.
+    return CreditPutSpreadsResponse.model_validate(cached)
 
 
 @app.get("/api/ticker/{ticker}/history")

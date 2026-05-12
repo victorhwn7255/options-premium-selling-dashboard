@@ -1,4 +1,7 @@
-import type { ScanResponse, HealthResponse, VerificationResult, EarningsVerificationResult, ComparisonResponse, VrpHistoryResponse } from './types';
+import type {
+  ScanResponse, HealthResponse, VerificationResult, EarningsVerificationResult,
+  ComparisonResponse, VrpHistoryResponse, CreditPutSpreadsResponse,
+} from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -97,4 +100,39 @@ export async function fetchEarningsVerificationLatest(): Promise<EarningsVerific
   const data = await res.json();
   if (!data.id) return null;
   return data as EarningsVerificationResult;
+}
+
+/**
+ * Phase 4 — Credit Put Spreads.
+ * Backend always returns a well-formed empty shell (UNKNOWN overlay + empty
+ * candidates + populated rejection_summary), so we never need fragile null
+ * checks at the call site.
+ *
+ * Wire format is snake_case (FastAPI default); the TS types use camelCase
+ * to match the rest of the frontend. We recursively normalise keys at the
+ * boundary — same pattern as `convertApiTicker` for Naked Puts.
+ */
+function snakeToCamel(s: string): string {
+  return s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+function camelizeKeysDeep<T = unknown>(obj: unknown): T {
+  if (Array.isArray(obj)) {
+    return obj.map(camelizeKeysDeep) as unknown as T;
+  }
+  if (obj !== null && typeof obj === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      out[snakeToCamel(k)] = camelizeKeysDeep(v);
+    }
+    return out as T;
+  }
+  return obj as T;
+}
+
+export async function fetchCreditPutSpreads(): Promise<CreditPutSpreadsResponse> {
+  const res = await fetch(`${API_BASE}/api/credit-put-spreads/latest`);
+  if (!res.ok) throw new Error(`CPS fetch failed: ${res.status}`);
+  const raw = await res.json();
+  return camelizeKeysDeep<CreditPutSpreadsResponse>(raw);
 }

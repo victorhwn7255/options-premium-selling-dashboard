@@ -5,6 +5,9 @@ import Navbar from '@/components/Navbar';
 import RegimeBanner, { computeRegime } from '@/components/RegimeBanner';
 import RegimeGuideModal from '@/components/RegimeGuideModal';
 import Leaderboard from '@/components/Leaderboard';
+import TabBar, { DashboardTab } from '@/components/TabBar';
+import CreditPutSpreadsTab from '@/components/CreditPutSpreadsTab';
+import JournalComingSoon from '@/components/JournalComingSoon';
 import { useTheme } from '@/hooks/useTheme';
 import { buildScoredData, enrichWithEarningsWarnings } from '@/lib/scoring';
 import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus, fetchVerificationLatest, fetchEarningsVerificationLatest, fetchComparison, fetchVrpHistory } from '@/lib/api';
@@ -14,6 +17,7 @@ const VRP_GRID_YEAR = 2026;
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState<DashboardTab>('naked-puts');
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   const [apiData, setApiData] = useState<ScanResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -228,28 +232,48 @@ export default function Home() {
               </div>
             )}
 
-            {/* Zone 1: Market Regime */}
+            {/* Zone 1: Market Regime — stays ABOVE the tabs per Phase 4 layout spec. */}
             <div className="mb-5">
               <RegimeBanner data={scoredData} vrpHistory={vrpHistory} vrpYear={VRP_GRID_YEAR} />
             </div>
 
-            {/* Zone 2: Opportunity Leaderboard (detail expands inline) */}
-            <div className="mb-5">
-              <Leaderboard data={scoredData} selected={selectedTicker} onSelect={handleSelect} selectedData={selectedData} deltaMap={deltaMap} />
-            </div>
+            {/* Tab navigation — Naked Puts / Credit Put Spreads / Journal */}
+            <TabBar activeTab={activeTab} onChange={setActiveTab} />
 
-            {/* Methodology Footer */}
-            <div className="px-4 sm:px-5 py-4 bg-surface-alt rounded-lg border border-border-subtle">
-              <div className="text-xs text-txt-tertiary leading-loose">
-                <strong className="text-txt-secondary">Scoring:</strong>{' '}
-                VRP Quality (30) + IV Percentile (25) + Term Structure (20) + RV Stability (15) + 25Δ Put Skew (10).
-                Negative VRP caps scores at 44. Earnings within 14 days forces SKIP for non-ETF tickers.
-                DANGER regimes override to AVOID. Otherwise-actionable signals with VRP ratio below 1.15 are shown as WATCHLIST, not tradeable.{' '}
-                <strong className="text-txt-secondary">RV Accel Status:</strong>{' '}
-                informational only — Excellent / Good / Acceptable / Caution / Avoid&middot;Wait classifies environment cleanliness, never prescribes position size.{' '}
-                <span className="text-secondary">Live data — not financial advice.</span>
+            {/* Active tab content */}
+            {activeTab === 'naked-puts' && (
+              <div id="tabpanel-naked-puts" role="tabpanel" aria-labelledby="tab-naked-puts">
+                {/* Opportunity Leaderboard (detail expands inline) */}
+                <div className="mb-5">
+                  <Leaderboard data={scoredData} selected={selectedTicker} onSelect={handleSelect} selectedData={selectedData} deltaMap={deltaMap} />
+                </div>
+
+                {/* Methodology Footer */}
+                <div className="px-4 sm:px-5 py-4 bg-surface-alt rounded-lg border border-border-subtle">
+                  <div className="text-xs text-txt-tertiary leading-loose">
+                    <strong className="text-txt-secondary">Scoring:</strong>{' '}
+                    VRP Quality (30) + IV Percentile (25) + Term Structure (20) + RV Stability (15) + 25Δ Put Skew (10).
+                    Negative VRP caps scores at 44. Earnings within 14 days forces SKIP for non-ETF tickers.
+                    DANGER regimes override to AVOID. Otherwise-actionable signals with VRP ratio below 1.15 are shown as WATCHLIST, not tradeable.{' '}
+                    <strong className="text-txt-secondary">RV Accel Status:</strong>{' '}
+                    informational only — Excellent / Good / Acceptable / Caution / Avoid&middot;Wait classifies environment cleanliness, never prescribes position size.{' '}
+                    <span className="text-secondary">Live data — not financial advice.</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {activeTab === 'credit-put-spreads' && (
+              <div id="tabpanel-credit-put-spreads" role="tabpanel" aria-labelledby="tab-credit-put-spreads">
+                <CreditPutSpreadsTab />
+              </div>
+            )}
+
+            {activeTab === 'journal' && (
+              <div id="tabpanel-journal" role="tabpanel" aria-labelledby="tab-journal">
+                <JournalComingSoon />
+              </div>
+            )}
           </>
         )}
       </main>

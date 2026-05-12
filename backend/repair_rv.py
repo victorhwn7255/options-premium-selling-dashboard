@@ -36,7 +36,7 @@ import numpy as np
 from backfill import BackfillClient, compute_rv30_from_bars
 from database import get_connection, init_db
 from csv_store import DATA_DIR, DAILY_HEADER
-from main import UNIVERSE
+from config import NAKED_PUT_UNIVERSE as UNIVERSE
 from marketdata_client import DailyBar
 
 logger = logging.getLogger("repair_rv")

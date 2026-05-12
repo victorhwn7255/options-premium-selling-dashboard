@@ -90,6 +90,43 @@ def init_db():
             skip_count INTEGER NOT NULL,
             checks TEXT NOT NULL
         );
+
+        /* ── Credit Put Spreads (Phase 3) ────────────────────────────
+         * Per-ticker, per-scan outcome rows. Used for:
+         *   1. Ticker-level consecutive_sell_days lookup (SELL_CPS gate)
+         *   2. Exact-spread consecutive_days (display-only context)
+         *   3. /api/credit-put-spreads/latest reconstruction
+         *
+         * Additive: existing tables and queries unaffected.
+         */
+        CREATE TABLE IF NOT EXISTS cps_candidate_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            scan_date TEXT NOT NULL,            -- YYYY-MM-DD
+            ticker TEXT NOT NULL,
+            action TEXT NOT NULL,                -- SELL_CPS / WATCH_CPS / WAIT / AVOID / NO_EDGE / NO_DATA
+            expiration TEXT,                     -- nullable when no candidate constructed
+            short_strike REAL,
+            long_strike REAL,
+            credit_to_width REAL,
+            base_score REAL,
+            regime TEXT,
+            passed_filters INTEGER NOT NULL DEFAULT 0,   -- 1 if all hard+exec filters cleared
+            sell_eligible INTEGER NOT NULL DEFAULT 0,    -- 1 if eligible for SELL_CPS today (pre-confirmation)
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(scan_date, ticker, expiration, short_strike, long_strike)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_cps_history_ticker_date
+            ON cps_candidate_history(ticker, scan_date DESC);
+
+        /* Cache of the full /api/credit-put-spreads/latest response per scan.
+         * Allows the endpoint to serve the exact response we built during
+         * the scan without re-fetching chains or re-running the builder. */
+        CREATE TABLE IF NOT EXISTS cps_scan_responses (
+            scan_date TEXT PRIMARY KEY,
+            response_json TEXT NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
     """)
     conn.commit()
     conn.close()
@@ -217,6 +254,203 @@ def get_vrp_history_by_date(start: str, end: str, min_tickers: int = 30) -> list
     ]
     conn.close()
     return rows
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Credit Put Spreads — Phase 3 helpers
+# ────────────────────────────────────────────────────────────────────────
+
+def get_vrp_history(ticker: str, days: int = 60) -> list[float]:
+    """Return the last `days` non-null VRP values for `ticker`, oldest first.
+
+    Used by the spread builder for the 60-day VRP z-score floor. Empty list
+    or short history is returned as-is — the consumer decides how to handle
+    insufficient data (we never crash, never silently fabricate a value).
+    """
+    conn = get_connection()
+    # Pull the most recent `days` rows, then reverse to oldest→newest order
+    cursor = conn.execute(
+        """
+        SELECT vrp FROM daily_iv
+        WHERE ticker = ? AND vrp IS NOT NULL
+        ORDER BY date DESC
+        LIMIT ?
+        """,
+        (ticker, days),
+    )
+    rows = [float(r[0]) for r in cursor.fetchall()]
+    conn.close()
+    rows.reverse()  # oldest → newest, matching downstream consumer convention
+    return rows
+
+
+def record_cps_candidate(
+    scan_date: str,
+    ticker: str,
+    action: str,
+    expiration: Optional[str] = None,
+    short_strike: Optional[float] = None,
+    long_strike: Optional[float] = None,
+    credit_to_width: Optional[float] = None,
+    base_score: Optional[float] = None,
+    regime: Optional[str] = None,
+    passed_filters: bool = False,
+    sell_eligible: bool = False,
+) -> int:
+    """Insert (or replace) a CPS candidate-history row for one scan.
+
+    `sell_eligible` is what the next day's `get_consecutive_sell_days()` reads
+    — it means "all SELL_CPS construction + execution + base gates passed
+    today, ignoring confirmation/overlay." Persistence is idempotent on
+    `(scan_date, ticker, expiration, short_strike, long_strike)`.
+    """
+    conn = get_connection()
+    cursor = conn.execute(
+        """
+        INSERT INTO cps_candidate_history (
+            scan_date, ticker, action, expiration, short_strike, long_strike,
+            credit_to_width, base_score, regime, passed_filters, sell_eligible
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (scan_date, ticker, expiration, short_strike, long_strike)
+        DO UPDATE SET
+            action = excluded.action,
+            credit_to_width = excluded.credit_to_width,
+            base_score = excluded.base_score,
+            regime = excluded.regime,
+            passed_filters = excluded.passed_filters,
+            sell_eligible = excluded.sell_eligible
+        """,
+        (
+            scan_date, ticker, action,
+            expiration, short_strike, long_strike,
+            credit_to_width, base_score, regime,
+            1 if passed_filters else 0,
+            1 if sell_eligible else 0,
+        ),
+    )
+    row_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return row_id
+
+
+def get_consecutive_sell_days(
+    ticker: str,
+    asof: Optional[date] = None,
+) -> int:
+    """Count consecutive trailing scan dates where `ticker` was SELL-eligible.
+
+    Walks backwards from `asof` (or today). For each prior scan date we have
+    a row for this ticker, increment the streak if ANY candidate on that
+    date had `sell_eligible=1`. Stops at the first gap or non-eligible day.
+
+    Streaks are based on calendar dates *we have data for* — not strict
+    consecutive calendar days — so weekends don't break the streak.
+
+    Note on `scan_date <= ?`: this is `<=` (inclusive), not `<`. In the
+    production flow, `_build_cps_response()` calls this function BEFORE it
+    calls `record_cps_candidate()` for today, so today's row doesn't exist
+    yet and the bound is functionally equivalent to a strict `<`. Tests
+    pre-populate the asof-day row to verify "today eligible + N prior days
+    eligible → streak = N+1" — that contract requires the inclusive bound.
+    """
+    asof = asof or date.today()
+    conn = get_connection()
+    cursor = conn.execute(
+        """
+        SELECT scan_date, MAX(sell_eligible) AS any_eligible
+        FROM cps_candidate_history
+        WHERE ticker = ? AND scan_date <= ?
+        GROUP BY scan_date
+        ORDER BY scan_date DESC
+        """,
+        (ticker, asof.isoformat()),
+    )
+    streak = 0
+    for _scan_date, any_eligible in cursor.fetchall():
+        if any_eligible:
+            streak += 1
+        else:
+            break
+    conn.close()
+    return streak
+
+
+def get_consecutive_exact_spread_days(
+    ticker: str,
+    expiration: str,
+    short_strike: float,
+    long_strike: float,
+    asof: Optional[date] = None,
+) -> int:
+    """Same as `get_consecutive_sell_days` but for the exact spread identity.
+
+    Display-only context — never the SELL_CPS gate. Strikes shift day-to-day
+    with the chain, so this almost always lags the ticker-level streak.
+    """
+    asof = asof or date.today()
+    conn = get_connection()
+    cursor = conn.execute(
+        """
+        SELECT scan_date, sell_eligible
+        FROM cps_candidate_history
+        WHERE ticker = ? AND expiration = ?
+          AND short_strike = ? AND long_strike = ?
+          AND scan_date <= ?
+        ORDER BY scan_date DESC
+        """,
+        (ticker, expiration, short_strike, long_strike, asof.isoformat()),
+    )
+    streak = 0
+    for _scan_date, sell_eligible in cursor.fetchall():
+        if sell_eligible:
+            streak += 1
+        else:
+            break
+    conn.close()
+    return streak
+
+
+def save_cps_scan_response(scan_date: str, response_dict: dict) -> None:
+    """Cache the full /api/credit-put-spreads/latest response JSON."""
+    conn = get_connection()
+    conn.execute(
+        """
+        INSERT INTO cps_scan_responses (scan_date, response_json)
+        VALUES (?, ?)
+        ON CONFLICT (scan_date) DO UPDATE SET
+            response_json = excluded.response_json,
+            created_at = CURRENT_TIMESTAMP
+        """,
+        (scan_date, json.dumps(response_dict)),
+    )
+    # Prune to last 14 responses (~2 weeks of scans)
+    conn.execute(
+        "DELETE FROM cps_scan_responses WHERE scan_date NOT IN "
+        "(SELECT scan_date FROM cps_scan_responses ORDER BY scan_date DESC LIMIT 14)"
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_latest_cps_scan_response() -> Optional[dict]:
+    """Load the most-recent cached response, or None if none cached."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT scan_date, response_json FROM cps_scan_responses "
+        "ORDER BY scan_date DESC LIMIT 1"
+    ).fetchone()
+    conn.close()
+    if not row:
+        return None
+    try:
+        return json.loads(row[1])
+    except (json.JSONDecodeError, TypeError):
+        return None
+
+
+# ────────────────────────────────────────────────────────────────────────
 
 
 def log_scan(tickers_scanned: int, duration: float, errors: list[str] = None):

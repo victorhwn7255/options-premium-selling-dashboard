@@ -296,6 +296,99 @@ Earnings DTE = (next_earnings_date - today).days
 
 ---
 
+## 12. Credit Put Spread Metrics
+
+The Credit Put Spreads (CPS) tab introduces a small set of spread-specific metrics. None of these are inputs to the Base Edge Score — CPS ranks by the existing composite after binary filters pass.
+
+**Defined in:** [`backend/spread_builder.py`](../backend/spread_builder.py). Configuration constants live in [`backend/config.py`](../backend/config.py). Full spec in [`references/credit-put-spreads.md`](./credit-put-spreads.md).
+
+### 12.1 Credit-to-Width
+
+```
+net_credit = short_mid - long_mid
+width      = short_strike - long_strike
+credit_to_width = net_credit / width
+```
+
+Per-share economics. Multiply by 100 for per-contract dollars.
+
+| Threshold | Constant | Effect |
+|---|---|---|
+| Watch floor | `CPS_WATCH_MIN_CREDIT_TO_WIDTH = 0.20` | Allows `WATCH_CPS`; below this → reject |
+| Sell floor | `CPS_MIN_CREDIT_TO_WIDTH = 0.25` | Required for `SELL_CPS` |
+| High-tail warning | `CPS_HIGH_CREDIT_TO_WIDTH_WARNING = 0.35` | Adds explicit warning string |
+
+### 12.2 Width-to-ATR / Width-to-Expected-Move
+
+Width selection is **ATR-aware**. The builder targets:
+
+```
+expected_move = spot × (iv_current / 100) × √(dte / 365)
+target_width  = max(nearest_strike_step, CPS_WIDTH_ATR_MULTIPLIER × ATR14)
+                # CPS_WIDTH_ATR_MULTIPLIER = 0.75
+```
+
+Sanity band: width must lie in `[0.75 × ATR14, 1.5 × ATR14]`. The candidate carries `width_to_atr` and `width_to_expected_move` for downstream display and replay analysis.
+
+### 12.3 Bid/Ask Ratio (per leg)
+
+Used as the binary execution filter — never call this `spread_ratio`, which conflicts with put-spread width and term-spread terminology.
+
+```
+bid_ask_ratio = (ask - bid) / mid
+```
+
+| Threshold | Value | Effect |
+|---|---|---|
+| Hard reject | `> 0.20` | Either leg → drop the candidate |
+| Preferred | `< 0.15` | Quality target |
+
+### 12.4 Consecutive SELL Days (two axes)
+
+Persisted in the `cps_candidate_history` SQLite table.
+
+| Field | Purpose | Gates SELL_CPS? |
+|---|---|---|
+| `consecutive_sell_days` | Ticker-level eligibility streak | **Yes.** Requires ≥ 2 for `SELL_CPS`. |
+| `exact_spread_consecutive_days` | Same strike pair eligible for N consecutive scans | No — display context only. Strikes shift day-to-day with the chain. |
+
+### 12.5 Regime Overlay (VIX / VIX3M / VVIX)
+
+Computed once per scan via yfinance (`^VIX`, `^VIX3M`, `^VVIX`) in [`backend/regime_overlay.py`](../backend/regime_overlay.py). Returns a `RegimeOverlay` shape: `{status, vix, vix3m, vvix, vix_backwardation, warnings}`.
+
+| Status | Trigger | Effect on SELL_CPS |
+|---|---|---|
+| `NORMAL` | All values present, VVIX ≤ 110, no backwardation | Allowed |
+| `CAUTION` | `110 < VVIX ≤ 130` | Warning only; still allowed |
+| `DANGER` | `VIX > VIX3M` OR `VVIX > 130` | Blocks SELL_CPS → downgrades to WATCH_CPS |
+| `UNKNOWN` | Any feed unavailable (network, missing yfinance, weekend) | **Does not block.** Warning surfaced; candidates pass through |
+
+The `UNKNOWN` status is explicit — the overlay never silently fabricates a `NORMAL` value when data is missing.
+
+### 12.6 VRP 60-day Z-score
+
+```
+z = (vrp_now - mean(vrp_history[-60:])) / pstdev(vrp_history[-60:])
+```
+
+Computed from the existing `daily_iv` table via `database.get_vrp_history(ticker, days=60)`. Requires at least 20 non-null points and non-zero variance — otherwise returns `None` (UNKNOWN), which adds a warning but does not block candidates.
+
+| Floor | Effect |
+|---|---|
+| `CPS_VRP_ZSCORE_60D_MIN = +0.5` | Below this → downgrade SELL_CPS to WATCH_CPS |
+
+### 12.7 Display conventions
+
+Per [`credit-put-spreads.md`](./credit-put-spreads.md) §11:
+
+| Field | Convention |
+|---|---|
+| Net credit, width, max loss, breakeven | Per share, USD |
+| Credit / width | Percentage |
+| P/L dollars | Per spread contract (multiply per-share × 100) |
+
+---
+
 ## Composite Scoring System
 
 The backend computes a single **0–100 composite score** per ticker. The frontend passes through the backend score and applies the earnings gate. There is only **one scoring engine** (backend).

@@ -37,7 +37,7 @@ from marketdata_client import (
     RateLimiter, OptionContract, DailyBar, MarketDataClient,
 )
 from database import store_daily_iv, get_connection, init_db
-from main import UNIVERSE
+from config import NAKED_PUT_UNIVERSE as UNIVERSE
 
 logger = logging.getLogger("backfill")
 
