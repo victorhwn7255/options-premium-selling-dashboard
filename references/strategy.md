@@ -251,6 +251,109 @@ ETFs are excluded from earnings checks. All tickers must have liquid options cha
 
 ---
 
+## Strategy Tabs — Naked Puts, Credit Put Spreads, Journal
+
+The dashboard surfaces three strategy tabs above the leaderboard, sitting beneath the persistent Market Regime banner:
+
+```
+Market Regime Banner
+TabBar:  [Naked Puts]  [Credit Put Spreads]  [Journal (Coming Soon)]
+```
+
+- **Naked Puts** (primary) — the full 33-ticker scan documented in this file. This is where the edge lives. Unchanged in behavior; everything earlier in this document applies here.
+- **Credit Put Spreads** (secondary) — a defined-risk expression of the same volatility edge, scoped to a small index-ETF universe. See § Credit Put Spreads below.
+- **Journal (Coming Soon)** — placeholder. Will eventually let the trader record actual contract counts, exit reasons, P/L, and assignment outcomes. No trade-entry functionality yet.
+
+The Market Regime banner stays above the tabs so regime context applies to every strategy view simultaneously.
+
+---
+
+## Credit Put Spreads (Defined-Risk Tab)
+
+Credit Put Spreads (CPS) are a **defined-risk expression of the same volatility edge** that drives the Naked Puts tab. The same five-component composite score, the same regime detection, the same hard gates — all reused. CPS adds only a spread-construction layer on top.
+
+**Defined risk does not rescue a hostile regime.** If the underlying fails the base hard gates, CPS does not produce a recommendation just because losses are capped.
+
+### MVP universe
+
+```python
+CPS_UNIVERSE = ["SPY", "QQQ", "IWM"]
+```
+
+Index ETFs only — both legs of a credit put spread must be tradable, so MVP requires the deep chains and dense strike grids these names provide. The 33-ticker Naked Puts universe is **not** scanned for CPS in MVP.
+
+### Filter first, rank second (no separate score)
+
+CPS does **not** use a weighted "60% base + 30% construction + 10% execution" formula. Instead:
+
+1. Apply the universe filter (SPY / QQQ / IWM only).
+2. Inherit base hard gates: earnings ≤ 14d (non-ETF), DANGER regime, negative VRP, VRP ratio < 1.15, RV Accel > 1.20, skew > 20, NO_DATA.
+3. Apply construction filters: DTE ∈ [30, 45] window targeting 35, short delta ∈ [0.15, 0.25] targeting 0.20, ATR-aware width (0.75–1.5× ATR14).
+4. Apply execution filters per leg: `bid_ask_ratio < 20%`, OI ≥ 100, volume ≥ 25, mid valid, bid > 0, ask > bid.
+5. Apply regime overlay (VIX / VIX3M / VVIX).
+6. Apply two-day ticker-level confirmation.
+
+**Candidates that pass every filter are ranked by Base Edge Score** (same score the Naked Puts tab uses) with tie-breakers: higher credit/width → tighter bid/ask → better RV Accel status → cleaner term slope.
+
+### Credit/width thresholds
+
+| Threshold | Value | Effect |
+|---|---|---|
+| WATCH | `credit_to_width ≥ 0.20` | Allows `WATCH_CPS` if all other filters pass |
+| SELL | `credit_to_width ≥ 0.25` | Required for `SELL_CPS` |
+| High-tail warning | `credit_to_width > 0.35` | Adds an explicit warning string; verify regime, skew, RV Accel manually |
+
+### Two-day ticker-level confirmation
+
+`SELL_CPS` requires `consecutive_sell_days ≥ 2` — the ticker passed every SELL filter on both today's and yesterday's scans. Tracked in `cps_candidate_history` (SQLite).
+
+**Exact-spread confirmation** is recorded separately (`exact_spread_consecutive_days`) and surfaced in the detail panel as **display context only**. Strikes shift day-to-day with the chain — gating on exact-spread persistence would produce false negatives. Ticker-level tracking captures signal stability; exact-spread tracking lets the trader see when one strike pair is unusually persistent.
+
+### Regime overlay (VIX / VIX3M / VVIX)
+
+Computed once per scan from yfinance:
+
+| Overlay rule | Trigger | Effect |
+|---|---|---|
+| VIX backwardation | `VIX > VIX3M` | Blocks `SELL_CPS` → downgrade to `WATCH_CPS` |
+| VVIX caution | `110 < VVIX ≤ 130` | Warning; does not block |
+| VVIX danger | `VVIX > 130` | Blocks `SELL_CPS` |
+| VRP 60d z-score floor | `z < +0.5` | Downgrades `SELL_CPS` to `WATCH_CPS` (skipped if insufficient history) |
+
+**UNKNOWN does not block.** If the yfinance feed fails (weekend, network, missing dependency), the overlay returns `status="UNKNOWN"` with an explicit warning. Candidates are *not* blocked — the warning surfaces in the API response and in the frontend overlay row, and the trader applies their own judgement.
+
+### Action labels
+
+| Action | Meaning |
+|---|---|
+| `SELL_CPS` | All filters pass; ticker-level confirmation ≥ 2 days |
+| `WATCH_CPS` | Filters pass but confirmation < 2 days, or 20% ≤ c/w < 25%, or overlay degraded |
+| `WAIT` | RV shock or environment-overlay degradation — wait for cleanliness |
+| `AVOID` | Hard gate failed (DANGER regime, earnings, extreme skew) |
+| `NO_EDGE` | Base edge insufficient |
+| `NO_DATA` | Chain / quote data unavailable |
+
+### RV Accel as environment, not size
+
+The CPS tab follows the Phase-2C invariant: **the dashboard never prescribes Full/Half/Quarter sizing**. The 5-tier RV Accel Status chip (Excellent / Good / Acceptable / Caution / Avoid · Wait) communicates whether the volatility environment is clean enough to sell into. Actual contract count is the trader's decision and goes in the trade journal — not the dashboard.
+
+### Exit rules
+
+CPS positions ship with a documented exit recipe in `backend/spread_exit_evaluator.py`. Precedence (highest first):
+
+| Rule | Trigger | Action |
+|---|---|---|
+| Pin risk | DTE ≤ 2 AND `\|spot − short_strike\| ≤ max($0.50, 0.1% × spot)` | `CLOSE_PIN_RISK` |
+| Event risk | Earnings ≤ 14 DTE on non-ETF | `CLOSE_EVENT_RISK` |
+| Defensive | Spot ≤ short strike, OR mark ≥ 2× original credit, OR regime → DANGER | `CLOSE_DEFENSIVE` |
+| Time | DTE ≤ 21 | `CLOSE_TIME` |
+| Profit target | Mark ≤ 50% × original credit | `CLOSE_PROFIT_TARGET` |
+| None | — | `HOLD` |
+
+The evaluator is a pure function with no Journal dependency — when the Journal eventually lands, it just hydrates `OpenSpreadSnapshot` from open positions and calls `evaluate_open_spread()`.
+
+---
+
 ## What This Strategy Does NOT Do
 
 - **Predict direction**: We are delta-neutral or slightly directional. We profit from time decay, not moves.

@@ -2,25 +2,39 @@
 
 Volatility premium scanner for options sellers. Identifies high-probability premium selling opportunities using IV rank, volatility risk premium (VRP), term structure analysis, and regime detection.
 
-**Data powered by [MarketData.app](https://www.marketdata.app)**. Earnings dates from [FMP](https://financialmodelingprep.com).
+**Data powered by [MarketData.app](https://www.marketdata.app)**. Earnings dates from [FMP](https://financialmodelingprep.com). VIX / VIX3M / VVIX overlay from [yfinance](https://github.com/ranaroussi/yfinance).
+
+## Strategy tabs
+
+Beneath a persistent Market Regime banner, the dashboard surfaces three tabs:
+
+- **Naked Puts** (primary) — full 33-ticker scan; the existing IV-rank + VRP + term-structure + skew + RV-stability composite.
+- **Credit Put Spreads** — defined-risk expression of the same volatility edge, scoped to SPY / QQQ / IWM at MVP. Binary construction/execution filters; candidates rank by the existing Base Edge Score (no separate "60/30/10" weighting).
+- **Journal (Coming Soon)** — placeholder; trade-entry functionality will land in Phase 6.
+
+See [`references/strategy.md`](references/strategy.md) for the full strategy guide and [`references/credit-put-spreads.md`](references/credit-put-spreads.md) for the CPS canonical reference.
 
 ## Architecture
 
 ```
 theta-harvest/
 ├── backend/          # FastAPI — data fetching, vol calculations, scoring
-│   ├── main.py       # FastAPI app, endpoints, ticker universe, daily scan gate, cron scheduler
+│   ├── main.py       # FastAPI app, endpoints, daily scan gate, cron scheduler
+│   ├── config.py     # NAKED_PUT_UNIVERSE, CPS_UNIVERSE, all CPS thresholds
 │   ├── marketdata_client.py  # MarketData.app API client (options + stocks)
 │   ├── fmp_client.py # FMP API client for earnings dates (SQLite-cached)
 │   ├── calculator.py # RV, IV, term structure, skew, ATM Greeks, ATR14
-│   ├── scorer.py     # Opportunity scoring engine (0–100)
+│   ├── scorer.py     # Naked Puts scoring engine (0–100)
+│   ├── spread_builder.py        # Credit Put Spreads candidate construction
+│   ├── regime_overlay.py        # VIX / VIX3M / VVIX overlay (yfinance, UNKNOWN-safe)
+│   ├── spread_exit_evaluator.py # CPS exit rules (pin / event / defensive / time / profit)
 │   ├── csv_store.py  # CSV persistence for daily metrics + option quotes
-│   ├── models.py     # Pydantic response models
-│   ├── database.py   # SQLite for historical IV, scan results, earnings cache
+│   ├── models.py     # Pydantic response models (Naked Puts + CPS)
+│   ├── database.py   # SQLite for IV history, scan + CPS results, earnings cache
 │   └── data/         # SQLite database + CSVs (auto-created, gitignored)
 ├── frontend/         # Next.js 14 + Tailwind CSS
 │   ├── src/app/      # App Router pages
-│   ├── src/components/  # React components
+│   ├── src/components/  # React components (Naked Puts + Credit Put Spreads tabs)
 │   ├── src/hooks/    # useTheme, useKeyboard, useCssColors
 │   └── src/lib/      # API client, types, scoring
 └── assets/           # Favicon (θ symbol)
@@ -75,9 +89,10 @@ npm run dev
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/health` | System status check |
-| GET | `/api/scan/latest` | Most recent cached scan result |
+| GET | `/api/scan/latest` | Most recent cached scan result (Naked Puts) |
 | POST | `/api/scan` | Trigger full scan (once per day) |
 | GET | `/api/scan/history` | Metadata for recent scans |
+| GET | `/api/credit-put-spreads/latest` | Most recent cached CPS response (SPY / QQQ / IWM) |
 | GET | `/api/ticker/{ticker}/history` | Historical IV/RV series |
 | GET | `/api/universe` | List configured tickers |
 | GET | `/api/earnings/remaining` | Earnings refresh remaining count today |
@@ -103,13 +118,15 @@ The frontend uses the **Anthropic Warm Humanist** design system:
 
 ### Adding/removing tickers
 
-Edit the `UNIVERSE` dict in `backend/main.py`. Each ticker needs a display name and sector:
+Edit `NAKED_PUT_UNIVERSE` in [`backend/config.py`](backend/config.py). Each ticker needs a display name and sector:
 
 ```python
 "TICKER": {"name": "Display Name", "sector": "Sector"},
 ```
 
 Works identically with individual stocks and ETFs.
+
+`CPS_UNIVERSE` (SPY / QQQ / IWM at MVP) is in the same file. Don't expand it casually — Credit Put Spreads require both legs to be liquidly tradable, which is why MVP is index ETFs only. See `CPS_UNIVERSE_EXTENDED` for the documented Phase-6 expansion candidates.
 
 ### Adjusting scoring thresholds
 

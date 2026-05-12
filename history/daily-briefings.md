@@ -23,7 +23,7 @@ Trading analysis and recommendations based on each day's scan data.
 [1-2 paragraph narrative analysis covering: regime shifts, top signals, key movements from
 previous day, earnings impacts, sector themes, data quality notes if any]
 
-**Position: [specific recommendations with sizing]**
+**Position: [specific recommendations with RV Accel Status / environment cleanliness; contract count is the trader's call, recorded in the trade journal]**
 ```
 
 **Analysis should cover:**
@@ -33,13 +33,23 @@ previous day, earnings impacts, sector themes, data quality notes if any]
 - Earnings gate impacts (newly gated/ungated tickers)
 - Aggregate stats (avg VRP, % negative VRP, RV accel trends)
 - Any data quality issues observed
-- Actionable position recommendations with sizing (Full/Half/Quarter)
+- Actionable position recommendations referencing **RV Accel Status** (Excellent / Good / Acceptable / Caution / Avoid · Wait). Position size is a trader-controlled decision recorded in the trade journal — not prescribed by the dashboard or this briefing.
 
 **Tone:** Concise, data-driven, opinionated. Reference specific numbers. Flag uncertainty.
 
 ---
 
 > **IMPORTANT:** Entries are in **descending order** (newest first). New entries go immediately below this line.
+
+---
+
+## 2026-05-11 (Monday)
+
+**Regime:** THE PLAYOFFS (Tradeable Pool Peak of Cycle) | **Tradeable:** 1S / 3C / 1W | **Avg VRP:** −1.8
+
+**Cleanest scan of the cycle — first SELL signal since WMT was gated.** JNJ pushed through to **SELL at 68 (+10 from Fri's 58)** with all five inputs simultaneously clean: VRP 5.3 → 6.7, IV pct 76 → 82, slope deepened 0.89 → 0.87, accel 0.88 stable, skew still 0.0 (the only weak component — but additive scorer correctly nets the other four past 65). Fri's "one skew uptick from SELL" forecast was right on direction, wrong on axis — VRP and IV pct moves alone did the work. **Tradeable count rebuilt 0S/3C → 1S/3C/1W** with three CONDITIONALs (XLF 55, QQQ 52, XLI 45) and one new WATCHLIST (SPY 45). **XLF series-best** at 55 (+10): RV30 compressed 15.7 → 13.5, VRP 1.3 → 4.3, slope 0.82 stable. **QQQ Thu IV-expansion held and widened** (+7 to 52): the spike-buy-Mon-revert risk I flagged Fri did NOT materialize — IV 19.4 → 21.1 (+1.7 more), VRP 0.5 → 4.0, slope at series-deepest 0.77. The macro pivot was real and sustained. **XLI surprise CONDITIONAL** (+14, biggest single-day jump): IV +8.5 vol pts (21.9 → 30.4), VRP −1.6 → +7.3, IV pct **97** (universe-top). Caveat: slope at exactly 1.00 (one print from CAUTION trigger), accel 1.06 (RV Accel Status: Acceptable, edging Caution) — riskiest of the four actionable signals. **SPY new WATCHLIST** (Phase-1 VRP-gate at work): vrp_ratio = 14.6/13.0 = 1.12 < 1.15, so the otherwise-CONDITIONAL score is correctly demoted. Slope 0.63 = series-deepest contango, structure clean, premium too thin. **Macro story shifted decisively:** SPY VRP turned positive for the first time in weeks (−0.5 → +1.6), QQQ VRP +0.5 → +4.0. Index VRP positive + stress 3.3% (XOM alone in DANGER, slope 1.24) + 4 tradeable signals = first time this cycle the framework has produced this combination. The May 1 forecast ("fattest opportunity Jun 5-15") arrived early. **Stress structure:** XLE exited CAUTION cleanly (slope 1.11 → 0.90); XOM re-entered DANGER alone (1.04 → 1.24, non-earnings-driven, possible energy-sector flicker). Negative VRP count narrowed 17/30 → 15/30. **MCD Day-2 crush template confirmed N=3:** May 7 slope 1.59 DANGER → today 0.87 NO EDGE NORMAL (score 16 → 37). SBUX / MCD now both confirmed Day-2-crush sub-pattern names. **Earnings-gated trio:** WMT 13d → 10d (slope loosened 0.82 → 1.00 — standard pre-print IV expansion ramp; prints Wed May 13 AMC), HD 11d → 8d (prints ~May 19), NVDA 12d → 9d (prints May 21; pre-gate VRP 8.2 + slope 0.80 + IV pct 59 is the strongest pre-print underlying in cycle). **MSFT VRP cross-zero watch on track:** −3.5 → −2.8 (closer), accel 0.90 stable, IV pct 62 — still needs ~3 RV30 vol pts to roll off, ETA ~May 22-28 unchanged. **Day-over-day:** HOOD 20 → 11 (RV held while IV crushed harder), TSLA 27 → 35 (slope deepened 0.93 → 0.84), TLT 28 → 26 stable, XLB 5 → 8 still worst.
+
+**Position: JNJ — NEW SELL entry. RV Accel Status: Good (0.88). 30-45 DTE put credit spread or naked short put. 65d to next earnings = clean event runway, deepest contango of the cycle, IV pct 82. Strongest non-earnings setup since Apr 14. Contract count is your call — record in trade journal. XLF — ADD if entered Mon May 4 (signal accelerated past noise, RV Accel Status: Excellent at 0.49); HOLD as-is if not entered. QQQ — HOLD if entered Thu (IV expansion validated). Iron condor remains the right structure. XLI — OPTIONAL Quarter-notional entry only; the riskiest of the four signals (slope at 1.00 boundary, RV Accel Status: Acceptable edging Caution at 1.06). Iron condor 21-30 DTE if entered; hard exit if slope drifts above 1.05 next session. Skip if you don't want sector concentration alongside XLF. SPY — WATCHLIST only, no entry (vrp_ratio 1.12 < 1.15 dead zone). Re-evaluate when ratio crosses 1.20. WMT / HD / NVDA — gated (10d/8d/9d); NVDA pre-gate signal is strong, watchlist for post-print ~May 22-28 once 14d window clears. Forward: Wed May 13 AMC = WMT prints (slope 0.82 → 1.00 today is pre-print IV ramp); MSFT VRP cross-zero watch ~May 22-28; XOM slope persistence diagnostic next 1-2 sessions (DANGER alone non-earnings-driven). Honest framing: today is the day to act on JNJ. All five components simultaneously clean for the first time in this cycle. The macro story changed — index VRP positive + stress series-low + 4 tradeable signals — but don't size up beyond your normal discipline just because the dashboard finally lit up. Record contract counts in your journal.**
 
 ---
 

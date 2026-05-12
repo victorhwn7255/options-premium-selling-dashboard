@@ -128,6 +128,37 @@ Backend TickerResult (snake_case)
   → DashboardTicker[]          → components
 ```
 
+**Credit Put Spreads branch** (added 2026-05-12):
+
+```
+Naked-Puts scoring loop produces TickerResult[]
+    │
+    ▼
+For each ticker in CPS_UNIVERSE = ["SPY","QQQ","IWM"]:
+  ├── hydrate raw chain + spot + atr14 (captured during scan)
+  ├── fetch_regime_overlay()  → VIX/VIX3M/VVIX (yfinance) — ONCE per scan
+  ├── get_vrp_history(60d) + get_consecutive_sell_days() from SQLite
+  └── spread_builder.build_candidate_outcome_for_ticker(...)
+       │
+       ├── universe filter (cheapest)
+       ├── inherited base hard gates (DANGER / earnings / negative VRP / etc.)
+       ├── construction: 30–45 DTE, 0.15–0.25 short delta, ATR-aware width
+       ├── execution: bid_ask_ratio / OI / volume — per leg
+       ├── credit_to_width gates (WATCH 0.20 / SELL 0.25)
+       ├── overlay (DANGER blocks SELL; UNKNOWN does NOT block)
+       └── 2-day ticker-level confirmation (SELL_CPS gate only)
+    ▼
+record_cps_candidate(...) → cps_candidate_history table
+    │
+    ▼
+save_cps_scan_response(...) → cps_scan_responses cache row
+    │
+    ▼
+GET /api/credit-put-spreads/latest → CreditPutSpreadsTab
+```
+
+Engineered guarantee: the CPS branch is wrapped in `try/except` inside `run_full_scan()`. Any failure (yfinance outage, builder bug, DB write error) is logged but **cannot** affect the Naked Puts response. See [`backend/main.py:_build_cps_response`](../../backend/main.py).
+
 **Regime computation** (`RegimeBanner.tsx:computeRegime()`): runs on the transformed `DashboardTicker[]`, excludes SKIP and NO DATA tickers, produces the NBA-themed market regime. See [scoring-and-strategy.md § Dashboard-Level Market Regime](../1-domain/scoring-and-strategy.md#dashboard-level-market-regime).
 
 ---
@@ -146,6 +177,10 @@ The most important architectural invariant: **backend scoring is authoritative.*
 | Earnings gate (DTE ≤ 14 → SKIP) | **Frontend** | See [ADR-003](../3-guardrails/decisions/003-earnings-gate-frontend-only.md) |
 | RV Accel Status (5-tier display label) | **Frontend** | Display-only environment classifier; does not prescribe size |
 | Dashboard market regime (NBA-themed) | **Frontend** | Independent classifier from aggregate ticker data |
+| **Credit Put Spreads** — universe filter, construction, execution filters, overlay, confirmation, ranking | **Backend** | Reuses Base Edge Score from `scorer.py`; no separate scoring engine |
+| **CPS persistence** — `cps_candidate_history` + `cps_scan_responses` tables | **Backend** | Supports 2-day confirmation lookups + API response cache |
+| **CPS exit rules** — pin-risk, defensive, time, profit-target, event-risk | **Backend** | Pure function in `spread_exit_evaluator.py`; Journal will call it once trade entry ships |
+| **Tab routing** (Naked Puts / CPS / Journal) | **Frontend** | `page.tsx` useState; Regime Banner stays above the TabBar |
 
 See [ADR-001](../3-guardrails/decisions/001-single-source-scoring.md) for why the frontend doesn't recompute scores.
 
