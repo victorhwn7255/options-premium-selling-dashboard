@@ -31,3 +31,5 @@ CLAUDE.md
 tasks/
 prompts/
 sample/
+# TypeScript incremental build cache — should never be committed
+frontend/tsconfig.tsbuildinfo
