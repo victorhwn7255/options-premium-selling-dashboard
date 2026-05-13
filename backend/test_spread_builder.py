@@ -389,10 +389,11 @@ def test_sell_cps_promoted_with_two_day_confirmation():
 
 
 def test_watch_cps_allowed_below_sell_credit_to_width():
-    """20% ≤ c/w < 25%, base score adequate → WATCH_CPS only (not SELL_CPS).
+    """Below SELL threshold (25%) but above WATCH gate (10%), base score
+    adequate → WATCH_CPS only (not SELL_CPS).
 
     Built by hand: short at 488 (delta -0.20) mid 2.025, long at 484 (width 4)
-    mid 1.205 → net 0.82, c/w ≈ 0.205 — sits in the WATCH band.
+    mid 1.205 → net 0.82, c/w ≈ 0.205 — between WATCH gate and SELL gate.
     """
     exp = _exp_iso(35)
     chain = [
@@ -413,6 +414,32 @@ def test_watch_cps_allowed_below_sell_credit_to_width():
     assert cfg.CPS_WATCH_MIN_CREDIT_TO_WIDTH <= cw < cfg.CPS_MIN_CREDIT_TO_WIDTH, \
         f"c/w {cw} not in WATCH band [{cfg.CPS_WATCH_MIN_CREDIT_TO_WIDTH}, {cfg.CPS_MIN_CREDIT_TO_WIDTH})"
     assert out.action == "WATCH_CPS", f"expected WATCH_CPS, got {out.action}"
+
+
+def test_thin_premium_warning_when_credit_to_width_below_threshold():
+    """c/w in [WATCH_MIN, THIN_PREMIUM) attaches a 'Thin premium' warning.
+
+    Built by hand: short mid 1.55, long mid 0.95 → net 0.60, width 4 → c/w 0.15.
+    Sits inside the new WATCH band (≥ 0.10) but below the 0.18 thin threshold.
+    """
+    exp = _exp_iso(35)
+    chain = [
+        _put(484, exp, -0.15, bid=0.92, ask=0.98),  # long
+        _put(485, exp, -0.16, bid=1.05, ask=1.10),
+        _put(486, exp, -0.17, bid=1.25, ask=1.30),
+        _put(487, exp, -0.18, bid=1.40, ask=1.45),
+        _put(488, exp, -0.20, bid=1.52, ask=1.58),  # short
+    ]
+    tr = FakeTickerResult()
+    out = sb.build_candidate_outcome_for_ticker(
+        ticker="SPY", ticker_result=tr, chain=chain,
+        spot=510.0, atr14=5.0, consecutive_sell_days=2,
+    )
+    assert out.candidate is not None, out.rejection_reasons
+    cw = out.candidate.credit_to_width
+    assert cfg.CPS_WATCH_MIN_CREDIT_TO_WIDTH <= cw < cfg.CPS_THIN_PREMIUM_THRESHOLD, \
+        f"c/w {cw} not in thin-premium band [{cfg.CPS_WATCH_MIN_CREDIT_TO_WIDTH}, {cfg.CPS_THIN_PREMIUM_THRESHOLD})"
+    assert any("thin premium" in w.lower() for w in out.warnings), out.warnings
 
 
 def test_high_credit_to_width_warning():
@@ -590,7 +617,8 @@ if __name__ == "__main__":
         ("Extreme skew rejects", test_extreme_skew_rejects),
         ("SELL_CPS requires 2-day confirmation", test_sell_cps_requires_two_day_confirmation),
         ("SELL_CPS promoted with confirmation", test_sell_cps_promoted_with_two_day_confirmation),
-        ("WATCH_CPS band (20% ≤ c/w < 25%)", test_watch_cps_allowed_below_sell_credit_to_width),
+        ("WATCH_CPS band (10% ≤ c/w < 25%)", test_watch_cps_allowed_below_sell_credit_to_width),
+        ("Thin-premium warning (10% ≤ c/w < 18%)", test_thin_premium_warning_when_credit_to_width_below_threshold),
         ("High c/w (>35%) warning", test_high_credit_to_width_warning),
         ("Regime overlay DANGER downgrades", test_regime_overlay_danger_downgrades_sell_to_watch),
         ("Regime overlay UNKNOWN does not block", test_regime_overlay_unknown_does_not_block_sell),

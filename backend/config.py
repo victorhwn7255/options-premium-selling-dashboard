@@ -59,9 +59,14 @@ NAKED_PUT_UNIVERSE: Final[dict[str, dict]] = {
 # strike grids. Expansion to extended universe is a Phase-6 decision after
 # replay confirms candidate quality.
 # ────────────────────────────────────────────────────────────────────────
-CPS_UNIVERSE: Final[list[str]] = ["SPY", "QQQ", "IWM"]
+CPS_UNIVERSE: Final[list[str]] = [
+    "SPY", "QQQ", "IWM", "EEM",          # broad index ETFs
+    "GLD", "TLT",                          # commodity + treasury ETFs
+    "XLE", "XLF", "XLV", "XLI", "XLB",   # sector ETFs
+]  # 11 ETFs — expanded from MVP's 3 to support "top 10 setups per day" UX goal.
+# All members must be ETFs (earnings-gate exempt, deep chains, dense strike grids).
 
-CPS_UNIVERSE_EXTENDED: Final[list[str]] = ["SPY", "QQQ", "IWM", "EEM", "TLT", "XLE"]
+CPS_UNIVERSE_EXTENDED: Final[list[str]] = CPS_UNIVERSE  # alias retained for backward-compat
 
 
 # ────────────────────────────────────────────────────────────────────────
@@ -79,8 +84,9 @@ CPS_MAX_SHORT_DELTA: Final[float] = 0.25
 # ────────────────────────────────────────────────────────────────────────
 # CPS economics thresholds
 # ────────────────────────────────────────────────────────────────────────
-CPS_MIN_CREDIT_TO_WIDTH: Final[float] = 0.25         # SELL_CPS gate
-CPS_WATCH_MIN_CREDIT_TO_WIDTH: Final[float] = 0.20   # WATCH_CPS gate
+CPS_MIN_CREDIT_TO_WIDTH: Final[float] = 0.25         # SELL_CPS gate (preserves +5% EV math)
+CPS_WATCH_MIN_CREDIT_TO_WIDTH: Final[float] = 0.10   # WATCH_CPS gate (lowered to populate the tab)
+CPS_THIN_PREMIUM_THRESHOLD: Final[float] = 0.18      # Below this → "Thin premium" warning chip
 CPS_HIGH_CREDIT_TO_WIDTH_WARNING: Final[float] = 0.35  # Tail-risk warning above this
 
 # Width selection: ATR-scaled hybrid target.

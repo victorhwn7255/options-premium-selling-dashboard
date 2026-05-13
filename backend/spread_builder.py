@@ -517,6 +517,15 @@ def build_candidate_outcome_for_ticker(
             "High credit/width may indicate elevated tail risk. "
             "Verify regime, skew, and RV Accel before acting."
         )
+    # Thin-premium warning: candidate cleared the WATCH gate but is below the
+    # asymmetric sweet spot (≥ 18%). At low VIX, ETF CPS frequently lands here.
+    # The trader sees the trade AND the visual reminder that the premium is
+    # anemic relative to a fatter-VIX environment.
+    elif econ["credit_to_width"] < cfg.CPS_THIN_PREMIUM_THRESHOLD:
+        warnings.append(
+            "Thin premium — credit/width below the asymmetric sweet spot (18%). "
+            "Lower return per unit of risk; consider smaller size or wait for higher VIX."
+        )
 
     # 9. Regime overlay — DANGER blocks SELL_CPS; UNKNOWN warns but does not block
     overlay_status: Optional[RegimeOverlayStatus] = (

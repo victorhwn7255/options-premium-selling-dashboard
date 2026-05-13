@@ -296,7 +296,9 @@ def test_api_returns_empty_shell_when_no_cached_response():
         body = r.json()
         assert body["candidates"] == []
         assert body["regime_overlay"]["status"] == "UNKNOWN"
-        assert body["cps_universe"] == ["SPY", "QQQ", "IWM"]
+        # CPS_UNIVERSE is configurable; assert membership of the original MVP
+        # set is preserved while allowing the universe to expand without test churn.
+        assert {"SPY", "QQQ", "IWM"}.issubset(set(body["cps_universe"]))
         assert body["message"] is not None
     finally:
         os.unlink(tmp)
@@ -372,7 +374,8 @@ def test_api_only_serves_cps_universe_tickers():
         main = _import_main_with_test_db(tmp)
         client = TestClient(main.app)
         body = client.get("/api/credit-put-spreads/latest").json()
-        assert body["cps_universe"] == ["SPY", "QQQ", "IWM"]
+        # Universe may expand; assert MVP core membership without locking the exact list.
+        assert {"SPY", "QQQ", "IWM"}.issubset(set(body["cps_universe"]))
         # Empty-shell case: no candidates leak in.
         assert body["candidates"] == []
     finally:
