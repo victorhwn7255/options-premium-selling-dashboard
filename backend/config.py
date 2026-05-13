@@ -102,6 +102,12 @@ CPS_PREFERRED_OPEN_INTEREST: Final[int] = 500
 CPS_MIN_VOLUME: Final[int] = 25
 CPS_PREFERRED_VOLUME: Final[int] = 100
 
+# Minimum number of band-eligible (delta ∈ [CPS_MIN_SHORT_DELTA, CPS_MAX_SHORT_DELTA])
+# puts an expiration must offer to be preferred by select_cps_expiration.
+# Prevents the builder from picking an expiration that only has the narrow
+# 12-strike ATM cluster (no 0.20-delta strike available).
+CPS_MIN_COVERAGE_PUTS: Final[int] = 3
+
 
 # ────────────────────────────────────────────────────────────────────────
 # Multi-day confirmation

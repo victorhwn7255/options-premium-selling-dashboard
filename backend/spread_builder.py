@@ -157,27 +157,52 @@ def select_cps_expiration(
     target_dte: int = cfg.CPS_TARGET_DTE,
     min_dte: int = cfg.CPS_MIN_DTE,
     max_dte: int = cfg.CPS_MAX_DTE,
+    short_delta_min: float = cfg.CPS_MIN_SHORT_DELTA,
+    short_delta_max: float = cfg.CPS_MAX_SHORT_DELTA,
+    min_coverage: int = cfg.CPS_MIN_COVERAGE_PUTS,
 ) -> Optional[tuple[str, int]]:
-    """Pick the expiration in [min_dte, max_dte] closest to target_dte.
+    """Pick the expiration in [min_dte, max_dte] closest to target_dte, BUT
+    prefer expirations that offer at least `min_coverage` band-eligible puts.
+
+    Why coverage matters: the chain-fetcher returns only ~12 ATM strikes
+    for "narrow" expirations and ~60 strikes for the one "wide" expiration.
+    Picking by DTE proximity alone can land on a narrow expiration with no
+    strikes in the 0.20-delta band. The coverage-first rule prevents that.
+
+    Falls back to closest-by-DTE when no expiration has adequate coverage
+    (preserves existing behavior on synthetic chains and edge cases).
 
     Returns (expiration_iso, dte) or None.
     """
     if asof is None:
         asof = date.today()
-    seen: dict[str, int] = {}
+    # Pass 1: bucket expirations within [min_dte, max_dte]
+    in_window: dict[str, int] = {}  # exp → dte
     for c in chain:
-        if c.expiration in seen:
+        if c.expiration in in_window:
             continue
         try:
             dte = parse_dte(c.expiration, asof)
         except (ValueError, TypeError):
             continue
         if min_dte <= dte <= max_dte:
-            seen[c.expiration] = dte
-    if not seen:
+            in_window[c.expiration] = dte
+    if not in_window:
         return None
-    best = min(seen.items(), key=lambda kv: abs(kv[1] - target_dte))
-    return best
+    # Pass 2: count band-eligible puts per expiration
+    coverage: dict[str, int] = {e: 0 for e in in_window}
+    for c in chain:
+        if c.contract_type != "put" or c.delta is None:
+            continue
+        if c.expiration not in coverage:
+            continue
+        if short_delta_min <= abs(c.delta) <= short_delta_max:
+            coverage[c.expiration] += 1
+    # Prefer expirations with adequate coverage; tie-break by proximity to target_dte
+    viable = [e for e, n in coverage.items() if n >= min_coverage]
+    pool = viable if viable else list(in_window.keys())
+    best_exp = min(pool, key=lambda e: abs(in_window[e] - target_dte))
+    return (best_exp, in_window[best_exp])
 
 
 def select_short_put(

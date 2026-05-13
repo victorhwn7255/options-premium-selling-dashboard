@@ -254,11 +254,20 @@ class MarketDataClient:
             wide_params["dte"] = 30  # fallback
         wide_data = await self._get(url, wide_params)
 
-        # Parse and merge both responses, deduplicating by (strike, expiration, side)
+        # Call 3: Wide chain at the Credit Put Spreads target DTE (35).
+        # The narrow chain returns only ~12 ATM strikes per expiration; the
+        # CPS builder needs strikes 5–10% OTM (the 0.15–0.25 delta band) at
+        # a 30–45-DTE expiration to construct a 0.20-delta short put. Without
+        # this call, expirations other than the 30-DTE skew target only have
+        # ATM coverage and the CPS pipeline fails with NO_DATA every scan.
+        # ~+33 API calls per full scan; well within MarketData's rate budget.
+        cps_wide_data = await self._get(url, {"strikeLimit": 60, "dte": 35})
+
+        # Parse and merge all responses, deduplicating by (strike, expiration, side)
         seen = set()
         contracts = []
 
-        for data in [narrow_data, wide_data]:
+        for data in [narrow_data, wide_data, cps_wide_data]:
             if not data or data.get("s") != "ok":
                 continue
             n = len(data.get("strike", []))

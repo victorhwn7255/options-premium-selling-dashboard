@@ -134,6 +134,46 @@ def test_universe_filter_excludes_non_cps_tickers():
     assert any("not in CPS_UNIVERSE" in r for r in out.rejection_reasons)
 
 
+def test_select_expiration_prefers_band_coverage_over_proximity():
+    """Two expirations both in [30,45] DTE. The one CLOSER to target_dte=35
+    has zero band-eligible puts (narrow ATM cluster). The further-from-35
+    expiration has full coverage. select_cps_expiration must prefer coverage."""
+    exp_narrow = _exp_iso(36)  # closer to 35-target but only ATM strikes
+    exp_wide = _exp_iso(30)    # further from 35 but full coverage
+    chain = [
+        # Narrow expiration: 4 ATM puts, all with deltas outside [0.15, 0.25]
+        _put(498, exp_narrow, -0.45),
+        _put(499, exp_narrow, -0.48),
+        _put(500, exp_narrow, -0.50),
+        _put(501, exp_narrow, -0.52),
+        # Wide expiration: range with 5 puts inside the 0.20-delta band
+        _put(485, exp_wide, -0.16),
+        _put(486, exp_wide, -0.18),
+        _put(487, exp_wide, -0.20),
+        _put(488, exp_wide, -0.22),
+        _put(490, exp_wide, -0.25),
+        _put(495, exp_wide, -0.40),
+    ]
+    pick = sb.select_cps_expiration(chain)
+    assert pick is not None
+    assert pick[0] == exp_wide, f"expected wide-coverage exp, got {pick[0]} (dte {pick[1]})"
+    assert pick[1] == 30
+
+
+def test_select_expiration_falls_back_to_closest_when_no_coverage():
+    """If NO expiration has adequate coverage, fall back to closest-by-DTE."""
+    exp_a = _exp_iso(32)
+    exp_b = _exp_iso(36)  # closer to 35
+    chain = [
+        _put(498, exp_a, -0.45), _put(500, exp_a, -0.50), _put(502, exp_a, -0.55),
+        _put(498, exp_b, -0.45), _put(500, exp_b, -0.50), _put(502, exp_b, -0.55),
+    ]
+    pick = sb.select_cps_expiration(chain)
+    assert pick is not None
+    # Neither has band coverage → falls back to closest-to-35 = exp_b
+    assert pick[0] == exp_b, f"expected closest-by-DTE fallback, got {pick[0]}"
+
+
 def test_no_expiration_in_window_returns_no_data():
     """If chain has no DTE in [30,45], we get NO_DATA."""
     chain = [_put(500, _exp_iso(7), -0.20)]  # 7 DTE only
@@ -530,6 +570,8 @@ if __name__ == "__main__":
 
     tests = [
         ("Universe filter excludes non-CPS tickers", test_universe_filter_excludes_non_cps_tickers),
+        ("Expiration selection prefers band coverage", test_select_expiration_prefers_band_coverage_over_proximity),
+        ("Expiration selection falls back when no coverage", test_select_expiration_falls_back_to_closest_when_no_coverage),
         ("No expiration in window → NO_DATA", test_no_expiration_in_window_returns_no_data),
         ("Short delta selection targets 0.20", test_short_delta_selection_targets_020),
         ("Short delta no match → None", test_short_delta_no_match_returns_none),
