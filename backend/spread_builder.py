@@ -123,27 +123,20 @@ def _make_leg(c: OptionContract, dte: int) -> CreditPutSpreadLeg:
 
 
 def passes_execution_filter(leg: CreditPutSpreadLeg) -> tuple[bool, list[str]]:
-    """Hard execution filter — both legs of a SELL_CPS must pass."""
+    """Mathematical sanity check on the leg's quote.
+
+    Liquidity filters (bid_ask_ratio / OI / volume) were removed: at typical
+    sector-ETF strike density and low VIX, far-OTM strikes legitimately show
+    OI < 100 and bid/ask > 20% yet still execute. The trader inspects the
+    leg's bid_ask_ratio / open_interest / volume in the detail panel and
+    decides per-spread. We only reject when the quote is mathematically
+    unusable for computing a mid / credit.
+    """
     reasons: list[str] = []
     if leg.bid <= 0:
         reasons.append(f"strike {leg.strike}: bid <= 0")
     if leg.ask <= 0 or leg.ask <= leg.bid:
         reasons.append(f"strike {leg.strike}: ask invalid (<= bid)")
-    if leg.bid_ask_ratio is None or leg.bid_ask_ratio > cfg.CPS_MAX_BID_ASK_RATIO:
-        reasons.append(
-            f"strike {leg.strike}: bid_ask_ratio "
-            f"{leg.bid_ask_ratio:.3f} > {cfg.CPS_MAX_BID_ASK_RATIO:.2f}"
-            if leg.bid_ask_ratio is not None
-            else f"strike {leg.strike}: bid_ask_ratio unavailable"
-        )
-    if (leg.open_interest or 0) < cfg.CPS_MIN_OPEN_INTEREST:
-        reasons.append(
-            f"strike {leg.strike}: OI {leg.open_interest} < {cfg.CPS_MIN_OPEN_INTEREST}"
-        )
-    if (leg.volume or 0) < cfg.CPS_MIN_VOLUME:
-        reasons.append(
-            f"strike {leg.strike}: volume {leg.volume} < {cfg.CPS_MIN_VOLUME}"
-        )
     return (len(reasons) == 0, reasons)
 
 
@@ -161,16 +154,22 @@ def select_cps_expiration(
     short_delta_max: float = cfg.CPS_MAX_SHORT_DELTA,
     min_coverage: int = cfg.CPS_MIN_COVERAGE_PUTS,
 ) -> Optional[tuple[str, int]]:
-    """Pick the expiration in [min_dte, max_dte] closest to target_dte, BUT
-    prefer expirations that offer at least `min_coverage` band-eligible puts.
+    """Pick the expiration in [min_dte, max_dte] best suited to CPS construction.
 
-    Why coverage matters: the chain-fetcher returns only ~12 ATM strikes
-    for "narrow" expirations and ~60 strikes for the one "wide" expiration.
-    Picking by DTE proximity alone can land on a narrow expiration with no
-    strikes in the 0.20-delta band. The coverage-first rule prevents that.
+    Selection key: (band_coverage, -|dte - target_dte|), maximised. Higher
+    band coverage wins; ties resolve to the expiration closest to target_dte.
+    Coverage = number of puts whose |delta| falls inside the short-leg band.
 
-    Falls back to closest-by-DTE when no expiration has adequate coverage
-    (preserves existing behavior on synthetic chains and edge cases).
+    Why coverage dominates proximity: a 60-strike chain with 17 puts in the
+    band has room for a clean 0.20-delta short AND a strike below for the
+    long leg. A 60-strike chain with 5 puts in band can have the band sit
+    at the OTM edge of the strike list, leaving no room below for the long
+    put (NO_DATA: "no eligible long put below short strike"). A 1-DTE
+    proximity advantage does not compensate for that.
+
+    `min_coverage` is retained as a vestigial parameter for backward
+    compatibility but no longer gates selection — the comparator naturally
+    prefers higher coverage when it exists.
 
     Returns (expiration_iso, dte) or None.
     """
@@ -198,10 +197,17 @@ def select_cps_expiration(
             continue
         if short_delta_min <= abs(c.delta) <= short_delta_max:
             coverage[c.expiration] += 1
-    # Prefer expirations with adequate coverage; tie-break by proximity to target_dte
-    viable = [e for e, n in coverage.items() if n >= min_coverage]
-    pool = viable if viable else list(in_window.keys())
-    best_exp = min(pool, key=lambda e: abs(in_window[e] - target_dte))
+    # Select by (band-coverage descending, then proximity-to-target ascending).
+    # Picking the highest-coverage expiration matters even when multiple clear
+    # the `min_coverage` floor: a band of 17 puts has room for a clean
+    # 0.20-delta short AND a strike below for the long leg; a band of 5 puts
+    # can sit at the OTM edge of the chain and leave no room for the long.
+    # When ALL coverages are zero the comparator reduces to proximity-only,
+    # preserving the pre-fix fallback for synthetic chains.
+    best_exp = max(
+        in_window.keys(),
+        key=lambda e: (coverage[e], -abs(in_window[e] - target_dte)),
+    )
     return (best_exp, in_window[best_exp])
 
 
@@ -567,7 +573,14 @@ def build_candidate_outcome_for_ticker(
     #   • VRP z-score known and ≥ floor (when history available).
     action: CreditPutSpreadAction
     base_passes_sell = base_score >= 65 or rec == "SELL PREMIUM"
-    base_passes_watch = base_score >= 60 or rec in ("SELL PREMIUM", "CONDITIONAL")
+    # WATCH_CPS no longer gates on the base score. The Naked-Puts score is
+    # tuned for premium-sale edge; defined-risk CPS can tolerate a wider
+    # score range as long as the structural hard gates (regime, VRP,
+    # vrp_ratio, RV accel, skew, term slope, earnings) and the
+    # credit-to-width floor are satisfied. The downstream c/w gate
+    # (CPS_WATCH_MIN_CREDIT_TO_WIDTH) plus the thin-premium warning chip
+    # surface quality differences to the trader.
+    base_passes_watch = True
 
     sell_blocked_reasons: list[str] = []
     if not base_passes_sell:

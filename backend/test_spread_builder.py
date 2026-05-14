@@ -161,7 +161,7 @@ def test_select_expiration_prefers_band_coverage_over_proximity():
 
 
 def test_select_expiration_falls_back_to_closest_when_no_coverage():
-    """If NO expiration has adequate coverage, fall back to closest-by-DTE."""
+    """If NO expiration has any band coverage, fall back to closest-by-DTE."""
     exp_a = _exp_iso(32)
     exp_b = _exp_iso(36)  # closer to 35
     chain = [
@@ -172,6 +172,38 @@ def test_select_expiration_falls_back_to_closest_when_no_coverage():
     assert pick is not None
     # Neither has band coverage → falls back to closest-to-35 = exp_b
     assert pick[0] == exp_b, f"expected closest-by-DTE fallback, got {pick[0]}"
+
+
+def test_select_expiration_prefers_higher_coverage_when_both_viable():
+    """When TWO expirations both clear the coverage threshold, the one with
+    MORE band-eligible puts wins — even if it's further from target_dte.
+
+    Regression: 2026-05-13 production scan picked DTE 36 over DTE 30 for SPY
+    because DTE 36 was closer to target_dte=35 (proximity 1 vs 5), even
+    though DTE 30 had 17 band puts vs DTE 36's 5. The narrower DTE 36 band
+    left no strikes below the short leg → NO_DATA: no eligible long put."""
+    exp_dense = _exp_iso(30)   # further from 35 but dense band
+    exp_sparse = _exp_iso(36)  # closer to 35 but sparse band
+    chain = []
+    # Dense expiration: 8 puts in the 0.15-0.25 band PLUS strikes below
+    for strike, delta in [
+        (470, -0.10), (475, -0.12), (480, -0.14),    # below-band, room for long
+        (485, -0.16), (487, -0.18), (489, -0.20),
+        (491, -0.22), (493, -0.24),                   # 5 band puts
+    ]:
+        chain.append(_put(strike, exp_dense, delta))
+    # Sparse expiration: 2 band puts, no strikes below them
+    for strike, delta in [
+        (498, -0.22), (500, -0.24),                   # 2 band puts at chain edge
+        (505, -0.30), (510, -0.40),                   # only ITM strikes below
+    ]:
+        chain.append(_put(strike, exp_sparse, delta))
+    pick = sb.select_cps_expiration(chain)
+    assert pick is not None
+    assert pick[0] == exp_dense, (
+        f"expected higher-coverage expiration (5 band puts, DTE 30), "
+        f"got {pick[0]} (DTE {pick[1]})"
+    )
 
 
 def test_no_expiration_in_window_returns_no_data():
@@ -258,49 +290,51 @@ def test_credit_to_width_below_watch_rejects():
     assert out.action == "NO_EDGE", f"expected NO_EDGE, got {out.action}"
 
 
-def test_bid_ask_ratio_rejects_wide_quote():
-    """Either leg with bid_ask_ratio > 20% → NO_DATA (rejected)."""
+def test_wide_bid_ask_no_longer_rejects():
+    """Wide bid/ask is no longer a hard rejection — surfaced as data on the
+    candidate, but the spread still builds. Trader inspects per-spread."""
     chain = make_clean_chain()
-    # Inject a wide quote on the short-pick strike (488): bid 1.00 / ask 1.50
-    # → ratio = 0.50 / 1.25 = 0.40, well above the 0.20 cap.
     for c in chain:
         if c.strike == 488:
-            c.bid = 1.0
-            c.ask = 1.5
+            # Wide ratio (0.50/2.25 = 0.22, above the old 0.20 cap) but mid
+            # stays near the clean-chain default so c/w still clears 0.10.
+            c.bid = 2.00
+            c.ask = 2.50
     tr = FakeTickerResult()
     out = sb.build_candidate_outcome_for_ticker(
         ticker="SPY", ticker_result=tr, chain=chain,
         spot=500.0, atr14=5.0, consecutive_sell_days=2,
     )
-    assert out.action == "NO_DATA"
-    assert any("bid_ask_ratio" in r for r in out.rejection_reasons)
+    assert out.candidate is not None, out.rejection_reasons
+    assert out.candidate.short_put.bid_ask_ratio is not None
+    assert out.candidate.short_put.bid_ask_ratio > 0.20
 
 
-def test_oi_too_low_rejects():
-    """OI < 100 → reject."""
+def test_low_oi_no_longer_rejects():
+    """Low OI is no longer a hard rejection."""
     chain = make_clean_chain()
     for c in chain:
-        c.open_interest = 50  # Too low
+        c.open_interest = 50  # Below the old 100 floor
     tr = FakeTickerResult()
     out = sb.build_candidate_outcome_for_ticker(
         ticker="SPY", ticker_result=tr, chain=chain,
         spot=500.0, atr14=5.0, consecutive_sell_days=2,
     )
-    assert out.action == "NO_DATA"
-    assert any("OI" in r for r in out.rejection_reasons)
+    assert out.candidate is not None, out.rejection_reasons
+    assert out.candidate.short_put.open_interest == 50
 
 
-def test_volume_too_low_rejects():
-    """Volume < 25 → reject."""
+def test_low_volume_no_longer_rejects():
+    """Low volume is no longer a hard rejection."""
     chain = make_clean_chain()
     for c in chain:
-        c.volume = 10
+        c.volume = 10  # Below the old 25 floor
     tr = FakeTickerResult()
     out = sb.build_candidate_outcome_for_ticker(
         ticker="SPY", ticker_result=tr, chain=chain,
         spot=500.0, atr14=5.0, consecutive_sell_days=2,
     )
-    assert out.action == "NO_DATA"
+    assert out.candidate is not None, out.rejection_reasons
 
 
 def test_danger_regime_rejects():
@@ -599,6 +633,7 @@ if __name__ == "__main__":
         ("Universe filter excludes non-CPS tickers", test_universe_filter_excludes_non_cps_tickers),
         ("Expiration selection prefers band coverage", test_select_expiration_prefers_band_coverage_over_proximity),
         ("Expiration selection falls back when no coverage", test_select_expiration_falls_back_to_closest_when_no_coverage),
+        ("Expiration selection prefers higher coverage", test_select_expiration_prefers_higher_coverage_when_both_viable),
         ("No expiration in window → NO_DATA", test_no_expiration_in_window_returns_no_data),
         ("Short delta selection targets 0.20", test_short_delta_selection_targets_020),
         ("Short delta no match → None", test_short_delta_no_match_returns_none),
@@ -606,9 +641,9 @@ if __name__ == "__main__":
         ("ATR-aware width rounds to strike grid", test_atr_aware_width_rounds_to_strike_grid),
         ("Spread economics math", test_economics_basic),
         ("credit/width < 20% rejects", test_credit_to_width_below_watch_rejects),
-        ("bid_ask_ratio > 20% rejects", test_bid_ask_ratio_rejects_wide_quote),
-        ("OI < 100 rejects", test_oi_too_low_rejects),
-        ("Volume < 25 rejects", test_volume_too_low_rejects),
+        ("Wide bid/ask no longer rejects", test_wide_bid_ask_no_longer_rejects),
+        ("Low OI no longer rejects", test_low_oi_no_longer_rejects),
+        ("Low volume no longer rejects", test_low_volume_no_longer_rejects),
         ("DANGER regime rejects", test_danger_regime_rejects),
         ("term_slope > 1.15 rejects", test_term_slope_over_danger_threshold_rejects),
         ("vrp_ratio < 1.15 rejects", test_vrp_ratio_below_threshold_rejects),

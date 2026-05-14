@@ -246,8 +246,13 @@ class MarketDataClient:
                     best_diff = abs(dte - 30)
                     skew_exp_str = exp_date.isoformat()
 
-        # Call 2: Wide chain — wide strikes for skew at the exact expiration
-        wide_params = {"strikeLimit": 60}
+        # Call 2: Wide chain — wide strikes for skew at the exact expiration.
+        # strikeLimit=120 ensures the chain reaches far enough OTM at low VIX
+        # for CPS short-put selection in the 0.15-0.25 delta band PLUS room
+        # below for the long leg. (At low VIX the band sits ~10% OTM; with
+        # 60 strikes the band could land at the chain edge and leave no
+        # strikes below for the long.)
+        wide_params = {"strikeLimit": 120}
         if skew_exp_str:
             wide_params["expiration"] = skew_exp_str
         else:
@@ -260,8 +265,9 @@ class MarketDataClient:
         # a 30–45-DTE expiration to construct a 0.20-delta short put. Without
         # this call, expirations other than the 30-DTE skew target only have
         # ATM coverage and the CPS pipeline fails with NO_DATA every scan.
-        # ~+33 API calls per full scan; well within MarketData's rate budget.
-        cps_wide_data = await self._get(url, {"strikeLimit": 60, "dte": 35})
+        # strikeLimit=120 (vs. 60) gives room below the short for the long
+        # leg even on higher-IV underlyings like QQQ at low market VIX.
+        cps_wide_data = await self._get(url, {"strikeLimit": 120, "dte": 35})
 
         # Parse and merge all responses, deduplicating by (strike, expiration, side)
         seen = set()

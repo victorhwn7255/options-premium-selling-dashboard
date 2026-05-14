@@ -394,10 +394,16 @@ def _build_cps_response(
                 pass  # display-only context; never block on this
 
         # Bucket for the rejection summary.
-        if outcome.action in ("SELL_CPS", "WATCH_CPS", "WAIT"):
+        # An outcome is "actionable" only when a candidate was actually built —
+        # SELL_CPS / WATCH_CPS reach step 12 with `candidate != None`. A WAIT
+        # produced by base-gate failure (e.g. RV_accel > threshold) has
+        # `candidate=None` and belongs in the rejection buckets so the
+        # classifier can route it correctly (its "wait: rv_accel" reason maps
+        # to `base_gate`). Counting it as actionable inflated the displayed
+        # count while leaving the candidates list empty.
+        if outcome.candidate is not None and outcome.action in ("SELL_CPS", "WATCH_CPS"):
             summary.actionable += 1
-            if outcome.candidate is not None:
-                candidates.append(outcome.candidate)
+            candidates.append(outcome.candidate)
         else:
             bucket = _classify_rejection_reasons(outcome.rejection_reasons)
             if bucket == "overlay":
