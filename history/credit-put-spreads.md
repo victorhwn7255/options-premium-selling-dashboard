@@ -38,6 +38,22 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-05-20 (Wednesday)
+
+**Scan summary:** Checked 11 / 4 actionable / 6 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 17.44 / VIX3M 20.76 / VVIX 96.4 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 4d | 49 | 12.8% | $1.28 | $10 | $8.72 | Acceptable | Thin premium |
+| 2 | QQQ | WATCH | 4d | 43 | 14.7% | $1.47 | $10 | $8.53 | Caution | Thin premium |
+| 3 | IWM | WATCH | 4d | 42 | 13.5% | $0.81 | $6 | $5.19 | Acceptable | Thin premium |
+| 4 | XLF | WATCH | 0d | 41 | 13.0% | $0.07 | $1 | $0.43 | Good | Thin premium |
+
+**Notable:** Days counter reaches **4d for the first time** on SPY/QQQ/IWM (Thu+Fri+Mon+Tue eligibility accumulated cleanly) — SELL_CPS confirmation gate fully exceeded; only c/w < 25% gates remain. XLF re-entered at Day-0 after two construction rejections — sector ETF still hitting the "$1-wide trap" ($0.07 credit / $43 max loss). **ATR-aware width expanded post-NVDA print:** SPY width $6 → **$10**, IWM width $4 → **$6**, QQQ width $9 → $10. Credit scaled proportionally so c/w held in the 12-15% range — same ratio, larger dollar exposure. IWM RV improved Caution → Acceptable (accel 1.13 → 1.00 boundary); SPY degraded Good → Acceptable (accel 0.99 → 1.00). Construction rejection = XLI (NO_DATA chain anomaly today). **VIX ticked DOWN 18.06 → 17.44 despite NVDA print** — the expected post-earnings ETF-premium expansion did not materialize. Jun 10-15 RV30 unwind window remains the realistic next SELL_CPS catalyst.
+
+---
+
 ## 2026-05-19 (Tuesday)
 
 **Scan summary:** Checked 11 / 3 actionable / 7 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
