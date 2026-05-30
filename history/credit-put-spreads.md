@@ -38,6 +38,20 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-05-29 (Friday)
+
+**Scan summary:** Checked 11 / 2 actionable / 8 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.32 / VIX3M 18.66 / VVIX 86.1 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | QQQ | WATCH | 10d | 51 | 14.6% | $1.31 | $9 | $7.69 | Acceptable | Thin premium |
+| 2 | SPY | WATCH | 10d | 38 | 12.3% | $0.74 | $6 | $5.26 | Acceptable | Thin premium |
+
+**Notable:** **Days = 10d double-digit milestone** for SPY/QQQ — ten consecutive trading days of eligibility. **XLI's Day-1 pop didn't hold** (yesterday at 0d c/w 10.0% boundary, today construction-rejected — predicted). **VIX continues lower (15.74 → 15.32 — third consecutive cycle low)** despite this week's major single-stock setups (NKE first SELL, JNJ +19 NEW CONDITIONAL, MSFT VRP cross-zero). **Critical signal-decoupling observation:** single-stock vol expansion does NOT propagate to broad-ETF c/w. SPY/QQQ c/w stayed range-bound 12-15% across all 10 sessions while the Naked Puts cohort fully reorganized around NKE/JNJ/MSFT. **The framework conclusion after 10 sessions of data:** for first SELL_CPS to fire, we need market-wide vol expansion (VIX 22+), not single-name surprises. Earnings cluster didn't trigger; today's single-stock breakthroughs didn't trigger. The catalyst remains elusive. **SPY decoupled from NP regime:** lost CONDITIONAL (-4 to 38) in NP but stayed in CPS WATCH (c/w 12.3% above 10% gate) — CPS Days counter persistence is independent of NP score band. Trade book: NKE Full + JNJ Quarter-Half (both Naked Puts, single stocks not in CPS_UNIVERSE). CPS tab continues WATCH-only.
+
+---
+
 ## 2026-05-28 (Thursday)
 
 **Scan summary:** Checked 11 / 3 actionable / 8 base_gate / 0 construction / 0 execution / 0 overlay / 0 confirmation
