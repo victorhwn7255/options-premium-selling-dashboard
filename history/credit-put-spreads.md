@@ -127,3 +127,67 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 **Notable:** **Days = 5d milestone** — third straight day of streak advancement (3d → 4d → 5d for SPY/QQQ/IWM). XLF correctly dropped out (accel 1.21 base-gate breach matched yesterday's forecast). XLI breakthrough (Naked Puts score 59 #1) did NOT materialize as a CPS candidate — construction-rejected (c/w < 10% gate; same "$1-wide trap" pattern as XLF/XLB). VIX dropped 17.44 → 16.76 despite the three "stuck-slope" earnings prints — post-NVDA reaction was a fade, not a spike. **ATR contracting on SPY ($10 → $6, -40%) and IWM ($6 → $4, -33%)** — width adjustment confirms realized vol is calming faster than the briefing's stress narrative suggested. c/w continues narrowing across the board (SPY −0.2, QQQ −0.3). Jun 10-15 (possibly Jun 17-24 per stuck-slope earnings pattern) remains the realistic next SELL_CPS catalyst window.
 
 ---
+
+## 2026-05-20 (Wednesday)
+
+**Scan summary:** Checked 11 / 4 actionable / 6 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 17.44 / VIX3M 20.76 / VVIX 96.4 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 4d | 49 | 12.8% | $1.28 | $10 | $8.72 | Acceptable | Thin premium |
+| 2 | QQQ | WATCH | 4d | 43 | 14.7% | $1.47 | $10 | $8.53 | Caution | Thin premium |
+| 3 | IWM | WATCH | 4d | 42 | 13.5% | $0.81 | $6 | $5.19 | Acceptable | Thin premium |
+| 4 | XLF | WATCH | 0d | 41 | 13.0% | $0.07 | $1 | $0.43 | Good | Thin premium |
+
+**Notable:** Days counter reaches **4d for the first time** on SPY/QQQ/IWM (Thu+Fri+Mon+Tue eligibility accumulated cleanly) — SELL_CPS confirmation gate fully exceeded; only c/w < 25% gates remain. XLF re-entered at Day-0 after two construction rejections — sector ETF still hitting the "$1-wide trap" ($0.07 credit / $43 max loss). **ATR-aware width expanded post-NVDA print:** SPY width $6 → **$10**, IWM width $4 → **$6**, QQQ width $9 → $10. Credit scaled proportionally so c/w held in the 12-15% range — same ratio, larger dollar exposure. IWM RV improved Caution → Acceptable (accel 1.13 → 1.00 boundary); SPY degraded Good → Acceptable (accel 0.99 → 1.00). Construction rejection = XLI (NO_DATA chain anomaly today). **VIX ticked DOWN 18.06 → 17.44 despite NVDA print** — the expected post-earnings ETF-premium expansion did not materialize. Jun 10-15 RV30 unwind window remains the realistic next SELL_CPS catalyst.
+
+---
+
+## 2026-05-19 (Tuesday)
+
+**Scan summary:** Checked 11 / 3 actionable / 7 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 18.06 / VIX3M 21.12 / VVIX 94.6 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 3d | 60 | 12.8% | $0.77 | $6 | $5.23 | Good | Thin premium |
+| 2 | QQQ | WATCH | 3d | 46 | 13.4% | $1.21 | $9 | $7.79 | Caution | Thin premium |
+| 3 | IWM | WATCH | 3d | 39 | 15.6% | $0.63 | $4 | $3.38 | Caution | Thin premium |
+
+**Notable:** **First Day-3 confirmation streak since deploy** — 2-day SELL_CPS gate procedurally exceeded for SPY/QQQ/IWM. c/w narrowed on all three despite VIX +0.24 (17.82 → 18.06): SPY 13.4 → 12.8, QQQ 14.5 → 13.4, IWM 16.2 → 15.6. Pre-NVDA-print IV expansion NOT translating to fatter ETF premium — the thin-premium regime is unusually sticky. SPY RV Status improved Acceptable → Good (accel 1.03 → 0.99); QQQ and IWM still Caution. XLF construction-rejected again (sector ETF at low VIX can't clear 10% c/w gate). Same 3 names persisting day-over-day.
+
+---
+
+## 2026-05-18 (Monday)
+
+**Scan summary:** Checked 11 / 3 actionable / 7 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 17.82 / VIX3M 20.92 / VVIX 91.2 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 2d | 55 | 13.4% | $0.81 | $6 | $5.19 | Acceptable | Thin premium |
+| 2 | QQQ | WATCH | 2d | 53 | 14.5% | $1.16 | $8 | $6.84 | Caution | Thin premium |
+| 3 | IWM | WATCH | 2d | 35 | 16.2% | $0.65 | $4 | $3.35 | Caution | Thin premium |
+
+**Notable:** First scan with Days counter = 2d — the 2-day confirmation gate is now mathematically reachable for SELL_CPS. None qualify (all c/w < 25%) so still WATCH-only. Universe shrunk 6 → 3 as 7 tickers failed base gates (GLD/XLV/XLI/XLE vrp_ratio < 1.15, TLT/XLB/EEM accel > 1.20). XLF built a spread but c/w < 10% (construction-rejected) — the $1-wide trap correctly self-filters at low VIX. RV Status degraded universally: SPY Excellent → Acceptable, QQQ Acceptable → Caution, IWM Good → Caution.
+
+---
+
+## 2026-05-14 (Thursday)
+
+**Scan summary:** Checked 11 / 6 actionable / 3 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 17.26 / VIX3M 20.85 / VVIX 94.3 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 0d | 59 | 13.0% | $0.78 | $6 | $5.22 | Excellent | Thin premium |
+| 2 | XLF | WATCH | 0d | 59 | 12.0% | $0.12 | $1 | $0.88 | Excellent | Thin premium |
+| 3 | QQQ | WATCH | 0d | 57 | 16.1% | $1.28 | $8 | $6.72 | Acceptable | Thin premium |
+| 4 | IWM | WATCH | 0d | 44 | 15.0% | $0.60 | $4 | $3.40 | Good | Thin premium |
+| 5 | GLD | WATCH | 0d | 39 | 14.2% | $1.42 | $10 | $8.58 | Acceptable | Thin premium |
+| 6 | XLB | WATCH | 0d | 8 | 11.5% | $0.11 | $1 | $0.89 | Caution | Thin premium |
+
+**Notable:** First scan after CPS-fix deploy (expiration-selector + strikeLimit=120 + execution-filter removal + WATCH_CPS score-gate removal). All six candidates Day-0 of confirmation streak — no SELL_CPS possible until Monday May 18 at earliest if any of SPY/QQQ/IWM/XLF clear 25% c/w (unlikely at current VIX).
+
+---
