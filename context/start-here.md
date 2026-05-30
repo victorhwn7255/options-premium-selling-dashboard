@@ -1,9 +1,12 @@
 ---
-last_verified: 2026-04-27
-verified_against: 0fd80ce
+last_verified: 2026-05-29
+verified_against: 71cb851
 rot_risk: low
 rot_triggers:
   - context/ (any file added or removed)
+  - references/ (CPS docs added or removed)
+  - tasks/todo.md (added/removed)
+  - history/credit-put-spreads.md (added/removed)
 audience: both
 ---
 
@@ -14,11 +17,14 @@ audience: both
 **If you are a new Claude Code agent starting a session, follow these steps:**
 
 1. **Read every file in this `/context/` folder** in the order listed below. Do not skip any files.
-2. **Also read** the two primary source files: [`references/strategy.md`](../references/strategy.md) and [`references/metrics.md`](../references/metrics.md).
-3. **Read session memory** — these carry knowledge from previous agents:
+2. **Also read** the primary source files: [`references/strategy.md`](../references/strategy.md), [`references/metrics.md`](../references/metrics.md), [`references/credit-put-spreads.md`](../references/credit-put-spreads.md), and [`references/credit_put_spreads_build_plan.md`](../references/credit_put_spreads_build_plan.md).
+3. **Read session memory and active state** — these carry knowledge from previous agents and current work:
    - [`tasks/lessons.md`](../tasks/lessons.md) — mistakes and patterns from past sessions (learn so you don't repeat them)
    - [`references/change-logs.md`](../references/change-logs.md) — recent project changes in reverse chronological order
-4. **After reading everything**, respond to the user with a structured summary of your understanding — cover: what the project does, the architecture, the scoring engine, the regime system, key fragile areas, and important design decisions.
+   - [`tasks/todo.md`](../tasks/todo.md) — post-MVP backlog with prioritized bands
+   - [`history/daily-briefings.md`](../history/daily-briefings.md) latest 5-7 entries — current regime, active positions
+   - [`history/credit-put-spreads.md`](../history/credit-put-spreads.md) latest 3-5 entries — CPS confirmation streaks, c/w patterns
+4. **After reading everything**, respond to the user with a structured summary of your understanding — cover: what the project does, the architecture, the scoring engine (Naked Puts + Credit Put Spreads), the regime system, current market regime and active positions, key fragile areas, and important design decisions.
 5. **Wait for the user to confirm** your understanding is correct before starting any task.
 
 ### Reading Order
@@ -38,9 +44,13 @@ Read in this exact sequence:
 | 9 | `3-guardrails/decisions/` (all 11 ADRs) | Non-obvious design choices — read so you don't accidentally "fix" them |
 | 10 | [`references/strategy.md`](../references/strategy.md) | Trading strategy thesis (primary source) |
 | 11 | [`references/metrics.md`](../references/metrics.md) | Metric formulas and computation details (primary source) |
-| 12 | [`tasks/lessons.md`](../tasks/lessons.md) | Mistakes and patterns from previous agents — avoid repeating them |
-| 13 | [`references/change-logs.md`](../references/change-logs.md) | Recent project changes — know what was last touched and why |
-| 14 | [`history/daily-briefings.md`](../history/daily-briefings.md) (latest 2-3 entries) | Recent trading analysis — regime context, active positions, market state |
+| 12 | [`references/credit-put-spreads.md`](../references/credit-put-spreads.md) | CPS canonical spec — defined-risk strategy, gates, position rules |
+| 13 | [`references/credit_put_spreads_build_plan.md`](../references/credit_put_spreads_build_plan.md) | CPS build plan — Phase 1-5 shipped, Phase 6 items still active |
+| 14 | [`tasks/lessons.md`](../tasks/lessons.md) | Mistakes and patterns from previous agents — avoid repeating them |
+| 15 | [`references/change-logs.md`](../references/change-logs.md) | Recent project changes — know what was last touched and why |
+| 16 | [`tasks/todo.md`](../tasks/todo.md) | Post-MVP backlog — what's queued and prioritized |
+| 17 | [`history/daily-briefings.md`](../history/daily-briefings.md) (latest 5-7 entries) | Recent trading analysis — regime context, active positions, market state |
+| 18 | [`history/credit-put-spreads.md`](../history/credit-put-spreads.md) (latest 3-5 entries) | Recent CPS scan snapshots — confirmation streaks, c/w patterns |
 
 ---
 
@@ -91,10 +101,15 @@ This folder is **derived explanation** — it captures *why*, *what's weird*, *h
 
 | File | Question it answers |
 |------|---------------------|
-| [`metrics-logs.md`](../history/metrics-logs.md) | What were the raw scan numbers? One table per trading day with all 33 tickers, sorted by score. |
+| [`metrics-logs.md`](../history/metrics-logs.md) | What were the raw Naked Puts scan numbers? One table per trading day with all 33 tickers, sorted by score. |
 | [`daily-briefings.md`](../history/daily-briefings.md) | What was the analysis? Regime assessment, day-over-day deltas, trade recommendations, position calls. |
+| [`credit-put-spreads.md`](../history/credit-put-spreads.md) | What were the CPS scan candidates? Scan summary + overlay + candidates table per day; confirmation streaks and c/w patterns. |
 
-These files are maintained through the **Daily Scan Workflow** (see `CLAUDE.md`). When the user pastes metrics, the agent analyses, recommends, and logs to both files.
+These files are maintained through the **Daily Scan Workflow** (see `CLAUDE.md`). When the user pastes metrics, the agent analyses, recommends, and logs to all three files.
+
+## Sibling Skills
+
+When the user pastes daily Naked Puts scan metrics or a CPS tab copy-button output, invoke the `daily-briefing` skill — it handles the analysis + logging workflow against `history/`. Don't reimplement that workflow inside an onboarding session.
 
 ### Decisions Index
 
