@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type {
   CreditPutSpreadsResponse, CreditPutSpreadCandidate,
   RegimeOverlay, CPSRejectionSummary,
@@ -8,6 +8,76 @@ import type {
 import { fetchCreditPutSpreads } from '@/lib/api';
 import CreditPutSpreadTable from './CreditPutSpreadTable';
 import CreditPutSpreadDetailPanel from './CreditPutSpreadDetailPanel';
+
+function buildScanMarkdown(data: CreditPutSpreadsResponse): string {
+  const s = data.rejectionSummary;
+  const o = data.regimeOverlay;
+  const scanLine = s
+    ? `**Scan summary:** Checked ${s.checked} / ${s.actionable} actionable / ${s.rejectedByBaseGate} base_gate / ${s.rejectedByConstruction} construction / ${s.rejectedByExecution} execution / ${s.rejectedByOverlay} overlay / ${s.rejectedByConfirmation} confirmation`
+    : `**Scan summary:** (unavailable)`;
+  const termWord = o.vixBackwardation == null ? '—' : o.vixBackwardation ? 'Backwardation' : 'Contango';
+  const overlayLine = `**Overlay:** VIX ${o.vix != null ? o.vix.toFixed(2) : '—'} / VIX3M ${o.vix3m != null ? o.vix3m.toFixed(2) : '—'} / VVIX ${o.vvix != null ? o.vvix.toFixed(1) : '—'} — ${o.status}, ${termWord}`;
+  const lines: string[] = [scanLine, overlayLine];
+  if (data.candidates.length > 0) {
+    lines.push('');
+    lines.push('| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |');
+    lines.push('|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|');
+    data.candidates.forEach((c, i) => {
+      const action = c.action.replace('_CPS', '');
+      const days = `${c.consecutiveSellDays}d`;
+      const score = String(Math.round(c.baseScore));
+      const cw = `${(c.creditToWidth * 100).toFixed(1)}%`;
+      const credit = `$${c.netCredit.toFixed(2)}`;
+      const width = `$${c.width % 1 === 0 ? c.width.toFixed(0) : c.width.toFixed(2)}`;
+      const maxLoss = `$${c.maxLoss.toFixed(2)}`;
+      const rv = c.rvAccelStatus ?? '—';
+      const note = (c.warnings[0] ?? '').split('—')[0].trim().slice(0, 18) || '—';
+      lines.push(`| ${i + 1} | ${c.ticker} | ${action} | ${days} | ${score} | ${cw} | ${credit} | ${width} | ${maxLoss} | ${rv} | ${note} |`);
+    });
+  }
+  return lines.join('\n');
+}
+
+function CopyScanButton({ data }: { data: CreditPutSpreadsResponse }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = useCallback(() => {
+    const md = buildScanMarkdown(data);
+    navigator.clipboard.writeText(md).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [data]);
+
+  return (
+    <span className="relative group">
+      <button
+        onClick={handleCopy}
+        className="p-1 rounded hover:bg-surface-alt transition-colors"
+        aria-label="Copy scan to clipboard"
+      >
+        {copied ? (
+          <svg className="w-4 h-4 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+        ) : (
+          <svg className="w-4 h-4 text-txt-tertiary hover:text-txt transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+          </svg>
+        )}
+      </button>
+      <span
+        className="pointer-events-none absolute right-0 top-full mt-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 origin-top-right z-50"
+        style={{ background: 'var(--color-tooltip-bg)', color: 'var(--color-tooltip-text)' }}
+      >
+        <span className="flex items-center rounded-lg px-3.5 py-2.5 shadow-lg whitespace-nowrap" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
+          <span className="text-2xs font-medium" style={{ color: 'var(--color-tooltip-text)' }}>
+            {copied ? 'Copied!' : 'Copy scan to clipboard'}
+          </span>
+        </span>
+      </span>
+    </span>
+  );
+}
 
 function statusColor(status: string): { fg: string; bg: string; border: string } {
   switch (status) {
@@ -143,9 +213,10 @@ interface EmptyStateProps {
   message?: string | null;
   summary?: CPSRejectionSummary | null;
   universe: string[];
+  data: CreditPutSpreadsResponse;
 }
 
-function EmptyState({ message, summary, universe }: EmptyStateProps) {
+function EmptyState({ message, summary, universe, data }: EmptyStateProps) {
   return (
     <div className="bg-surface rounded-lg border border-border px-5 sm:px-6 py-6">
       <p className="text-sm font-medium text-txt mb-1">
@@ -158,8 +229,11 @@ function EmptyState({ message, summary, universe }: EmptyStateProps) {
       </p>
       {summary && (
         <>
-          <div className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase mb-2">
-            Rejection summary
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
+              Rejection summary
+            </div>
+            <CopyScanButton data={data} />
           </div>
           <RejectionSummaryChips summary={summary} />
           <p className="text-[11px] text-txt-tertiary mt-3 leading-relaxed">
@@ -238,14 +312,18 @@ export default function CreditPutSpreadsTab() {
           message={data.message}
           summary={data.rejectionSummary}
           universe={data.cpsUniverse}
+          data={data}
         />
       ) : (
         <>
           {/* Compact rejection summary (always show when present, even with candidates) */}
           {data.rejectionSummary && (
             <div className="rounded-lg border border-border-subtle bg-surface-alt px-4 py-3">
-              <div className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase mb-2">
-                Scan summary
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
+                  Scan summary
+                </div>
+                <CopyScanButton data={data} />
               </div>
               <RejectionSummaryChips summary={data.rejectionSummary} />
             </div>
