@@ -1,0 +1,100 @@
+"""Headless Claude invocation (Max subscription) for the briefing prose + CPS Notable.
+
+Claude returns ONLY the prose to stdout; the orchestrator validates and inserts it. The job
+env strips ANTHROPIC_API_KEY so Claude Code uses the Max subscription (zero API cost), never
+the paid API. Auth failures are detected and reported (never silently produce a bad entry).
+"""
+from __future__ import annotations
+
+import json
+import os
+import re
+import subprocess
+from datetime import date
+
+from .. import config
+from . import prompts
+
+# Substrings that indicate the Max session needs re-login / the call wasn't authorized.
+_AUTH_PATTERNS = re.compile(
+    r"(invalid api key|authentication|please run|/login|not logged in|log ?in|oauth|"
+    r"credit balance|unauthorized|401|forbidden)",
+    re.I,
+)
+
+
+class ClaudeAuthError(Exception):
+    pass
+
+
+def _invoke(prompt: str, timeout: int = 300) -> str:
+    """Run `claude -p` headless on the Max plan. Returns stdout text; raises ClaudeAuthError
+    on an auth problem and RuntimeError on other failures/timeouts."""
+    env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
+    try:
+        res = subprocess.run(
+            [config.CLAUDE_BIN, "-p", prompt, "--output-format", "text"],
+            env=env, cwd=os.path.expanduser("~"),  # neutral cwd: prompt is self-contained, and
+            capture_output=True, text=True, timeout=timeout,  # avoids node needing ~/Downloads access
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("claude -p timed out")
+    out, err = (res.stdout or "").strip(), (res.stderr or "").strip()
+    if res.returncode != 0:
+        if _AUTH_PATTERNS.search(err) or _AUTH_PATTERNS.search(out):
+            raise ClaudeAuthError(err or out)
+        raise RuntimeError(f"claude -p failed (rc={res.returncode}): {err or out}")
+    if not out:
+        raise RuntimeError("claude -p returned empty output")
+    return out
+
+
+def _briefing_valid(text: str, sp: dict) -> bool:
+    return (
+        text.startswith(f"**Regime:** {sp['regime_label']}")
+        and f"**Tradeable:** {sp['tradeable_str']}" in text
+        and f"**Avg VRP:** {sp['avg_vrp_str']}" in text
+        and "**Position:" in text
+    )
+
+
+def run_briefing(d: date, statpack: dict, np_table: str, cps_block: str,
+                 recent_briefings: str, n: int = 7) -> str:
+    """Return the daily-briefings entry body (regime line → narrative → Position line).
+    Raises ClaudeAuthError on auth failure, RuntimeError if the output can't be validated."""
+    prompt = prompts.BRIEFING_PROMPT.format(
+        date=d.isoformat(), weekday=d.strftime("%A"),
+        regime_label=statpack["regime_label"], tradeable_str=statpack["tradeable_str"],
+        avg_vrp_str=statpack["avg_vrp_str"], statpack_json=json.dumps(statpack, indent=2),
+        np_table=np_table, cps_block=cps_block or "(no CPS data today)",
+        recent_briefings=recent_briefings, n=n,
+    )
+    out = _invoke(prompt)
+    if not _briefing_valid(out, statpack):
+        # One stricter retry — most failures are a stray preamble or a tweaked number.
+        strict = prompt + (
+            "\n\nYOUR PREVIOUS ATTEMPT WAS REJECTED (altered a verified number or added text). "
+            f"Output must START with exactly:\n**Regime:** {statpack['regime_label']} "
+            f"(<qualifier>) | **Tradeable:** {statpack['tradeable_str']} | "
+            f"**Avg VRP:** {statpack['avg_vrp_str']}\nand contain a **Position:** line. Nothing else."
+        )
+        out = _invoke(strict)
+        if not _briefing_valid(out, statpack):
+            raise RuntimeError("briefing output failed validation (numbers/format)")
+    return out
+
+
+def _clean_notable(text: str) -> str:
+    """Strip an accidental leading `Notable:` / `**Notable:**` label without harming an
+    intended opening bold like `**Days = 13d …**` (which the real Notables start with)."""
+    return re.sub(r"^\*{0,2}Notable:\*{0,2}\s*", "", text.strip()).strip()
+
+
+def run_cps_notable(d: date, statpack: dict, cps_block: str, recent_cps: str, n: int = 5) -> str:
+    """Return the CPS Notable paragraph prose (no '**Notable:**' prefix)."""
+    prompt = prompts.CPS_NOTABLE_PROMPT.format(
+        date=d.isoformat(), weekday=d.strftime("%A"),
+        cps_block=cps_block, statpack_json=json.dumps(statpack, indent=2),
+        recent_cps=recent_cps, n=n,
+    )
+    return _clean_notable(_invoke(prompt))

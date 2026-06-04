@@ -33,3 +33,9 @@ prompts/
 sample/
 # TypeScript incremental build cache — should never be committed
 frontend/tsconfig.tsbuildinfo
+
+# History auto-updater runtime artifacts (automation/)
+automation/staging/
+automation/logs/
+# Throwaway automation demo/test output
+history/_test/
