@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.optionharvest.history</string>
+
+  <!-- Runs python3 directly (no shell wrapper) so ONLY the python3 binary needs Full Disk
+       Access to reach the repo under ~/Downloads. Claude runs from $HOME (see runner.py),
+       so node needs no disk access. Remove the <string>--shadow</string> line to go live. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Library/Frameworks/Python.framework/Versions/3.13/bin/python3</string>
+    <string>-m</string>
+    <string>automation.run_history_update</string>
+    <string>--shadow</string>
+    <string>--quiet</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/victor_he/Downloads/Code/option-harvest</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- node (for claude) on PATH; CLAUDE_BIN absolute; ANTHROPIC_API_KEY deliberately absent -> Max plan -->
+    <key>PATH</key>
+    <string>/Users/victor_he/.nvm/versions/node/v22.22.0/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>CLAUDE_BIN</key>
+    <string>/Users/victor_he/.nvm/versions/node/v22.22.0/bin/claude</string>
+  </dict>
+
+  <!-- 09:00 Mac-local (SGT) daily; runs once on next wake if the Mac was asleep at 09:00. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>9</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/victor_he/Downloads/Code/option-harvest/automation/logs/launchd.out</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/victor_he/Downloads/Code/option-harvest/automation/logs/launchd.err</string>
+</dict>
+</plist>

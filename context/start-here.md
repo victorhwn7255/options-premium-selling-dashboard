@@ -1,12 +1,13 @@
 ---
-last_verified: 2026-05-29
-verified_against: 71cb851
+last_verified: 2026-06-04
+verified_against: main
 rot_risk: low
 rot_triggers:
   - context/ (any file added or removed)
   - references/ (CPS docs added or removed)
   - tasks/todo.md (added/removed)
   - history/credit-put-spreads.md (added/removed)
+  - automation/ (history auto-updater added/changed)
 audience: both
 ---
 
@@ -24,7 +25,7 @@ audience: both
    - [`tasks/todo.md`](../tasks/todo.md) — post-MVP backlog with prioritized bands
    - [`history/daily-briefings.md`](../history/daily-briefings.md) latest 5-7 entries — current regime, active positions
    - [`history/credit-put-spreads.md`](../history/credit-put-spreads.md) latest 3-5 entries — CPS confirmation streaks, c/w patterns
-4. **After reading everything**, respond to the user with a structured summary of your understanding — cover: what the project does, the architecture, the scoring engine (Naked Puts + Credit Put Spreads), the regime system, current market regime and active positions, key fragile areas, and important design decisions.
+4. **After reading everything**, respond to the user with a structured summary of your understanding — cover: what the project does, the architecture, the scoring engine (Naked Puts + Credit Put Spreads), the regime system, current market regime and active positions, the **history auto-updater** (`automation/`), key fragile areas, and important design decisions.
 5. **Wait for the user to confirm** your understanding is correct before starting any task.
 
 ### Reading Order
@@ -51,6 +52,7 @@ Read in this exact sequence:
 | 16 | [`tasks/todo.md`](../tasks/todo.md) | Post-MVP backlog — what's queued and prioritized |
 | 17 | [`history/daily-briefings.md`](../history/daily-briefings.md) (latest 5-7 entries) | Recent trading analysis — regime context, active positions, market state |
 | 18 | [`history/credit-put-spreads.md`](../history/credit-put-spreads.md) (latest 3-5 entries) | Recent CPS scan snapshots — confirmation streaks, c/w patterns |
+| 19 | [`automation/README.md`](../automation/README.md) | **History auto-updater** — the daily pipeline that now writes the 3 `history/` files automatically (deterministic tables + Claude-written briefings on the Max plan, launchd-scheduled, shadow/live modes, capture-before-Claude). Read so you don't duplicate or fight it. |
 
 ---
 
@@ -105,7 +107,15 @@ This folder is **derived explanation** — it captures *why*, *what's weird*, *h
 | [`daily-briefings.md`](../history/daily-briefings.md) | What was the analysis? Regime assessment, day-over-day deltas, trade recommendations, position calls. |
 | [`credit-put-spreads.md`](../history/credit-put-spreads.md) | What were the CPS scan candidates? Scan summary + overlay + candidates table per day; confirmation streaks and c/w patterns. |
 
-These files are maintained through the **Daily Scan Workflow** (see `CLAUDE.md`). When the user pastes metrics, the agent analyses, recommends, and logs to all three files.
+These files are maintained two ways: **(1) manually** through the **Daily Scan Workflow** (see `CLAUDE.md`) when the user pastes metrics (the `daily-briefing` skill analyses, recommends, and logs to all three files), and **(2) automatically** by the **history auto-updater** in [`automation/`](../automation/README.md) — a launchd-scheduled daily job that does the same thing unattended (deterministic tables + Claude-written briefings on the Max plan). Both write the identical format; don't hand-log a day the automation already covered.
+
+### `automation/` — How the history files get written automatically
+
+| File | Question it answers |
+|------|---------------------|
+| [`automation/README.md`](../automation/README.md) | What is the auto-updater, how do I run it (`--dry-run`/`--no-claude`/`--shadow`), how is it scheduled, and what are the gotchas? |
+
+Architecture: a deterministic Python spine (`render/`, `sources/`, `history/`) reproduces the dashboard's exact tables and computes every number; headless Claude (`claude/`) writes only the briefing prose + CPS Notable on the user's Max subscription. **Capture-before-Claude** (data written before Claude runs → zero loss on auth failure), idempotent, self-healing backfill, **no git automation**. Validated by `automation/tests/` (87 byte-exact + behavioral checks).
 
 ## Sibling Skills
 
