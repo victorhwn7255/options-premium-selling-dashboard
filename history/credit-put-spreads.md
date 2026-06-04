@@ -38,6 +38,54 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-06-03 (Wednesday)
+
+**Scan summary:** Checked 11 / 5 actionable / 3 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 16.06 / VIX3M 19.76 / VVIX 89.8 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | QQQ | WATCH | 13d | 71 | 14.9% | $1.19 | $8 | $6.81 | Excellent | Thin premium |
+| 2 | SPY | WATCH | 13d | 62 | 12.6% | $0.63 | $5 | $4.37 | Excellent | Thin premium |
+| 3 | XLF | WATCH | 0d | 60 | 14.0% | $0.07 | $0.50 | $0.43 | Acceptable | Thin premium |
+| 4 | XLE | WATCH | 0d | 42 | 15.5% | $0.15 | $1 | $0.85 | Good | Thin premium |
+| 5 | IWM | WATCH | 1d | 38 | 15.5% | $0.62 | $4 | $3.38 | Good | Thin premium |
+
+**Notable:** **The "closest ever" milestone — and the definitive proof of the 13-session thesis.** For the first time in CPS history a candidate clears the **score gate**: QQQ score **71 ≥ 65**, with **13d** confirmation (≥2d ✓), **Excellent** RV, and a clean NORMAL/Contango overlay. **Four of the five SELL_CPS gates are satisfied — only c/w blocks it (14.9% vs the 25% requirement).** This concretely settles the hypothesis the prior 12 sessions could only infer: the binding constraint is the **low-vol c/w ceiling, not signal quality.** The best-case clean SELL signal finally arrived (QQQ 71 / 13d / Excellent / contango) and the spread STILL tops out at ~15% c/w because **VIX is flat at 16.06** — no expansion. The clean index SELL signals (QQQ/XLI in the NP tab) came from contango + RV deceleration + IV-percentile, NOT from rising absolute IV, so index c/w stays pinned (QQQ 14.9%, SPY 12.6% near its floor). To reach 25% c/w, QQQ IV would need to be materially higher (VIX low-to-mid 20s). **The EEM validation — within one session:** yesterday's record **56.3% c/w monster vanished entirely** — EEM's vrp_ratio fell to 1.08 (< 1.15), base-gate-failed, and dropped off the board. The "richest spread ever recorded" was a one-day stressed-premium artifact, exactly as the High-credit/width tail-risk warning implied. The framework's caution was vindicated in 24 hours: the spread you didn't take is already gone — textbook confirmation that high c/w on a CAUTION-regime name is fear, not edge. **XLI construction-rejected for the 2nd straight day** despite being an NP SELL (69) — flat-ish slope (0.97) still won't build a clean defined-risk spread. A SELL-grade index name producing no CPS candidate: NP score ≠ CPS buildability, now proven on a SELL. **Micro-spread traps:** XLF $0.07 credit / $0.50 width and XLE $0.15 / $1 width are retail-uneconomic ($7–15 max gain per contract) — tracking-only, ignore for execution (3 construction rejects = XLI + the thin-build names). **Base-gate fails (3):** GLD (ratio 1.04), EEM (ratio 1.08), TLT (ratio ~1.15 boundary). **Still zero SELL_CPS at 13 sessions** — but for the first time the only missing ingredient is the vol environment itself. Trade book: NKE EXITED today (Naked Puts, accel blew out to 1.37); CPS tab remains WATCH-only, awaiting a VIX move that hasn't come.
+
+---
+
+## 2026-06-02 (Tuesday)
+
+**Scan summary:** Checked 11 / 5 actionable / 3 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.77 / VIX3M 19.49 / VVIX 90.5 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | QQQ | WATCH | 12d | 62 | 14.1% | $1.27 | $9 | $7.73 | Excellent | Thin premium |
+| 2 | SPY | WATCH | 12d | 55 | 12.3% | $0.74 | $6 | $5.26 | Excellent | Thin premium |
+| 3 | EEM | WATCH | 0d | 44 | 56.3% | $0.84 | $1.50 | $0.66 | Excellent | High credit/width |
+| 4 | IWM | WATCH | 0d | 41 | 15.5% | $0.62 | $4 | $3.38 | Acceptable | Thin premium |
+| 5 | TLT | WATCH | 0d | 35 | 14.0% | $0.07 | $0.50 | $0.43 | Excellent | Thin premium |
+
+**Notable:** **5 actionable candidates — the pool roughly doubled** (only 3 base_gate fails left: XLF accel 1.23, GLD/XLE weak vrp_ratio), exactly as yesterday's NP base-gate analysis predicted. New Day-0 entrants EEM / IWM / TLT — IWM (accel 1.23→1.02) and TLT (1.25→0.84) cleared the RV-shock gate. **EEM c/w 56.3% — an all-time CPS record by ~3× (prior high was XLE 18.7% on 5/26)** — but it is the textbook **High-credit/width tail-risk warning, NOT a buy signal.** EEM sits in CAUTION regime (slope 1.08 backwardation), IVpct 92, score 44, Day-0. The fat c/w is fear premium — the market richly bidding EEM's near-strike puts because it's stressed. The framework correctly gates it (score < 65, Day-0 < 2d, explicit high-c/w warning). This is the cleanest live illustration yet of **why credit/width alone is never the gate** — the single highest c/w ever recorded appears on a CAUTION-regime, high-IVpct name, exactly where the spec says high c/w signals elevated tail risk. **The VIX divergence is the key reconciliation between the two tabs:** VIX actually FELL 16.05 → **15.77** (VVIX 91.6 → 90.5) while the Naked Puts tab showed avg-VRP expansion (+1.3 → +3.3) and stress 0 → 21%. So the catalyst (VIX 22+) did NOT arrive — the NP "fear-premium expansion" was **single-name IV ramps (NKE) + RV-collapses (NFLX) + term-slope pockets, not a systemic index-vol event.** Index c/w stayed pinned (SPY at the **12.3% structural floor again**, QQQ 14.1%). This tempers yesterday's "CPS catalyst forming" read — VIX went the wrong way; the CPS tab is the cleaner gauge of systemic vol and it says not yet. **Still zero SELL_CPS at 12 sessions:** QQQ/SPY at **12d** streak + RV Status upgraded to **Excellent** (accel cleared) + clean NORMAL/Contango overlay — everything aligned EXCEPT c/w (12–14% << 25% gate). EEM has the c/w but fails score/confirmation/regime. No single name clears all gates simultaneously — the book remains correctly loaded-but-unfired. **XLI base-passed but construction-rejected** despite being the NP near-SELL (64, IVpct 93) — flat slope (1.00) blocked a clean spread build. NP score ≠ CPS buildability, again (3 construction rejects = XLI, XLB, XLV). Trade book unchanged: NKE Full (Naked Puts, single-stock, not in CPS_UNIVERSE), CPS tab WATCH-only.
+
+---
+
+## 2026-06-01 (Monday)
+
+**Scan summary:** Checked 11 / 2 actionable / 8 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 16.05 / VIX3M 19.43 / VVIX 91.6 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | QQQ | WATCH | 11d | 50 | 14.3% | $1.15 | $8 | $6.85 | Acceptable | Thin premium |
+| 2 | SPY | WATCH | 11d | 39 | 12.3% | $0.74 | $6 | $5.26 | Acceptable | Thin premium |
+
+**Notable:** **Days = 11d new cumulative high** for SPY/QQQ — eleven consecutive trading days of eligibility, still WATCH-only. **First VIX uptick of the entire cycle: 15.32 → 16.05 (+0.73)** after the relentless grind to cycle lows; VIX3M 18.66 → 19.43, **VVIX 86.1 → 91.6 (+5.5)** — the first directional turn in vol-of-vol. Still NORMAL/Contango (VIX < VIX3M) and far from the 22+ SELL_CPS catalyst, but it's the first inflection worth tracking, and it pairs with the Naked Puts tab's **financials/materials/bonds RV-accel pocket** (XLF 1.21, XLB 1.27, GS 1.26, TLT 1.25, IWM 1.23, WMT 1.33) building under an otherwise stress-zero surface. If this uptick extends 2-3 sessions, it's the early tell of the vol expansion the tab has waited 11 sessions for. **XLV base-gate-eligible but construction-rejected** (the 1 construction bucket) — its NEW Naked Puts CONDITIONAL (+33 to 51, IV pct 30 → 88) did NOT translate to a buildable CPS candidate: flat slope (1.00) + thin premium kept c/w below the 20% WATCH floor. Confirms the recurring pattern — NP score recoveries don't produce CPS-actionable spreads while broad premium is thin. **c/w still range-bound:** SPY pinned at the **12.3% structural floor** yet again (now its persistent minimum at VIX 16-17), QQQ 14.3% with width compressing $9 → $8 (credit $1.31 → $1.15). **IWM dropped out** (NP accel 1.23 breached the 1.20 base-gate). Eleven sessions of data now confirm the thesis cleanly: clean structure + persistent eligibility + clean overlay, but **c/w cannot reach 25% without a macro vol event.** The framework remains correctly loaded-but-unfired. Trade book unchanged: NKE Full (Naked Puts, single-stock, not in CPS_UNIVERSE), CPS tab WATCH-only.
+
+---
+
 ## 2026-05-29 (Friday)
 
 **Scan summary:** Checked 11 / 2 actionable / 8 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
