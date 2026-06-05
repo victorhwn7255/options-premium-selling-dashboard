@@ -5,15 +5,18 @@
   <key>Label</key>
   <string>com.optionharvest.history</string>
 
-  <!-- Runs python3 directly (no shell wrapper) so ONLY the python3 binary needs Full Disk
-       Access to reach the repo under ~/Downloads. Claude runs from $HOME (see runner.py),
-       so node needs no disk access. Remove the <string>--shadow</string> line to go live. -->
+  <!-- Launches through ThetaHarvest.app (a signed wrapper) instead of python3 directly, so
+       Login Items & Extensions shows "Theta Harvest" + the brand icon rather than
+       "Python Software Foundation" (the python.org code-sign identity). The app's executable
+       just sets env and execs `python3 -m automation.run_history_update`.
+       Rebuild the app with: zsh automation/launchd/build_app.sh (or run install.sh).
+       Full Disk Access must now be granted to ThetaHarvest.app (it is the responsible
+       process for reaching the repo under ~/Downloads).
+       LIVE mode (2026-06-05): no --shadow → writes the real history/ files (working tree only;
+       the user reviews + pushes). To revert to validation, re-add <string>--shadow</string> below. -->
   <key>ProgramArguments</key>
   <array>
-    <string>/Library/Frameworks/Python.framework/Versions/3.13/bin/python3</string>
-    <string>-m</string>
-    <string>automation.run_history_update</string>
-    <string>--shadow</string>
+    <string>/Users/victor_he/Downloads/Code/option-harvest/automation/launchd/ThetaHarvest.app/Contents/MacOS/Theta Harvest</string>
     <string>--quiet</string>
   </array>
 

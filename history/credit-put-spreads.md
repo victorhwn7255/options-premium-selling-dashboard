@@ -38,6 +38,21 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-06-04 (Thursday)
+
+**Scan summary:** Checked 11 / 3 actionable / 4 base_gate / 4 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.40 / VIX3M 19.23 / VVIX 85.8 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | XLF | WATCH | 1d | 74 | 15.0% | $0.08 | $0.50 | $0.42 | Good | Thin premium |
+| 2 | QQQ | WATCH | 14d | 70 | 20.4% | $1.63 | $8 | $6.37 | Excellent | — |
+| 3 | TLT | WATCH | 0d | 37 | 13.5% | $0.13 | $1 | $0.86 | Excellent | Thin premium |
+
+**Notable:** **Days = 14d — QQQ's solo streak, and the closest the c/w gate has ever come.** QQQ logs its **14th consecutive eligible session**, but for the first time it carries the streak alone: **SPY dropped off the board entirely** (score 62 → 54, −8), ending the dual SPY/QQQ run that held unbroken from 10d through 13d — the 14d counter is now QQQ-only. The headline is QQQ's **c/w breaking into the 20s for the first time ever: 14.9% → 20.4%**, a new record that compresses the distance to the 25% SELL_CPS gate from yesterday's 10.1 points to just **4.6**. The gate structure is unchanged — **four of five satisfied (score 70 ≥ 65 ✓, 14d ✓, Excellent RV ✓, NORMAL/Contango ✓), only c/w still blocks** — but it has never been this close, and the *mechanism* of the jump partially complicates yesterday's "need VIX low-to-mid 20s for 25% c/w" conclusion: the c/w expansion came from **credit richening ($1.19 → $1.63 on a held $8 width) while VIX actually FELL (16.06 → 15.40)** — so skew/strike-construction supplied ~5.5 c/w points with zero help from index vol. That argues the first SELL may not require the full VIX-22 spike the prior twelve sessions implied; a few more points of construction-driven c/w on a confirmed name could close the gap. But temper it: this is a single-name, single-session move, **not** a regime event — **the 06-01 VIX uptick has now fully reversed** (16.06 → 15.40, **VVIX 89.8 → 85.8, back at the 05-29 cycle low of 86.1**), so the "first inflection worth tracking" lasted exactly two sessions and rolled over; the systemic catalyst is still absent and the CPS tab — the cleaner gauge of broad vol — confirms it. **XLF score surged 60 → 74 (+14), vaulting to the top CPS score**, but it's the textbook **micro-spread trap**: $0.08 credit / $0.50 width = ~$8 max gain per contract, retail-uneconomic, and only **1d confirmed (< 2d gate)** — highest score ≠ tradeable, tracking-only. **XLI collapsed −37 (69 → 32)**, finally resolving the multi-day construction-reject saga — the former NP SELL-grade name is out of contention entirely, no longer even base-relevant (NP score ≠ CPS buildability, now fully decayed). **TLT cleared back onto the board** (0d, Excellent RV, vrp_ratio recovered above the 1.15 boundary it failed yesterday) but at score 37 / c/w 13.5% it's nowhere near actionable. Base-gate fails 4 / construction 4 / actionable 3; regime is benign — **THE PLAYOFFS, 3S / 4C + 2W, avg VRP +2.4**, stress 6.1%, danger 0%, neg-VRP 27%. **Still zero SELL_CPS at 14 sessions** — but the binding constraint just demonstrably narrowed for the first time: c/w climbed toward the gate on construction alone, so the standing thesis updates from "c/w cannot move without a VIX event" to "c/w *can* inch up via skew, but needs either a couple more construction points or a modest vol uptick to clear 25% on a name that simultaneously holds score ≥ 65 and ≥ 2d." The framework remains correctly loaded-but-unfired; CPS tab stays WATCH-only.
+
+---
+
 ## 2026-06-03 (Wednesday)
 
 **Scan summary:** Checked 11 / 5 actionable / 3 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
