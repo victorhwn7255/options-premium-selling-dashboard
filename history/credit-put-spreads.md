@@ -38,6 +38,22 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-06-05 (Friday)
+
+**Scan summary:** Checked 11 / 4 actionable / 5 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 21.51 / VIX3M 21.82 / VVIX 102.0 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | QQQ | WATCH | 15d | 81 | 14.9% | $1.19 | $8 | $6.81 | Excellent | Thin premium |
+| 2 | SPY | WATCH | 0d | 79 | 13.0% | $0.65 | $5 | $4.35 | Excellent | Thin premium |
+| 3 | IWM | WATCH | 0d | 50 | 15.6% | $0.63 | $4 | $3.37 | Good | Thin premium |
+| 4 | TLT | WATCH | 1d | 38 | 14.0% | $0.07 | $0.50 | $0.43 | Excellent | Thin premium |
+
+**Notable:** The vol event the tab waited fifteen sessions for finally arrived — and it falsified the standing thesis instead of firing it. After the 06-01 uptick rolled over and fourteen sessions concluded "c/w cannot reach 25% without a macro vol event," that event landed hard today: **VIX 15.40 → 21.51 (+6.11), VVIX 85.8 → 102.0 — cracking 100 for the first time this cycle (+16.2) — VIX3M 19.23 → 21.82**, the broad index-vol expansion the CPS tab has awaited since the streak began. And the result is the cleanest refutation the framework has produced: **QQQ's c/w went the WRONG way, 20.4% → 14.9%**, reverting precisely to its 06-03 reading ($1.19 credit / $8 width), so yesterday's record "construction-driven" 20.4% **vanished in exactly one session** — an echo of the EEM 56.3% monster — and the gap to the 25% SELL_CPS gate **re-widened from 4.6 points back to 10.1.** The catalyst came and the gate moved *further away*, forcing the thesis to be rewritten at the root: **the binding constraint was never VIX level.** A delta-targeted vertical's c/w tracks short-strike delta and put skew, not absolute IV, which is why a 6-point VIX spike lifted credit not at all on a held $8 width — the algo simply re-struck at the same delta. The prior twelve sessions' inference "need VIX low-to-mid 20s for 25% c/w" is now directly contradicted: **VIX printed 21.5 and c/w fell**; the real lever is skew steepness or more aggressive strike selection, neither of which a moderate one-session spike supplied. What the spike DID do is surge signal quality to all-time highs — **QQQ score 70 → 81 (+11, a new record), SPY 54 → 79 (+25), IWM 37 → 50 (+13)** — sharpening the SELL signal across every index ETF (all Excellent/Good RV); QQQ now clears **four of five gates by its widest margin yet (score 81 ≫ 65 ✓, 15d ✓, Excellent ✓, NORMAL/Contango ✓), only c/w blocks**, but the lone blocker just got *harder*, not closer. **Days: QQQ logs its 15th consecutive eligible session, still solo** — SPY, which dropped off the board entirely yesterday, is back today but at **0d, so the dual streak stays broken** — with IWM (0d, back on) and TLT (1d) rounding out a four-name actionable board (4 actionable / 5 base_gate / 2 construction). The overlay is now on a knife's edge worth flagging: **contango compressed to just 0.31 points (VIX 21.51 vs VIX3M 21.82) from 3.83 yesterday** — one more push inverts the term structure to backwardation and flips the currently-satisfied NORMAL/Contango gate OFF, the perverse tension being that **a further vol spike could make a SELL_CPS *harder*, not easier** (steepening skew to help c/w while threatening to knock out the overlay gate). Micro notes: **XLF cratered −22 (74 → 52) off yesterday's top score and fell off the actionable board entirely**; TLT is the usual micro-spread trap ($0.07 / $0.50, ~$7 max gain, retail-uneconomic); SPY (13.0%) and IWM sit near their structural floors. Regime stays benign despite the spike — **THE PLAYOFFS, 3S / 3C + 1W, avg VRP +1.8** (down from +2.4), **neg-VRP jumped 27% → 41%** as the spike compressed VRP broadly, stress 1 name (3.1%), danger 0%. **Still zero SELL_CPS at 15 sessions** — but for the first time the conclusion isn't "waiting for the catalyst," it's "the catalyst arrived and proved it was never the right variable": c/w is governed by skew/construction, not VIX, so the first SELL now requires a skew event or a higher-delta build, not the index-vol spike that just came and went. The framework remains correctly loaded-but-unfired; CPS tab stays WATCH-only.
+
+---
+
 ## 2026-06-04 (Thursday)
 
 **Scan summary:** Checked 11 / 3 actionable / 4 base_gate / 4 construction / 0 execution / 0 overlay / 0 confirmation
