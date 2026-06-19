@@ -9,7 +9,7 @@ export CLAUDE_BIN="/Users/victor_he/.nvm/versions/node/v22.22.0/bin/claude"
 unset ANTHROPIC_API_KEY            # force Max-subscription auth (zero API cost)
 
 PY="/Library/Frameworks/Python.framework/Versions/3.13/bin/python3"
-REPO="/Users/victor_he/Downloads/Code/option-harvest"
+REPO="/Users/victor_he/Projects/option-harvest"
 
 cd "$REPO" || exit 1
 echo "===== $(date '+%Y-%m-%d %H:%M:%S %Z') :: run.sh $* ====="

@@ -16,12 +16,12 @@
        the user reviews + pushes). To revert to validation, re-add <string>--shadow</string> below. -->
   <key>ProgramArguments</key>
   <array>
-    <string>/Users/victor_he/Downloads/Code/option-harvest/automation/launchd/ThetaHarvest.app/Contents/MacOS/Theta Harvest</string>
+    <string>/Users/victor_he/Projects/option-harvest/automation/launchd/ThetaHarvest.app/Contents/MacOS/Theta Harvest</string>
     <string>--quiet</string>
   </array>
 
   <key>WorkingDirectory</key>
-  <string>/Users/victor_he/Downloads/Code/option-harvest</string>
+  <string>/Users/victor_he/Projects/option-harvest</string>
 
   <key>EnvironmentVariables</key>
   <dict>
@@ -43,8 +43,8 @@
   <false/>
 
   <key>StandardOutPath</key>
-  <string>/Users/victor_he/Downloads/Code/option-harvest/automation/logs/launchd.out</string>
+  <string>/Users/victor_he/Projects/option-harvest/automation/logs/launchd.out</string>
   <key>StandardErrorPath</key>
-  <string>/Users/victor_he/Downloads/Code/option-harvest/automation/logs/launchd.err</string>
+  <string>/Users/victor_he/Projects/option-harvest/automation/logs/launchd.err</string>
 </dict>
 </plist>

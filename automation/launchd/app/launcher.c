@@ -19,7 +19,7 @@
 #define NODE_BIN "/Users/victor_he/.nvm/versions/node/v22.22.0/bin"
 #define CLAUDE   NODE_BIN "/claude"
 #define PYTHON   "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3"
-#define REPO     "/Users/victor_he/Downloads/Code/option-harvest"
+#define REPO     "/Users/victor_he/Projects/option-harvest"
 
 int main(int argc, char *argv[]) {
     setenv("PATH", NODE_BIN ":/usr/local/bin:/usr/bin:/bin", 1);
