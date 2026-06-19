@@ -35,7 +35,7 @@ def _invoke(prompt: str, timeout: int = 300) -> str:
         res = subprocess.run(
             [config.CLAUDE_BIN, "-p", prompt, "--output-format", "text"],
             env=env, cwd=os.path.expanduser("~"),  # neutral cwd: prompt is self-contained, and
-            capture_output=True, text=True, timeout=timeout,  # avoids node needing ~/Downloads access
+            capture_output=True, text=True, timeout=timeout,  # also keeps node's cwd out of the (formerly TCC-gated) repo tree
         )
     except subprocess.TimeoutExpired:
         raise RuntimeError("claude -p timed out")

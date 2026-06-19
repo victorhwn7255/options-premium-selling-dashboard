@@ -53,10 +53,9 @@ you'd write by hand. When consistent, flip to live (above).
   python). If node or python is upgraded, update the paths in both, then `zsh build_app.sh` (it
   recompiles `launcher.c` — the app's main executable must be a Mach-O binary, not a script, or
   Login Items shows it as a loose script instead of the "Theta Harvest" app).
-- **Full Disk Access** must be granted to `launchd/ThetaHarvest.app` (it is the responsible process
-  for reaching the repo under `~/Downloads`). System Settings → Privacy & Security → Full Disk Access.
-  Rebuilding the app changes its ad-hoc signature hash, so re-confirm the grant after a rebuild if the
-  job starts failing to read the repo.
+- **Full Disk Access is not required** — the repo lives under `~/Projects`, which is not a TCC-protected
+  folder. (Historically, when the repo sat under `~/Downloads`, FDA had to be granted to
+  `launchd/ThetaHarvest.app` and re-confirmed after every rebuild; moving to `~/Projects` removed that.)
 - `ANTHROPIC_API_KEY` must stay **unset** in the job env (the wrapper unsets it) so Claude uses the
   Max plan, not the paid API.
 - If the Max session expires, the run leaves briefings pending and fires a macOS notification —

@@ -10,8 +10,8 @@
        "Python Software Foundation" (the python.org code-sign identity). The app's executable
        just sets env and execs `python3 -m automation.run_history_update`.
        Rebuild the app with: zsh automation/launchd/build_app.sh (or run install.sh).
-       Full Disk Access must now be granted to ThetaHarvest.app (it is the responsible
-       process for reaching the repo under ~/Downloads).
+       Full Disk Access is NOT required: the repo lives under ~/Projects (not a TCC-protected
+       folder). FDA would only matter if the repo moved back under ~/Downloads/Desktop/Documents.
        LIVE mode (2026-06-05): no --shadow → writes the real history/ files (working tree only;
        the user reviews + pushes). To revert to validation, re-add <string>--shadow</string> below. -->
   <key>ProgramArguments</key>
