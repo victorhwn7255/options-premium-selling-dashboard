@@ -1,140 +1,154 @@
-# Theta Harvest
+<a id="readme-top"></a>
 
-Volatility premium scanner for options sellers. Identifies high-probability premium selling opportunities using IV rank, volatility risk premium (VRP), term structure analysis, and regime detection.
+<div align="center">
 
-**Data powered by [MarketData.app](https://www.marketdata.app)**. Earnings dates from [FMP](https://financialmodelingprep.com). VIX / VIX3M / VVIX overlay from [yfinance](https://github.com/ranaroussi/yfinance).
+<img src="assets/banner-1.png" alt="Theta Harvest" width="100%">
 
-## Strategy tabs
+<p><em>A volatility-premium scanner for options sellers — it scores premium-selling edge <b>0–100</b> from IV rank, the volatility risk premium, term structure, skew, and market regime.</em></p>
 
-Beneath a persistent Market Regime banner, the dashboard surfaces three tabs:
+<p>
+<img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12">
+<img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
+<img src="https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js 14">
+<img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
+<img src="https://img.shields.io/badge/License-MIT-C47B5A?style=for-the-badge" alt="MIT License">
+</p>
 
-- **Naked Puts** (primary) — full 33-ticker scan; the existing IV-rank + VRP + term-structure + skew + RV-stability composite.
-- **Credit Put Spreads** — defined-risk expression of the same volatility edge, scoped to SPY / QQQ / IWM at MVP. Binary construction/execution filters; candidates rank by the existing Base Edge Score (no separate "60/30/10" weighting).
-- **Journal (Coming Soon)** — placeholder; trade-entry functionality will land in Phase 6.
+<p>
+<a href="https://theta.thevixguy.com"><b>🌐 Live Demo</b></a> &nbsp;·&nbsp;
+<a href="#-how-scoring-works">📊 How Scoring Works</a> &nbsp;·&nbsp;
+<a href="#-quick-start">🚀 Quick Start</a>
+</p>
 
-See [`references/strategy.md`](references/strategy.md) for the full strategy guide and [`references/credit-put-spreads.md`](references/credit-put-spreads.md) for the CPS canonical reference.
+<!-- 📹 DEMO — record the "scan → drill into a signal" loop, save it as assets/demo.gif, then uncomment:
+<img src="assets/demo.gif" alt="Theta Harvest demo" width="100%">
+-->
+<sub><em>📹 Demo GIF coming soon — record the dashboard and drop it at <code>assets/demo.gif</code>.</em></sub>
 
-## Architecture
+</div>
 
-```
-theta-harvest/
-├── backend/          # FastAPI — data fetching, vol calculations, scoring
-│   ├── main.py       # FastAPI app, endpoints, daily scan gate, cron scheduler
-│   ├── config.py     # NAKED_PUT_UNIVERSE, CPS_UNIVERSE, all CPS thresholds
-│   ├── marketdata_client.py  # MarketData.app API client (options + stocks)
-│   ├── fmp_client.py # FMP API client for earnings dates (SQLite-cached)
-│   ├── calculator.py # RV, IV, term structure, skew, ATM Greeks, ATR14
-│   ├── scorer.py     # Naked Puts scoring engine (0–100)
-│   ├── spread_builder.py        # Credit Put Spreads candidate construction
-│   ├── regime_overlay.py        # VIX / VIX3M / VVIX overlay (yfinance, UNKNOWN-safe)
-│   ├── spread_exit_evaluator.py # CPS exit rules (pin / event / defensive / time / profit)
-│   ├── csv_store.py  # CSV persistence for daily metrics + option quotes
-│   ├── models.py     # Pydantic response models (Naked Puts + CPS)
-│   ├── database.py   # SQLite for IV history, scan + CPS results, earnings cache
-│   └── data/         # SQLite database + CSVs (auto-created, gitignored)
-├── frontend/         # Next.js 14 + Tailwind CSS
-│   ├── src/app/      # App Router pages
-│   ├── src/components/  # React components (Naked Puts + Credit Put Spreads tabs)
-│   ├── src/hooks/    # useTheme, useKeyboard, useCssColors
-│   └── src/lib/      # API client, types, scoring
-└── assets/           # Favicon (θ symbol)
-```
+---
 
-## Subscription Requirements
+## Table of Contents
 
-| Service | Tier | Cost | Used For |
-|---------|------|------|----------|
-| MarketData.app | **Starter** | $12/mo | Options chains (IV, Greeks), stock candles, stock quotes |
-| FMP | **Free** | $0 | Earnings dates |
+- [About](#about)
+- [✨ Key Features](#-key-features)
+- [🛠 Built With](#-built-with)
+- [🚀 Quick Start](#-quick-start)
+- [📊 How Scoring Works](#-how-scoring-works)
+- [🏗 Architecture](#-architecture)
+- [🖼 Screenshots](#-screenshots)
+- [🗺 Roadmap](#-roadmap)
+- [📄 License](#-license)
+- [🙏 Acknowledgments](#-acknowledgments)
 
-**Total: $12/month**
+## About
 
-## Quick Start
+Options are systematically overpriced: implied volatility (what the market expects) tends to exceed realized volatility (what actually happens), because traders overpay for protection. That gap — the **Volatility Risk Premium (VRP)** — is a harvestable edge for premium sellers.
 
-### Option A: Docker (recommended)
+**Theta Harvest** scans a curated universe of 33 liquid US equities and ETFs every trading day, scores each name's premium-selling edge from **0–100**, and surfaces the conditions where the edge is widest *and* the market structure actually supports harvesting it. It doesn't predict direction — it measures *how favorable* conditions are for selling options right now, and steps aside when they aren't.
+
+Built for quant-minded options traders — and as a working example of a full **data → scoring → dashboard** pipeline.
+
+## ✨ Key Features
+
+- **0–100 edge score** from five additive components — VRP Quality, IV Percentile, Term Structure, RV Stability, and Skew.
+- **Regime detection** — per-ticker (`NORMAL` / `CAUTION` / `DANGER`) plus an at-a-glance, NBA-themed market regime (**THE FINALS · THE PLAYOFFS · REGULAR SEASON · OFF SEASON**).
+- **Automated daily scan** of 33 tickers across 7 sectors, after market close.
+- **Credit Put Spreads tab** — a defined-risk expression of the same edge (SPY / QQQ / IWM), with construction + execution filters and 2-day confirmation.
+- **Day-over-day deltas** plus a GitHub-style **VRP activity grid** for trend context.
+- **Dark / light theme**, responsive dashboard.
+- **Self-healing history automation** that logs each day's metrics and an AI-written market briefing.
+
+## 🛠 Built With
+
+| Layer | Stack |
+|---|---|
+| **Backend** | Python 3.12 · FastAPI · NumPy · Pydantic · APScheduler · SQLite (WAL) |
+| **Frontend** | Next.js 14 · React 18 · TypeScript · Recharts · Tailwind CSS |
+| **Infra** | Docker Compose · Cloudflare Tunnel · AWS Lightsail |
+| **Data** | [MarketData.app](https://www.marketdata.app) (options/stocks) · [FMP](https://financialmodelingprep.com) (earnings) · [yfinance](https://github.com/ranaroussi/yfinance) (VIX / VIX3M / VVIX) |
+
+## 🚀 Quick Start
 
 ```bash
-cp .env.example .env
-# Edit .env with your API tokens
+git clone https://github.com/victorhwn7255/options-premium-selling-dashboard.git
+cd options-premium-selling-dashboard
+
+export MARKETDATA_TOKEN=your_token_here   # required
+export FMP_API_KEY=your_key_here          # optional (earnings dates)
 
 docker compose up --build
 ```
 
-Backend at `http://localhost:8030`, frontend at `http://localhost:3000`.
+- **Dashboard** → http://localhost:3000
+- **Backend API** → http://localhost:8030
 
-The bind mount (`./backend/data:/app/data`) persists your IV history database and CSVs across restarts.
-
-### Option B: Local development
-
-**Backend:**
+<details>
+<summary><b>Local dev (without Docker) &amp; tests</b></summary>
 
 ```bash
-cd backend
-pip install -r requirements.txt
+# backend
+cd backend && pip install -r requirements.txt
 export MARKETDATA_TOKEN=your_token_here
-export FMP_API_KEY=your_key_here    # Optional
-python main.py
+python main.py                                # uvicorn on :8000
+
+# frontend
+cd frontend && npm install && npm run dev     # :3000
+
+# tests
+cd backend
+python test_calculator.py
+python -m pytest test_liquidity_filter.py -v
 ```
+</details>
 
-**Frontend:**
+## 📊 How Scoring Works
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+Every ticker gets a single **0–100 edge score**. It's purely additive — no penalties — so it reads cleanly as *"how much edge is present?"*
 
-## API Endpoints
+| Component | Max | Measures |
+|---|--:|---|
+| **VRP Quality** | 30 | Is implied vol rich vs. realized? (`IV / RV30`) |
+| **IV Percentile** | 25 | Are options expensive vs. their own 1-year history? |
+| **Term Structure** | 20 | Contango (favorable) vs. backwardation (danger)? |
+| **RV Stability** | 15 | Is realized vol calm or accelerating? (`RV10 / RV30`) |
+| **Skew** | 10 | Is there 25-delta put demand to harvest? |
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/health` | System status check |
-| GET | `/api/scan/latest` | Most recent cached scan result (Naked Puts) |
-| POST | `/api/scan` | Trigger full scan (once per day) |
-| GET | `/api/scan/history` | Metadata for recent scans |
-| GET | `/api/credit-put-spreads/latest` | Most recent cached CPS response (SPY / QQQ / IWM) |
-| GET | `/api/ticker/{ticker}/history` | Historical IV/RV series |
-| GET | `/api/universe` | List configured tickers |
-| GET | `/api/earnings/remaining` | Earnings refresh remaining count today |
-| POST | `/api/earnings/refresh` | Re-fetch earnings dates from FMP (3x/day) |
+**Gates & overrides:** earnings within 14 days → `SKIP`; negative VRP caps the score at 44; a **DANGER** regime (deep backwardation) forces `AVOID` regardless of score. Otherwise: **≥ 65 → SELL**, **≥ 45 → CONDITIONAL**.
 
-## Rate Limiting
+> Full detail: [`context/1-domain/scoring-and-strategy.md`](context/1-domain/scoring-and-strategy.md) · strategy thesis in [`references/strategy.md`](references/strategy.md) · defined-risk spreads in [`references/credit-put-spreads.md`](references/credit-put-spreads.md).
 
-- **Full scan**: Once per day (ET timezone). Subsequent requests return cached results.
-- **Earnings refresh**: 3 times per day. UI shows remaining count.
-- **Automated scan**: Cron runs at 6:30 PM ET, Mon–Fri.
+## 🏗 Architecture
 
-## Design System
+A two-service stack. A **FastAPI** backend is the single source of truth — it fetches data, computes every metric, runs the composite score, and executes the daily scan after market close (6:30 PM ET). A **Next.js** frontend renders the dashboard and passes the backend's scores through unchanged. Persistence is **SQLite (WAL) + per-ticker CSVs**; post-scan results are cross-checked against Yahoo Finance.
 
-The frontend uses the **Anthropic Warm Humanist** design system:
+> Deep dive: [`context/2-system/architecture.md`](context/2-system/architecture.md).
 
-- **Typography**: Source Serif 4 (headings), General Sans (UI), JetBrains Mono (data)
-- **Palette**: Terracotta primary (#C47B5A), sage secondary (#7D8C6E), warm earth tones
-- **Texture**: Risograph-style grain overlay
-- **Dark mode**: Full dark theme via CSS custom properties
-- **Favicon**: Theta (θ) symbol on terracotta rounded square
+## 🖼 Screenshots
 
-## Customization
+<!-- Replace the placeholders below with real screenshots, then uncomment:
+| Leaderboard | Ticker detail | Regime banner |
+|---|---|---|
+| <img src="assets/screenshot-leaderboard.png" width="100%"> | <img src="assets/screenshot-detail.png" width="100%"> | <img src="assets/screenshot-regime.png" width="100%"> |
+-->
+<sub><em>Screenshots coming soon — add <code>assets/screenshot-leaderboard.png</code>, <code>-detail.png</code>, <code>-regime.png</code>.</em></sub>
 
-### Adding/removing tickers
+## 🗺 Roadmap
 
-Edit `NAKED_PUT_UNIVERSE` in [`backend/config.py`](backend/config.py). Each ticker needs a display name and sector:
+- [ ] **Journal tab** — trade entry, exits, P/L, score-at-entry (Phase 6)
+- [ ] **Credit Put Spreads** universe expansion (EEM / TLT / XLE)
+- [ ] **Portfolio-level Greeks** aggregation
 
-```python
-"TICKER": {"name": "Display Name", "sector": "Sector"},
-```
+## 📄 License
 
-Works identically with individual stocks and ETFs.
+Released under the **MIT License**.
 
-`CPS_UNIVERSE` (SPY / QQQ / IWM at MVP) is in the same file. Don't expand it casually — Credit Put Spreads require both legs to be liquidly tradable, which is why MVP is index ETFs only. See `CPS_UNIVERSE_EXTENDED` for the documented Phase-6 expansion candidates.
+## 🙏 Acknowledgments
 
-### Adjusting scoring thresholds
+- [MarketData.app](https://www.marketdata.app) — options & stock market data
+- [Financial Modeling Prep](https://financialmodelingprep.com) — earnings dates
+- [yfinance](https://github.com/ranaroussi/yfinance) — VIX / VIX3M / VVIX overlay
 
-Scoring thresholds are in `backend/scorer.py` (`ScoringParams` dataclass).
-
-## Important Notes
-
-- **Paper trade first**: Run 2–3 months of paper trades before committing capital
-- **Not a signal generator**: This tool's primary value is preventing bad trades
-- **Earnings awareness**: Earnings dates are fetched from FMP and displayed as DTE — always verify independently
-- **IV Rank bootstrapping**: On first run, IV Rank defaults to 50%. After ~20 trading days of daily scans, it becomes meaningful. Full calibration takes ~252 trading days.
+<p align="right"><a href="#readme-top">↑ Back to top</a></p>
