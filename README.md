@@ -4,7 +4,7 @@
 
 <img src="assets/banner-1.png" alt="Theta Harvest" width="100%">
 
-<p><em>A volatility-premium scanner for options sellers — it scores premium-selling edge <b>0–100</b> from IV rank, the volatility risk premium, term structure, skew, and market regime.</em></p>
+<p><em>A volatility-premium framework for options sellers — it scores premium-selling edge <b>0–100</b> from IV rank, the volatility risk premium, term structure, skew, and market regime.</em></p>
 
 <p>
 <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12">
@@ -21,27 +21,9 @@
 <a href="#-quick-start">🚀 Quick Start</a>
 </p>
 
-<!-- 📹 DEMO — record the "scan → drill into a signal" loop, save it as assets/demo.gif, then uncomment:
-<img src="assets/demo.gif" alt="Theta Harvest demo" width="100%">
--->
-<sub><em>📹 Demo GIF coming soon — record the dashboard and drop it at <code>assets/demo.gif</code>.</em></sub>
-
 </div>
 
 ---
-
-## Table of Contents
-
-- [About](#about)
-- [✨ Key Features](#-key-features)
-- [🛠 Built With](#-built-with)
-- [🚀 Quick Start](#-quick-start)
-- [📊 How Scoring Works](#-how-scoring-works)
-- [🏗 Architecture](#-architecture)
-- [🖼 Screenshots](#-screenshots)
-- [🗺 Roadmap](#-roadmap)
-- [📄 License](#-license)
-- [🙏 Acknowledgments](#-acknowledgments)
 
 ## About
 
@@ -126,24 +108,11 @@ A two-service stack. A **FastAPI** backend is the single source of truth — it 
 
 > Deep dive: [`context/2-system/architecture.md`](context/2-system/architecture.md).
 
-## 🖼 Screenshots
-
-<!-- Replace the placeholders below with real screenshots, then uncomment:
-| Leaderboard | Ticker detail | Regime banner |
-|---|---|---|
-| <img src="assets/screenshot-leaderboard.png" width="100%"> | <img src="assets/screenshot-detail.png" width="100%"> | <img src="assets/screenshot-regime.png" width="100%"> |
--->
-<sub><em>Screenshots coming soon — add <code>assets/screenshot-leaderboard.png</code>, <code>-detail.png</code>, <code>-regime.png</code>.</em></sub>
-
 ## 🗺 Roadmap
 
 - [ ] **Journal tab** — trade entry, exits, P/L, score-at-entry (Phase 6)
 - [ ] **Credit Put Spreads** universe expansion (EEM / TLT / XLE)
 - [ ] **Portfolio-level Greeks** aggregation
-
-## 📄 License
-
-Released under the **MIT License**.
 
 ## 🙏 Acknowledgments
 
