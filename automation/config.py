@@ -21,6 +21,15 @@ API_BASE = "https://theta.thevixguy.com"
 USER_AGENT = "theta-harvest-automation/1.0 (history-updater)"
 HTTP_TIMEOUT = 30
 
+# Network resilience for the wake-race: the launchd job fires at 09:00 as the Mac wakes,
+# often before Wi-Fi/DNS is ready — the first fetch then dies with socket.gaierror / URLError
+# and crashes the whole run (see launchd.err 2026-06-26..28). Retry transient DNS/connection/
+# 5xx failures with exponential backoff so the run self-heals instead of losing the day.
+# Coverage ≈ 3 + 6 + 12 + 24 + 30 + 30 ≈ 105s across the retries — enough for Wi-Fi to associate.
+HTTP_MAX_ATTEMPTS = 7    # total tries before giving up
+HTTP_RETRY_BASE = 3      # seconds; per-attempt sleep = min(BASE * 2**(n-1), CAP)
+HTTP_RETRY_CAP = 30      # max seconds between attempts
+
 # --- Lightsail SQLite (backfill only) ------------------------------------------------
 SSH_ALIAS = "option-harvest"
 REMOTE_DB = "~/option-harvest/backend/data/vol_history.db"
