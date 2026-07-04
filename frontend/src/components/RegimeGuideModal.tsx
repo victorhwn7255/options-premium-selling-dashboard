@@ -79,7 +79,7 @@ const REGIME_DATA = [
         { label: 'RV Accel', value: 'Caution' },
       ],
       narrative:
-        'AAPL scores 68 with a VRP of 9.2 and contango term structure (0.88). But RV accel is 1.14 — the status reads Caution and the regime is REGULAR SEASON. You demand stronger setup confirmation, sell a 25-DTE put credit spread at the 15-delta strike instead of a naked put, and document your contract count and max loss in the trade journal. The dashboard tells you the environment is not clean; the trader decides the size.',
+        'AAPL scores 68 with a VRP of 9.2 and contango term structure (0.88). But RV accel is 1.14 — the status reads Caution, the scanner flags AAPL as CAUTION (RV accel above 1.10 forces it), and the market regime is REGULAR SEASON. You sell a 25-DTE put credit spread at the 15-delta strike instead of a naked put, and document your contract count and max loss in the trade journal. The dashboard tells you the environment is not clean; the trader decides the size.',
     },
   },
   {

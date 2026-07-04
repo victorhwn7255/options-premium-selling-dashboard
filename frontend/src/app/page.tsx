@@ -253,10 +253,10 @@ export default function Home() {
                   <div className="text-xs text-txt-tertiary leading-loose">
                     <strong className="text-txt-secondary">Scoring:</strong>{' '}
                     VRP Quality (30) + IV Percentile (25) + Term Structure (20) + RV Stability (15) + 25Δ Put Skew (10).
-                    Negative VRP caps scores at 44. Earnings within 14 days forces SKIP for non-ETF tickers.
-                    DANGER regimes override to AVOID. Otherwise-actionable signals with VRP ratio below 1.15 are shown as WATCHLIST, not tradeable.{' '}
+                    Negative VRP caps scores at 54 (never tradeable — WATCHLIST via the VRP-ratio gate). Earnings within 14 days forces SKIP for non-ETF tickers.
+                    DANGER regimes override to AVOID. RV Acceleration above 1.10 forces CAUTION (defined-risk only). Otherwise-actionable signals with VRP ratio below 1.15 are shown as WATCHLIST, not tradeable.{' '}
                     <strong className="text-txt-secondary">RV Accel Status:</strong>{' '}
-                    informational only — Excellent / Good / Acceptable / Caution / Avoid&middot;Wait classifies environment cleanliness, never prescribes position size.{' '}
+                    Excellent / Good / Acceptable / Caution / Avoid&middot;Wait classifies environment cleanliness — enforced as a CAUTION trigger above 1.10; never prescribes position size.{' '}
                     <span className="text-secondary">Live data — not financial advice.</span>
                   </div>
                 </div>

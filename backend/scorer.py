@@ -205,11 +205,22 @@ def score_opportunity(
             regime = "CAUTION"
         flags.append("Extreme IV + rising RV — potential regime shift, not just fear")
 
+    # RV acceleration is a CAUTION trigger on its own (ADR-012). Rising realized vol
+    # is what closes the VRP gap being sold; the RV-Accel status tiers already label
+    # 1.10–1.20 "Caution" and >1.20 "Avoid/Wait", but until 2026-07 the scorer only
+    # enforced this when IV Rank > 90 — so SELL could print during an RV spike.
+    if rv_accel > 1.10 and regime == "NORMAL":
+        regime = "CAUTION"
+        flags.insert(0, "RV accelerating (> 1.10) — reduce size, defined-risk only")
+
     # ── Negative VRP Gate ────────────────────────────
     # When realized vol exceeds implied, there is zero premium edge.
-    # Cap score below CONDITIONAL threshold regardless of other metrics.
+    # Cap at 54 keeps the ticker below SELL (65) and the CAUTION REDUCE-SIZE bar (55)
+    # while preserving score visibility for monitoring (raised from 44 — ADR-013).
+    # The recommendation stays non-tradeable regardless: negative VRP implies
+    # vrp_ratio < 1.15, so the VRP-Ratio Actionability Gate below maps it to WATCHLIST.
     if surface.vrp < 0:
-        score = min(score, 44)
+        score = min(score, 54)
 
     # ── Clamp score ───────────────────────────────────
     score = max(0, min(100, int(score)))

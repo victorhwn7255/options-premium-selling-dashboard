@@ -13,7 +13,8 @@ We don't predict direction. We sell inflated insurance premiums and collect thet
 **We sell options premium** — specifically short puts, put credit spreads, iron condors, and strangles on highly liquid US equities and ETFs. We collect upfront credit and profit when the underlying stays within our expected range.
 
 **Why it works:**
-- IV overstates future realized moves ~80% of the time historically
+- IV overstates future realized moves ~80% of the time historically for index options; across
+  our 33-name universe it has held on ~70% of ticker-days since 2025 (measured, 2026-07 backtest)
 - Option buyers pay a fear premium (insurance markup) that decays daily as theta
 - We systematically identify when this fear premium is fattest and the market structure supports harvesting it
 
@@ -41,7 +42,7 @@ Score = (ratio - 1.15) × 66.67, clamped 0–30
 - **Sweet spot 1.30–1.60**: Options priced 30–60% above realized moves. Fat premium.
 - **Above 1.60**: Plateaus at 30 points. Diminishing marginal value.
 
-If VRP is negative (RV > IV), the total score is capped at 44 regardless of other signals. There is no edge selling underpriced insurance.
+If VRP is negative (RV > IV), the total score is capped at 54 regardless of other signals — below both the SELL threshold (65) and the CAUTION REDUCE-SIZE bar (55), and never tradeable in any case (negative VRP implies a sub-1.15 VRP ratio, which demotes the name to WATCHLIST). There is no edge selling underpriced insurance; the 0–54 range preserves ranking for monitoring. (Raised from 44 in 2026-07 — see ADR-013.)
 
 ### 2. IV Percentile (0–25 points) — "Are options expensive?"
 
@@ -127,6 +128,7 @@ All components are **continuous** (no cliff effects) and **additive** (no penalt
 |-------|---------------|---------|
 | ≥ 65 | **SELL PREMIUM** | Strong edge — execute |
 | 45–64 | **CONDITIONAL** | Decent edge — trade with discipline |
+| ≥ 45 but VRP ratio < 1.15 | **WATCHLIST** | Structure clean, premium too thin — monitor, no position |
 | < 45 | **NO EDGE** | Skip — not enough edge to justify risk |
 | 0 (gated) | **SKIP** | Earnings within 14 days — no exceptions |
 
@@ -141,7 +143,7 @@ Each ticker gets a regime classification based on term structure and IV conditio
 | Regime | Trigger | Effect |
 |--------|---------|--------|
 | **DANGER** | Term slope > 1.15 (deep backwardation) | Recommendation → AVOID, regardless of score |
-| **CAUTION** | Term slope > 1.05, or IV Rank > 90 + RV Accel > 1.1 | Score ≥ 55 → REDUCE SIZE (defined-risk only), else NO EDGE |
+| **CAUTION** | Term slope > 1.05, or RV Accel > 1.10 (on its own — ADR-012), or IV Rank > 90 + RV Accel > 1.1 | Score ≥ 55 → REDUCE SIZE (defined-risk only), else NO EDGE |
 | **NORMAL** | Default | Score determines recommendation normally |
 
 A ticker can score 90 and still show AVOID if it's in DANGER regime. The regime system overrides the score because selling premium into backwardation is how accounts blow up.
@@ -158,8 +160,9 @@ Earnings create binary gap risk (10%+ overnight moves) that no premium can compe
 ### 3. Negative VRP Cap (Backend)
 
 If VRP < 0 (realized vol exceeds implied vol):
-- Total score is capped at **44** (below CONDITIONAL threshold)
-- This prevents other metrics from creating a false SELL signal when the core thesis doesn't hold
+- Total score is capped at **54** (below SELL and the REDUCE-SIZE bar; raised from 44 in 2026-07 — ADR-013)
+- The name can never become tradeable regardless: negative VRP implies a VRP ratio < 1.15, so the actionability gate demotes it to WATCHLIST with no position construction
+- This prevents other metrics from creating a false SELL signal when the core thesis doesn't hold, while preserving score visibility for post-vol-spike monitoring
 
 ---
 
@@ -176,6 +179,11 @@ The dashboard computes an overall market regime from all eligible tickers:
 
 The regime hierarchy: OFF SEASON overrides REGULAR SEASON overrides THE FINALS overrides THE PLAYOFFS.
 
+> **Honesty note (2026-07):** THE FINALS has never actually triggered — 0 of 284 trading days
+> from May 2025 to June 2026 (PLAYOFFS 178, REGULAR SEASON 104, OFF SEASON 2). Its thresholds
+> (avg VRP > 8 AND avg slope < 0.90) appear unreachable in practice; treat its "be aggressive"
+> playbook as aspirational pending recalibration.
+
 ---
 
 ## Position Construction
@@ -186,6 +194,10 @@ When a ticker qualifies (SELL or CONDITIONAL), the system suggests specific trad
 - **CAUTION regime**: 10–15Δ (further OTM, more room for error)
 - **IV Rank ≥ 80**: 16–20Δ (premium is fat enough to go closer)
 - **Default**: 20–30Δ (standard positioning)
+
+Within the default band, friction favors the upper half: at 20Δ, spreads + commissions consumed
+~29% of gross edge in the 2026-07 backtest, while 25–30Δ delivered ~1.7× the per-contract P/L at
+the same profit factor. Prefer 25–30Δ in NORMAL regimes and size down accordingly.
 
 ### Structure Selection
 Based on VRP magnitude and regime:
@@ -206,6 +218,10 @@ Based on VRP magnitude and regime:
 ### RV Acceleration Interpretation
 
 RV Acceleration measures whether realized volatility is calming down or heating up. **It does not determine position size.** It determines whether the environment is clean enough for selling puts. Actual position size is handled by the trader and recorded in the trade journal.
+
+**Enforced since 2026-07 (ADR-012):** RV Accel > 1.10 flips the ticker to CAUTION regime on its
+own — a rising-RV name can no longer print SELL (previously this required IV Rank > 90 as well).
+Both backtests found SELL entries above 1.10 ran at a losing profit factor (~0.8).
 
 | RV Accel | Status | Action bias |
 | -------- | ------ | ----------- |
@@ -246,8 +262,15 @@ ETFs are excluded from earnings checks. All tickers must have liquid options cha
 4. **Check RV Acceleration status**: if realized volatility is heating up, require stronger confirmation from VRP, term structure, and skew, or wait. The status chip is informational — actual position size is the trader's call (record it in the trade journal).
 5. **Check earnings proximity**: Even if a ticker isn't gated (>14d), earnings within 21d warrant smaller size.
 6. **Enter positions**: Use the suggested delta, structure, and DTE. Defined risk always in REGULAR SEASON.
-7. **Manage at 50% profit**: Close winning positions at 50% of max profit. Don't wait for expiration.
-8. **Monitor regime changes**: If a ticker flips to DANGER after entry, close the position. Don't hold through backwardation.
+7. **Manage winners at 75% / 50%**: In NORMAL/contango conditions, close at 75% of max profit —
+   the 2026-07 backtest showed 50% targets cut winners early once friction is counted (PF 1.81 →
+   2.26 at 75%). Tighten to 50% when RV is rising or the regime is CAUTION. Never hold past
+   21 DTE either way.
+8. **Monitor regime changes**: If a ticker flips to DANGER after entry **and the position is
+   underwater** (mark ≥ ~1.25× credit), close it. If DANGER but the position is still profitable,
+   stop adding, tighten the exit, and let the 21-DTE rule govern — unconditionally closing on
+   every DANGER flip systematically sells local vol peaks (measured cost ~8bp/trade in-sample).
+   Never hold a losing position through deepening backwardation.
 
 ---
 

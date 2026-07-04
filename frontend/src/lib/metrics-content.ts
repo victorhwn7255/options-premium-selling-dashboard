@@ -261,7 +261,7 @@ export const METRICS: MetricDefinition[] = [
     tag: 'Volatility environment',
     section: 'scoring',
     explain:
-      'A five-tier label \u2014 <strong>Excellent / Good / Acceptable / Caution / Avoid \u00B7 Wait</strong> \u2014 derived from RV Acceleration. It answers <em>"is the environment clean enough to sell puts?"</em>, not <em>"how much should I size?"</em> Position size is a trader-controlled decision and should be recorded in your trade journal, not prescribed by the dashboard. The status chip surfaces on the dashboard only when the environment is degraded (Caution or Avoid \u00B7 Wait).',
+      'A five-tier label \u2014 <strong>Excellent / Good / Acceptable / Caution / Avoid \u00B7 Wait</strong> \u2014 derived from RV Acceleration. It answers <em>"is the environment clean enough to sell puts?"</em>, not <em>"how much should I size?"</em> Position size is a trader-controlled decision and should be recorded in your trade journal, not prescribed by the dashboard. The status chip surfaces on the dashboard only when the environment is degraded (Caution or Avoid \u00B7 Wait). Since July 2026 the scanner also <strong>enforces</strong> this signal: RV Acceleration above 1.10 flips the ticker to CAUTION regime on its own (defined-risk only, reduced size) \u2014 a rising-RV name can no longer print SELL.',
     analogy:
       'A weather report at the trailhead. Clear, breezy, fog rolling in, storm warning, evacuation. The report tells you about conditions \u2014 <em>you</em> decide whether to hike, and how heavy a pack to carry.',
     formulaLabel: 'Logic (based on RV Acceleration)',

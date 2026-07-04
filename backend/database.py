@@ -39,6 +39,11 @@ def init_db():
             rv30 REAL,
             vrp REAL,
             term_slope REAL,
+            skew_25d REAL,
+            rv10 REAL,
+            iv_percentile REAL,
+            spot REAL,
+            earnings_dte INTEGER,
             PRIMARY KEY (ticker, date)
         );
 
@@ -128,6 +133,17 @@ def init_db():
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         );
     """)
+
+    # Additive daily_iv migration for DBs created before 2026-07: the scan computes
+    # skew/rv10/iv_percentile/spot/earnings_dte every day but only 4 fields were
+    # persisted, which forces imputation in any historical research (see
+    # docs/strategy-backtest-2026-07.md). Existing rows keep NULLs.
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(daily_iv)")}
+    for col, typ in (("skew_25d", "REAL"), ("rv10", "REAL"), ("iv_percentile", "REAL"),
+                     ("spot", "REAL"), ("earnings_dte", "INTEGER")):
+        if col not in existing:
+            conn.execute(f"ALTER TABLE daily_iv ADD COLUMN {col} {typ}")
+
     conn.commit()
     conn.close()
 
@@ -139,21 +155,33 @@ def store_daily_iv(
     vrp: Optional[float] = None,
     term_slope: Optional[float] = None,
     as_of: Optional[date] = None,
+    skew_25d: Optional[float] = None,
+    rv10: Optional[float] = None,
+    iv_percentile: Optional[float] = None,
+    spot: Optional[float] = None,
+    earnings_dte: Optional[int] = None,
 ):
-    """Store today's ATM IV for a ticker."""
+    """Store today's per-ticker metrics snapshot (ATM IV + research fields)."""
     d = (as_of or date.today()).isoformat()
     conn = get_connection()
     conn.execute(
         """
-        INSERT INTO daily_iv (ticker, date, atm_iv, rv30, vrp, term_slope)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO daily_iv (ticker, date, atm_iv, rv30, vrp, term_slope,
+                              skew_25d, rv10, iv_percentile, spot, earnings_dte)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (ticker, date) DO UPDATE SET
             atm_iv = excluded.atm_iv,
             rv30 = excluded.rv30,
             vrp = excluded.vrp,
-            term_slope = excluded.term_slope
+            term_slope = excluded.term_slope,
+            skew_25d = excluded.skew_25d,
+            rv10 = excluded.rv10,
+            iv_percentile = excluded.iv_percentile,
+            spot = excluded.spot,
+            earnings_dte = excluded.earnings_dte
         """,
-        (ticker, d, atm_iv, rv30, vrp, term_slope),
+        (ticker, d, atm_iv, rv30, vrp, term_slope,
+         skew_25d, rv10, iv_percentile, spot, earnings_dte),
     )
     conn.commit()
     conn.close()

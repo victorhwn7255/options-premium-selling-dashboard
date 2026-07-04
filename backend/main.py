@@ -253,7 +253,9 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
             historical_ivs=historical_ivs,
         )
 
-        # 6. Store today's IV for future rank computation (skip if no reliable IV)
+        # 6. Store today's IV for future rank computation (skip if no reliable IV).
+        # The research fields (skew, rv10, iv_percentile, spot, earnings_dte) are
+        # persisted too so historical backtests don't have to impute them.
         if surface.iv.iv_current is not None:
             store_daily_iv(
                 ticker=ticker,
@@ -261,6 +263,11 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
                 rv30=surface.rv.rv30,
                 vrp=surface.vrp,
                 term_slope=surface.term_structure.slope,
+                skew_25d=surface.skew.skew_25d,
+                rv10=surface.rv.rv10,
+                iv_percentile=surface.iv.iv_percentile,
+                spot=snapshot.price,
+                earnings_dte=earnings_dte,
             )
 
         # 7. Persist to CSV files (daily metrics + option quotes)

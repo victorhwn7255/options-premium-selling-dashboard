@@ -42,3 +42,6 @@ automation/staging/
 automation/logs/
 # Throwaway automation demo/test output
 history/_test/
+
+references/research_papers
+references/archive

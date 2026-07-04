@@ -1,6 +1,6 @@
 # Theta Harvest — Metrics & Scoring Reference
 
-A complete reference of every metric, scoring component, and chart on the dashboard, how each is calculated, and what data feeds into it. All formulas match the actual code implementation as of April 2026.
+A complete reference of every metric, scoring component, and chart on the dashboard, how each is calculated, and what data feeds into it. All formulas match the actual code implementation as of July 2026.
 
 ---
 
@@ -63,6 +63,10 @@ RV Acceleration = RV10 / RV30
 | > 1.20 | Avoid / Wait | Realized volatility is spiking; avoid new naked put entries unless manually overridden |
 
 > RV Acceleration is **not** used to prescribe position size. It is used to classify the cleanliness of the volatility environment. Actual position size is a trader-controlled decision and should be recorded in the trade journal, not dictated by the edge score.
+
+**Regime impact (since 2026-07, ADR-012):** RV Accel > 1.10 forces **CAUTION** regime on its own
+(previously only in combination with IV Rank > 90) — so a rising-RV ticker can no longer print
+SELL PREMIUM regardless of its composite score.
 
 **Scoring impact (backend):** Additive component, 0–15 points:
 
@@ -171,7 +175,7 @@ Linear: (vrp_ratio - 1.15) × (30 / 0.45)
 Capped at 30 pts (reached at ratio 1.60)
 ```
 
-**Negative VRP gate:** If VRP < 0, total score is capped at 44 regardless of other components.
+**Negative VRP gate:** If VRP < 0, total score is capped at 54 regardless of other components (raised from 44 in 2026-07 — see ADR-013). The name remains non-tradeable in every case: negative VRP implies a VRP ratio < 1.15, so the actionability gate demotes any SELL/CONDITIONAL outcome to WATCHLIST.
 
 ---
 
@@ -280,7 +284,9 @@ ATR 14 = mean(last 14 True Range values)
 
 **Sources (in priority order):**
 1. FMP API `/stable/earnings` — primary, SQLite-cached
-2. MarketData.app `/v1/stocks/earnings/` — fallback if no FMP key
+2. MarketData.app `/v1/stocks/earnings/` — fallback if no FMP key (in practice effectively dead:
+   the endpoint requires a premium MarketData subscription and returns 402 on the Starter plan,
+   so an FMP key is required for earnings data)
 3. Yahoo Finance — post-scan verification cross-check; overrides FMP when >5 day discrepancy
 
 **Formula:**
@@ -408,7 +414,8 @@ The backend computes a single **0–100 composite score** per ticker. The fronte
 
 | Gate | Condition | Effect |
 |------|-----------|--------|
-| **Negative VRP** | VRP < 0 | Caps total score at 44 (backend) |
+| **Negative VRP** | VRP < 0 | Caps total score at 54 (backend, ADR-013) |
+| **VRP-Ratio Actionability** | VRP ratio < 1.15 on a SELL/CONDITIONAL outcome | Demotes to WATCHLIST — score preserved, no position construction (backend) |
 | **Earnings** | DTE ≤ 14 days | Forces score to 0, action = SKIP (frontend) |
 | **No Data** | IV = None (insufficient liquid contracts) | Score = 0, recommendation = NO DATA (backend) |
 
@@ -417,7 +424,7 @@ The backend computes a single **0–100 composite score** per ticker. The fronte
 | Regime | Trigger | Effect on Recommendation |
 |--------|---------|--------------------------|
 | **DANGER** | Term slope > 1.15 | Always → AVOID |
-| **CAUTION** | Term slope > 1.05, OR (IV Rank > 90 AND RV Accel > 1.1) | Score ≥ 55 → REDUCE SIZE, else → NO EDGE |
+| **CAUTION** | Term slope > 1.05, OR RV Accel > 1.10 (independent — ADR-012), OR (IV Rank > 90 AND RV Accel > 1.1) | Score ≥ 55 → REDUCE SIZE, else → NO EDGE |
 | **NORMAL** | Default | Score ≥ 65 → SELL PREMIUM, ≥ 45 → CONDITIONAL, < 45 → NO EDGE |
 
 ### Recommendation → Frontend Action Mapping
@@ -426,6 +433,7 @@ The backend computes a single **0–100 composite score** per ticker. The fronte
 |-----------------------|-----------------|
 | SELL PREMIUM | SELL |
 | CONDITIONAL | CONDITIONAL |
+| WATCHLIST | WATCHLIST |
 | REDUCE SIZE | AVOID |
 | AVOID | AVOID |
 | NO EDGE | NO EDGE |
@@ -520,7 +528,7 @@ Shows change in: Score, VRP, Term Slope, RV Accel, IV, IV Percentile, Skew, and 
 
 | SQLite Table | Contents | Retention |
 |-------------|----------|-----------|
-| `daily_iv` | Per-ticker daily ATM IV, RV30, VRP, term slope | Indefinite (builds 252-day history for IV Rank/Percentile) |
+| `daily_iv` | Per-ticker daily ATM IV, RV30, VRP, term slope + (since 2026-07) skew_25d, RV10, IV percentile, spot, earnings DTE | Indefinite (builds 252-day history for IV Rank/Percentile; the added fields make historical backtests exact instead of imputed) |
 | `scan_results` | Full scan snapshots (regime, all tickers, historical) | Last 50 scans |
 | `scan_log` | Scan metadata (timestamp, ticker count, duration, errors) | Indefinite |
 | `earnings_cache` | Per-ticker next earnings date + fetch timestamp | Until earnings date passes |

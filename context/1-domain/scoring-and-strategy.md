@@ -1,6 +1,6 @@
 ---
-last_verified: 2026-04-16
-verified_against: dc030c3
+last_verified: 2026-07-04
+verified_against: c203544 (working tree — includes the 2026-07 scoring update, ADR-012/013)
 rot_risk: high
 rot_triggers:
   - backend/scorer.py
@@ -135,11 +135,15 @@ The theoretical maximum is 100 (30 + 25 + 20 + 15 + 10). Reaching 85+ requires n
 
 ## Gates
 
-Three gates can override the composite score. They are evaluated independently — a ticker can be affected by multiple gates, though in practice the first one that fires determines the outcome.
+Four gates can override the composite score. They are evaluated independently — a ticker can be affected by multiple gates, though in practice the first one that fires determines the outcome.
 
 **Negative VRP gate** — backend, `scorer.py`
 
-When VRP is negative (realized vol exceeds implied vol), the core thesis does not hold — there is no premium edge to harvest. The gate caps the composite score at 44, one point below the CONDITIONAL threshold of 45. This ensures that even if all other components are strong (deep contango, high IV percentile, moderate skew), a negative-VRP ticker cannot reach a tradeable recommendation. The cap is at 44 specifically, not 0, so the score still reflects the quality of other conditions — useful for monitoring tickers that might become attractive once VRP turns positive. See [ADR-004](../3-guardrails/decisions/004-negative-vrp-cap-at-44.md) for why 44 and not 45.
+When VRP is negative (realized vol exceeds implied vol), the core thesis does not hold — there is no premium edge to harvest. The gate caps the composite score at 54, one point below the CAUTION REDUCE-SIZE bar (55) and well below SELL (65). The name can never become tradeable regardless of the cap: negative VRP implies a VRP ratio below 1.15, so the VRP-ratio actionability gate (below) demotes any SELL/CONDITIONAL outcome to WATCHLIST. The cap is above 0 so the score still reflects the quality of other conditions — useful for monitoring tickers that might become attractive once VRP turns positive. Raised from 44 in 2026-07 after the backtest showed the tighter cap destroyed monitoring information — see [ADR-013](../3-guardrails/decisions/013-negative-vrp-cap-raised-to-54.md), which supersedes [ADR-004](../3-guardrails/decisions/004-negative-vrp-cap-at-44.md).
+
+**VRP-ratio actionability gate** — backend, `scorer.py`
+
+A SELL PREMIUM or CONDITIONAL outcome with `vrp_ratio < 1.15` (the VRP component's dead zone) is demoted to **WATCHLIST**: the score is preserved but no position construction is offered. This stops structure-only signals (term + IV percentile + skew with thin premium) from masquerading as tradeable — see `references/dashboard-behavior-qa-report.md` §5.4 for the false positives that motivated it. CAUTION/DANGER paths are unaffected.
 
 **No-data gate** — backend, `scorer.py`
 
@@ -160,10 +164,10 @@ Detection runs in `scorer.py` after scoring, using term structure slope and the 
 | Regime | Trigger | Effect on recommendation |
 |--------|---------|--------------------------|
 | **DANGER** | Term slope > 1.15 | Always → AVOID, regardless of score |
-| **CAUTION** | Term slope > 1.05, OR (IV Rank > 90 AND RV accel > 1.1) | Score ≥ 55 → REDUCE SIZE; else → NO EDGE |
-| **NORMAL** | Default (neither trigger fires) | Score determines recommendation normally |
+| **CAUTION** | Term slope > 1.05, OR RV accel > 1.10, OR (IV Rank > 90 AND RV accel > 1.1) | Score ≥ 55 → REDUCE SIZE; else → NO EDGE |
+| **NORMAL** | Default (no trigger fires) | Score determines recommendation normally |
 
-The CAUTION trigger has two independent paths. The slope path catches structural backwardation. The IV Rank + RV acceleration path catches a different danger pattern: extreme IV coupled with rising realized vol, which signals a potential regime shift (not just elevated fear) even when the term structure hasn't inverted yet.
+The CAUTION trigger has three independent paths. The slope path catches structural backwardation. The RV-acceleration path (added 2026-07, [ADR-012](../3-guardrails/decisions/012-rv-accel-independent-caution-trigger.md)) catches realized vol rising into the position — the exact force that closes the VRP gap being sold; before it existed, a ticker could print SELL PREMIUM during an RV spike (observed live: NFLX 2026-06-26, score 67 at accel 1.284). The IV Rank + RV acceleration path predates it and catches extreme IV coupled with rising realized vol — a potential regime shift (not just elevated fear) even when the term structure hasn't inverted yet.
 
 DANGER and CAUTION flags are inserted at position 0 in the flags array so they appear first in the UI.
 
@@ -177,8 +181,8 @@ The recommendation combines score and regime into a single action label. This is
 DANGER regime       → "AVOID"
 CAUTION + score≥55  → "REDUCE SIZE"
 CAUTION + score<55  → "NO EDGE"
-NORMAL  + score≥65  → "SELL PREMIUM"
-NORMAL  + score≥45  → "CONDITIONAL"
+NORMAL  + score≥65  → "SELL PREMIUM"   → vrp_ratio<1.15? → "WATCHLIST"
+NORMAL  + score≥45  → "CONDITIONAL"    → vrp_ratio<1.15? → "WATCHLIST"
 NORMAL  + score<45  → "NO EDGE"
 iv_current is None  → "NO DATA"
 ```
@@ -250,7 +254,7 @@ Hierarchy: OFF SEASON > REGULAR SEASON > THE FINALS > THE PLAYOFFS. The regime b
 | Per-ticker regime (NORMAL/CAUTION/DANGER) | Backend | `scorer.py` |
 | Recommendation (SELL PREMIUM, etc.) | Backend | `scorer.py` |
 | Position construction hints | Backend | `scorer.py` |
-| Negative VRP gate (cap at 44) | Backend | `scorer.py` |
+| Negative VRP gate (cap at 54) | Backend | `scorer.py` |
 | No-data gate (score 0) | Backend | `scorer.py` |
 | Earnings gate (DTE ≤ 14 → SKIP) | **Frontend** | `scoring.ts` |
 | RV Acceleration Status (5-tier display label) | **Frontend** | `scoring.ts` |

@@ -1,10 +1,15 @@
 ---
 last_verified: 2026-04-16
 verified_against: dc030c3
-status: active
+status: superseded
+superseded_by: 013-negative-vrp-cap-raised-to-54.md
 ---
 
 # ADR-004: Negative VRP Cap at 44 (Not 45)
+
+> **Superseded 2026-07-04 by [ADR-013](013-negative-vrp-cap-raised-to-54.md)** — cap raised to 54
+> after the VRP-Ratio Actionability Gate (WATCHLIST) made the threshold-protection concern
+> redundant and the 2026-07 backtest showed the 44 cap destroyed monitoring information.
 
 ## Context
 
