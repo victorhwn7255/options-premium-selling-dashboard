@@ -131,6 +131,8 @@ abstaining or lunging.
 4. **DANGER flip on an open position**: close if the position is underwater;
    profitable positions may run to target/21 DTE (ADR-012 lineage — retained, but
    flagged: the supporting evidence is small and from a benign sample).
+   **Underwater** is defined as the position's mark ≥ `danger_underwater_mult` × credit
+   received (`danger_underwater_mult = 1.25` [PROVISIONAL], in CONFIG).
 5. **No stop-losses.** This is only coherent because the stress gate (Section 6)
    guarantees the *implicit* stop — the margin call — is unreachable. If the sizing
    module is ever disabled, the no-stop policy is disabled with it. They are one

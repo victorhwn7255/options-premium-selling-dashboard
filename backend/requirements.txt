@@ -2,6 +2,9 @@ fastapi==0.115.6
 uvicorn[standard]==0.34.0
 httpx==0.28.1
 numpy==2.2.1
+# v2 reference port (theta_harvest_core.py): PSR moments + pooled forecaster
+pandas>=2.2.2
+scipy>=1.13.0
 pydantic==2.10.4
 tqdm>=4.66
 apscheduler>=4.0.0a5

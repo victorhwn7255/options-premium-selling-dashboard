@@ -17,6 +17,7 @@ Or:
 
 import os
 import sys
+import math
 import time
 import asyncio
 import logging
@@ -32,7 +33,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from marketdata_client import MarketDataClient
 from fmp_client import get_next_earnings
 from csv_store import append_daily_csv, append_quotes_csv
-from calculator import build_vol_surface, compute_realized_vol, compute_atm_iv, find_atm_greeks, compute_atr14
+from calculator import build_vol_surface, compute_realized_vol, compute_atm_iv, find_atm_greeks, compute_atr14, filter_liquid_contracts
 from scorer import score_opportunity, ScoringParams
 from database import (
     store_daily_iv, get_historical_ivs, get_historical_series, log_scan,
@@ -45,6 +46,10 @@ from database import (
     get_vrp_history, record_cps_candidate, get_consecutive_sell_days,
     get_consecutive_exact_spread_days,
     save_cps_scan_response, get_latest_cps_scan_response,
+    # ── v2 silent shadow (Phase A) ──
+    store_daily_bars, store_daily_iv_v2, get_fvrp_history, get_last_good_global_factor,
+    store_gate_state, get_latest_gate_state,
+    store_shadow_diff, get_shadow_diffs, get_shadow_summary,
 )
 from models import (
     ScanResponse, TickerResult, RegimeSummary,
@@ -53,12 +58,18 @@ from models import (
     VrpHistoryPoint, VrpHistoryResponse,
     # ── Credit Put Spreads ──
     CreditPutSpreadsResponse, CPSRejectionSummary, RegimeOverlay,
+    # ── v2 shadow API ──
+    ShadowSummaryResponse, ShadowDiffResponse,
 )
 from scan_quality import compute_scan_quality, suppress_actionable
 # ── Credit Put Spreads (Phase 3) ──
 import config as cfg
 from regime_overlay import fetch_regime_overlay
 from spread_builder import build_candidate_outcome_for_ticker
+# ── v2 silent shadow substrate (Phase A) ──
+import theta_core as tc
+import estimators as est
+import forecast as fc
 
 
 def _apply_scan_quality(tickers: list) -> tuple[str, Optional[str]]:
@@ -281,6 +292,17 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
             )
         append_quotes_csv(ticker, trading_date, contracts, snapshot.price)
 
+        # ── v2 silent substrate (Phase A): persist OHLC to daily_bars and capture
+        # the chain-derived partials (iv30/iv90/slope_1m3m). Fully wrapped — any
+        # failure leaves the v1 result untouched. Bars-derived v2 metrics
+        # (EWMA/sigma_fwd/FVRP) are computed cross-ticker after the scan loop.
+        v2_partial = None
+        try:
+            _persist_bars_v2(ticker, bars)
+            v2_partial = _v2_chain_partials(surface, contracts, snapshot.price)
+        except Exception as e:
+            logger.debug("%s: v2 partial skipped — %s: %s", ticker, type(e).__name__, e)
+
         return {
             "surface": surface,
             "name": meta["name"],
@@ -294,6 +316,8 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
             # always include because both already live in this function scope.
             "_contracts": contracts,
             "_spot": snapshot.price,
+            # ── v2 (Phase A): chain-derived shadow partials (None on failure).
+            "_v2": v2_partial,
         }
 
     except PermissionError as e:
@@ -475,6 +499,179 @@ def _build_cps_response(
     )
 
 
+# ════════════════════════════════════════════════════════════════════════
+# v2 silent shadow substrate (Phase A). Computes v2 metrics beside v1 and logs
+# where they diverge. NOTHING here gates or changes the v1 response — every
+# entry point is wrapped so a v2 failure can never break a scan (mirrors the
+# CPS try/except isolation). v1 stays authoritative until Phase E.
+# ════════════════════════════════════════════════════════════════════════
+
+def _persist_bars_v2(ticker: str, bars: list) -> None:
+    """Upsert the freshly fetched OHLC bars into daily_bars (source=marketdata).
+    Bars failing an integrity check are stored quarantined, never corrected."""
+    rows = []
+    for b in bars:
+        try:
+            o, h, l, c = float(b.open), float(b.high), float(b.low), float(b.close)
+        except (TypeError, ValueError):
+            continue
+        ok = (o > 0 and h > 0 and l > 0 and c > 0
+              and h >= max(o, c) - 1e-9 and l <= min(o, c) + 1e-9)
+        rows.append((ticker, b.date, o, h, l, c,
+                     float(getattr(b, "volume", 0) or 0),
+                     "marketdata", 1, 0 if ok else 1))
+    if rows:
+        store_daily_bars(rows)
+
+
+def _v2_chain_partials(surface, contracts, spot) -> dict:
+    """Chain-derived v2 inputs captured while the option chain is in scope:
+    iv30 (annualized decimal), iv90, and the 1M/3M term slope. No API calls."""
+    iv_current = surface.iv.iv_current           # percent, 30-day interpolated
+    iv30_dec = (iv_current / 100.0) if iv_current is not None else None
+    iv90 = slope_1m3m = None
+    try:
+        filtered = filter_liquid_contracts(contracts)
+        iv90 = compute_atm_iv(filtered, spot, target_dte=90)
+        if iv_current is not None and iv90:
+            slope_1m3m = iv_current / iv90
+    except Exception:
+        pass
+    return {"iv30_dec": iv30_dec, "iv90": iv90, "slope_1m3m": slope_1m3m}
+
+
+def _shadow_divergence(r, v2_eligible, gate_state, nodata_v2) -> tuple[str, str]:
+    """Classify the v1↔v2 disagreement for one ticker (master plan §A3)."""
+    v1_actionable = r.recommendation in ("SELL PREMIUM", "CONDITIONAL")
+    v1_nodata = r.recommendation == "NO DATA"
+    if v1_nodata != nodata_v2:
+        return "NODATA_SKEW", ""
+    if v2_eligible is None:
+        return "NODATA_SKEW", ""
+    v2_actionable = bool(v2_eligible)
+    if v1_actionable == v2_actionable:
+        if gate_state is not None and (gate_state or "") != (r.regime or ""):
+            return "STATE_MISMATCH", f"v1 {r.regime} vs v2 {gate_state}"
+        return "AGREE", ""
+    return ("V2_STRICTER", "") if v1_actionable else ("V2_LOOSER", "")
+
+
+def _compute_v2_shadow(results: list, v2_inputs: dict) -> None:
+    """Train the pooled forecaster from stored bars, compute per-ticker v2
+    metrics, set them (additively) on the TickerResult objects, persist the v2
+    daily_iv columns + gate_state, and write the shadow_diff rows. Isolated:
+    the caller wraps this so any failure leaves the v1 response untouched."""
+    today = date.today().isoformat()
+    engine, series, g_by_date = fc.train_from_db(list(UNIVERSE.keys()))
+    low_coverage = len(results) < 0.9 * len(UNIVERSE)
+    # Panel-coverage guard: on a thin-panel day carry forward the last-good G_t
+    # rather than let a partial cross-section move the whole book (spec A2 / §A3).
+    carry_g = get_last_good_global_factor() if low_coverage else None
+
+    shadow_rows = []
+    for r in results:
+        tkr = r.ticker
+        snaps = series.get(tkr)
+        chain = v2_inputs.get(tkr) or {}
+        if not snaps:
+            cls, reason = _shadow_divergence(r, None, None, nodata_v2=True)
+            shadow_rows.append({"date": today, "ticker": tkr, "is_etf": 1 if r.is_etf else 0,
+                "v1_action": r.recommendation, "v1_regime": r.regime, "v2_eligible": None,
+                "v2_gate_state": None, "v2_transient": 0, "divergence_class": cls,
+                "divergence_reason": reason or "no v2 bars", "v2_warm": 0})
+            continue
+
+        snap = snaps[-1]
+        g = carry_g if (low_coverage and carry_g is not None) else (g_by_date.get(snap["date"]) or 1.0)
+        sf, sfd = engine.predict(snap, g)
+        a5, a25 = snap["e_sneg"].get(5), snap["e_sneg"].get(25)
+        accel = math.sqrt(a5 / a25) if (a5 and a25 and a25 > 0) else 1.0
+        conc = est.concentration_10d(snaps[-10:])
+
+        iv30_dec = chain.get("iv30_dec")
+        slope = chain.get("slope_1m3m")
+        fvrp_ratio = fvrp_z = abs_prem = None
+        if iv30_dec and sf > 0:
+            fv = tc.fvrp(iv30_dec, sf, log_hist=get_fvrp_history(tkr, 252))
+            fvrp_ratio, fvrp_z, abs_prem = fv["ratio"], fv["z"], fv["abs_premium_volpts"]
+
+        # Gate state (shadow): seed from the prior persisted state, one transition today.
+        gs = tc.GateState()
+        prev = get_latest_gate_state(tkr, before=today)
+        if prev:
+            gs.state = prev["state"]; gs.transient = bool(prev["transient"])
+            gs._pending = prev["pending"]; gs._pending_days = prev["pending_days"] or 0
+            gs._blackout = prev["blackout"] or 0
+        gs.update(slope if slope is not None else 0.95, accel, conc)
+        store_gate_state(tkr, today, gs.state, transient=gs.transient, pending=gs._pending,
+                         pending_days=gs._pending_days, blackout=gs._blackout)
+
+        # Eligibility (shadow — PROVISIONAL dead zones; Phase-B quantile-match owns these).
+        dead_zone = tc.CONFIG["dead_zone_index"] if r.is_etf else tc.CONFIG["dead_zone_single"]
+        reasons = []
+        v2_elig = False
+        if fvrp_ratio is None:
+            reasons.append("no FVRP (chain/forecast unavailable)")
+        else:
+            v2_elig = gs.entry_eligible(fvrp_ratio, dead_zone, abs_prem if abs_prem is not None else 0.0)
+            if fvrp_ratio < 1.0:
+                reasons.append(f"FVRP {fvrp_ratio:.2f} < 1.0 (neg fwd-VRP)")
+            elif fvrp_ratio < dead_zone:
+                reasons.append(f"FVRP {fvrp_ratio:.2f} < {dead_zone:.2f} dead zone")
+            if abs_prem is not None and abs_prem < tc.CONFIG["abs_premium_floor_volpts"]:
+                reasons.append(f"abs premium {abs_prem:.1f} < {tc.CONFIG['abs_premium_floor_volpts']} vol pts")
+            if gs.state != "NORMAL":
+                reasons.append(f"gate {gs.state} (accel_dn {accel:.2f}"
+                               + (f", slope {slope:.2f})" if slope is not None else ")"))
+            if gs.transient or gs._blackout > 0:
+                reasons.append("transient blackout")
+        warm = bool(engine.fitted and not low_coverage
+                    and len(get_fvrp_history(tkr, 252)) >= tc.CONFIG["fvrp_min_obs"])
+
+        # Additive fields on the TickerResult (served + persisted in scan_results).
+        r.sigma_fwd = round(sf, 4)
+        r.sigma_fwd_dn = round(sfd, 4)
+        r.fvrp_ratio = round(fvrp_ratio, 4) if fvrp_ratio is not None else None
+        r.fvrp_z = round(fvrp_z, 3) if fvrp_z is not None else None
+        r.slope_1m3m = round(slope, 4) if slope is not None else None
+        r.accel_dn = round(accel, 4)
+        r.v2_gate_state = gs.state
+        r.v2_eligible = v2_elig
+        r.v2_warm = warm
+        r.v2_ineligibility_reasons = reasons
+
+        try:
+            store_daily_iv_v2(
+                tkr, sigma_fwd=sf, sigma_fwd_dn=sfd, fvrp_ratio=fvrp_ratio, fvrp_z=fvrp_z,
+                slope_1m3m=slope, accel_dn=accel, global_factor=g, vbar=snap["vbar"],
+                v_gk=snap["v"], s_neg=snap["s_neg"],
+                ewma_v_1=snap["e_v"][1], ewma_v_5=snap["e_v"][5], ewma_v_25=snap["e_v"][25],
+                ewma_v_125=snap["e_v"][125], ewma_sneg_5=snap["e_sneg"][5],
+                ewma_sneg_25=snap["e_sneg"][25], v2_gate_state=gs.state,
+                transient_tag=1 if gs.transient else 0, v2_eligible=1 if v2_elig else 0,
+                v2_warm=1 if warm else 0, low_coverage=1 if low_coverage else 0,
+                legacy_signal_score=r.signal_score, legacy_recommendation=r.recommendation,
+                legacy_regime=r.regime, legacy_vrp_ratio=r.vrp_ratio,
+                legacy_term_slope=r.term_slope, legacy_rv_accel=r.rv_acceleration)
+        except Exception:
+            logger.debug("%s: store_daily_iv_v2 skipped", tkr)
+
+        cls, reason = _shadow_divergence(r, v2_elig, gs.state, nodata_v2=False)
+        shadow_rows.append({"date": today, "ticker": tkr, "is_etf": 1 if r.is_etf else 0,
+            "v1_action": r.recommendation, "v1_regime": r.regime,
+            "v2_eligible": 1 if v2_elig else 0, "v2_gate_state": gs.state,
+            "v2_transient": 1 if gs.transient else 0, "divergence_class": cls,
+            "divergence_reason": reason or ("; ".join(reasons) if cls in ("V2_STRICTER",) else ""),
+            "v2_warm": 1 if warm else 0})
+
+    store_shadow_diff(shadow_rows)
+    counts = {}
+    for s in shadow_rows:
+        counts[s["divergence_class"]] = counts.get(s["divergence_class"], 0) + 1
+    logger.info("v2 shadow: %d rows %s fitted=%s low_coverage=%s",
+                len(shadow_rows), counts, engine.fitted, low_coverage)
+
+
 async def run_full_scan() -> ScanResponse:
     """Scan all tickers in the universe."""
     if client is None:
@@ -513,6 +710,9 @@ async def run_full_scan() -> ScanResponse:
     # Phase 3: capture raw chain + spot for CPS-universe tickers so the
     # spread builder can run after the scoring loop without re-fetching.
     cps_raw_inputs: dict[str, dict] = {}
+    # v2 (Phase A): chain-derived shadow partials per ticker, consumed by the
+    # post-loop cross-ticker forecast/shadow step.
+    v2_inputs: dict[str, dict] = {}
 
     for result in scan_results:
         if isinstance(result, Exception):
@@ -529,6 +729,8 @@ async def run_full_scan() -> ScanResponse:
                 "spot": data.get("_spot") or 0.0,
                 "atr14": data.get("atr14"),
             }
+        if data.get("_v2"):
+            v2_inputs[ticker] = data["_v2"]
 
         scored = score_opportunity(
             surface=data["surface"],
@@ -637,6 +839,15 @@ async def run_full_scan() -> ScanResponse:
             avg_iv_rank=0, avg_rv_accel=0, danger_count=0,
             caution_count=0, total_tickers=0,
         )
+
+    # ── v2 silent shadow (Phase A) — isolated; sets advisory v2 fields on the
+    # results (persisted + served) and logs the v1↔v2 divergence. Runs before
+    # store_scan_result so the v2 telemetry is cached. A failure here can never
+    # affect the v1 response (same isolation as the CPS build below).
+    try:
+        _compute_v2_shadow(results, v2_inputs)
+    except Exception:
+        logger.exception("v2 shadow compute failed — v1 scan unaffected")
 
     # Historical data for charts
     historical = {}
@@ -829,6 +1040,31 @@ async def get_latest_cached_scan():
         scan_quality=quality,
         scan_quality_reason=reason,
     )
+
+
+@app.get("/api/shadow/summary", response_model=ShadowSummaryResponse)
+async def get_shadow_summary_endpoint(window: int = Query(10, ge=1, le=120)):
+    """v2-vs-v1 shadow aggregates over the last `window` scan dates. Operator/dev
+    surface — v1 still drives live decisions (Phase A is advisory-only). This is
+    a transitional validation instrument, removed at the Phase E cutover."""
+    return ShadowSummaryResponse(**get_shadow_summary(window))
+
+
+@app.get("/api/shadow/diff", response_model=ShadowDiffResponse)
+async def get_shadow_diff_endpoint(
+    date: Optional[str] = None,
+    divergence_class: Optional[str] = None,
+    sleeve: Optional[str] = None,
+    warm_only: bool = False,
+    limit: int = Query(500, ge=1, le=2000),
+):
+    """Filtered v1↔v2 drill rows (decision-changing classes first), each joined
+    to its v1 + v2 drivers. Filters: date, divergence_class
+    (AGREE/V2_STRICTER/V2_LOOSER/STATE_MISMATCH/NODATA_SKEW), sleeve
+    (index|single), warm_only."""
+    rows = get_shadow_diffs(scan_date=date, divergence_class=divergence_class,
+                            sleeve=sleeve, warm_only=warm_only, limit=limit)
+    return ShadowDiffResponse(count=len(rows), rows=rows)
 
 
 def _is_scanned_today(scanned_at: str) -> bool:

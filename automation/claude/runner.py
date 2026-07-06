@@ -98,3 +98,31 @@ def run_cps_notable(d: date, statpack: dict, cps_block: str, recent_cps: str, n:
         recent_cps=recent_cps, n=n,
     )
     return _clean_notable(_invoke(prompt))
+
+
+def _v2_briefing_valid(text: str, summary_line: str) -> bool:
+    return text.startswith(summary_line) and "**Calibration read:" in text
+
+
+def run_v2_briefing(d: date, summary_line: str, shadow_table: str, summary_json,
+                    recent_v2_briefings: str, n: int = 5) -> str:
+    """Return the v2-briefings entry body (verbatim shadow-summary line -> analysis ->
+    `**Calibration read:**` line). Raises ClaudeAuthError on auth failure, RuntimeError if the
+    output can't be validated. Mirrors run_briefing (verbatim-header validation + one retry)."""
+    sj = summary_json if isinstance(summary_json, str) else json.dumps(summary_json, indent=2)
+    prompt = prompts.V2_BRIEFING_PROMPT.format(
+        date=d.isoformat(), weekday=d.strftime("%A"), summary_line=summary_line,
+        shadow_table=shadow_table, summary_json=sj, recent_v2_briefings=recent_v2_briefings, n=n,
+    )
+    out = _invoke(prompt)
+    if not _v2_briefing_valid(out, summary_line):
+        # One stricter retry — most failures are a stray preamble or a tweaked number.
+        strict = prompt + (
+            "\n\nYOUR PREVIOUS ATTEMPT WAS REJECTED (altered the summary line or dropped the "
+            "calibration line). Your output must START with exactly this line, character-for-"
+            f"character:\n{summary_line}\nand contain a `**Calibration read:**` line. Nothing else."
+        )
+        out = _invoke(strict)
+        if not _v2_briefing_valid(out, summary_line):
+            raise RuntimeError("v2-briefing output failed validation (summary line / calibration)")
+    return out

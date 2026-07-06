@@ -58,3 +58,63 @@ def read_cps_by_date(snap: Path, iso_date: str) -> dict | None:
     finally:
         conn.close()
     return json.loads(row[0]) if row else None
+
+
+# --- v2-shadow backfill (additive) ---------------------------------------------------
+_SHADOW_COLS = ["date", "ticker", "is_etf", "v1_action", "v1_regime", "v2_eligible",
+                "v2_gate_state", "v2_transient", "divergence_class", "divergence_reason",
+                "v2_warm", "v1_vrp_ratio", "v1_term_slope", "v1_rv_accel",
+                "fvrp_ratio", "fvrp_z", "slope_1m3m", "accel_dn", "sigma_fwd"]
+
+# Replicates backend/database.py:get_shadow_diffs (same join + alias set), filtered to one date.
+_SHADOW_QUERY = """
+    SELECT s.date, s.ticker, s.is_etf, s.v1_action, s.v1_regime, s.v2_eligible,
+           s.v2_gate_state, s.v2_transient, s.divergence_class, s.divergence_reason,
+           s.v2_warm, d.legacy_vrp_ratio, d.legacy_term_slope, d.legacy_rv_accel,
+           d.fvrp_ratio, d.fvrp_z, d.slope_1m3m, d.accel_dn, d.sigma_fwd
+    FROM shadow_diff s
+    LEFT JOIN daily_iv d ON d.ticker = s.ticker AND d.date = s.date
+    WHERE s.date = ?
+    ORDER BY CASE s.divergence_class
+             WHEN 'V2_STRICTER' THEN 0 WHEN 'V2_LOOSER' THEN 1 ELSE 2 END,
+             s.v2_warm DESC, s.ticker
+"""
+
+
+def _day_summary(rows: list[dict]) -> dict:
+    """Per-day counterpart of backend/database.py:get_shadow_summary, computed from a single
+    date's rows (oscillation needs a multi-day window, so it stays None on backfill)."""
+    from collections import Counter
+    n = len(rows)
+    cls = Counter(r["divergence_class"] for r in rows)
+    warm = sum(1 for r in rows if r["v2_warm"])
+    idx = [r for r in rows if r["is_etf"]]
+
+    def _nonactionable_v1(a):
+        return a not in ("SELL PREMIUM", "CONDITIONAL")
+
+    idx_v1 = (sum(1 for r in idx if _nonactionable_v1(r["v1_action"])) / len(idx)) if idx else None
+    idx_v2 = (sum(1 for r in idx if not r["v2_eligible"]) / len(idx)) if idx else None
+    return {
+        "n_ticker_days": n, "n_warm": warm, "dates": [rows[0]["date"]] if rows else [],
+        "agreement_rate": (cls.get("AGREE", 0) / n) if n else None,
+        "divergence_counts": dict(cls),
+        "index_gating_rate_v1": idx_v1, "index_gating_rate_v2": idx_v2,
+        "oscillation_v1": None, "oscillation_v2": None,
+        "warm_coverage": (warm / n) if n else None,
+    }
+
+
+def read_shadow_by_date(snap: Path, iso_date: str) -> dict | None:
+    """Return {"rows": [...], "summary": {...per-day counts...}} for the given ET date, or None.
+
+    Mirrors the API's /api/shadow/diff join against the read-only snapshot; the summary is the
+    day's own counts (not a rolling window) so the shadow-diffs backfill entry is self-contained."""
+    conn = _ro_conn(snap)
+    try:
+        rows = [dict(zip(_SHADOW_COLS, r)) for r in conn.execute(_SHADOW_QUERY, (iso_date,))]
+    finally:
+        conn.close()
+    if not rows:
+        return None
+    return {"rows": rows, "summary": _day_summary(rows)}

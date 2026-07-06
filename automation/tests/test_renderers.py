@@ -14,6 +14,7 @@ sys.path.insert(0, str(REPO))
 
 from automation.render.np_table import render_np_table  # noqa: E402
 from automation.render.cps_snapshot import render_cps_snapshot  # noqa: E402
+from automation.render.shadow_table import render_shadow_snapshot  # noqa: E402
 
 FIX = REPO / "automation" / "fixtures"
 
@@ -36,6 +37,15 @@ def check_cps(date: str) -> None:
     _assert_equal(f"CPS {date}", expected, got)
 
 
+def check_shadow(date: str) -> None:
+    # Fixture is {"rows": [...], "summary": {...}}; a representative slice of a day's rows +
+    # the rolling 10-day summary (the live shape: window summary above the day's divergences).
+    raw = json.loads((FIX / f"shadow_{date}.json").read_text())
+    expected = _load(FIX / "expected" / f"shadow_{date}.md")
+    got = render_shadow_snapshot(raw["rows"], raw["summary"])
+    _assert_equal(f"SHADOW {date}", expected, got)
+
+
 def _assert_equal(label: str, expected: str, got: str) -> None:
     if expected == got:
         print(f"  PASS  {label}")
@@ -56,6 +66,7 @@ def test_renderers_golden():
     for date in ["2026-05-27", "2026-05-28", "2026-05-29", "2026-06-01", "2026-06-02", "2026-06-03"]:
         check_np(date)
         check_cps(date)
+    check_shadow("2026-06-03")
 
 
 if __name__ == "__main__":
