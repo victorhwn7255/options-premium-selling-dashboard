@@ -31,6 +31,35 @@ def _load_cps(d):
     return json.loads((FIX / f"cps_{d}.json").read_text())
 
 
+def _scratch_shadow(dst_dir: Path):
+    """Copy the two v2 sister seed files (no dated entries yet) into dst_dir."""
+    out = []
+    for name in ("v2-metrics-logs.md", "v2-briefings.md"):
+        p = dst_dir / name
+        p.write_text((HIST / name).read_text())
+        out.append(p)
+    return out[0], out[1]
+
+
+def _mk_shadow(iso: str) -> dict:
+    """A minimal well-formed shadow surface for one day (rows + per-day summary)."""
+    return {
+        "rows": [
+            {"date": iso, "ticker": "QQQ", "is_etf": 1, "v1_action": "SELL PREMIUM",
+             "v1_regime": "NORMAL", "v2_eligible": 0, "v2_gate_state": "COOL",
+             "divergence_class": "V2_STRICTER", "v2_warm": 1, "sigma_fwd": 0.18,
+             "fvrp_ratio": 1.02, "fvrp_z": -0.4, "slope_1m3m": 0.91, "accel_dn": 0.99},
+        ],
+        "summary": {"n_ticker_days": 1, "divergence_counts": {"V2_STRICTER": 1},
+                    "index_gating_rate_v1": 0.0, "index_gating_rate_v2": 1.0,
+                    "oscillation_v1": None, "oscillation_v2": None, "warm_coverage": 1.0},
+    }
+
+
+def _pass_briefing(*a, **k):
+    return "**Regime:** X | **Tradeable:** Y | **Avg VRP:** Z\n\nnarrative\n\n**Position:** hold."
+
+
 def _scratch_truncated(dst_dir: Path, keep_from: str):
     """Copy the 3 history files into dst_dir, dropping every entry newer than keep_from."""
     out = {}
@@ -173,6 +202,70 @@ def test_partial_scan_and_cps_window():
         _ok("6/3 NP+CPS written", "2026-06-03" in s["metrics_written"] and "2026-06-03" in s["cps_written"])
 
 
+def test_shadow_sister_logs_additive():
+    """The v2 sister logs backfill alongside v1: shadow tables + v2 briefings written for every
+    day, newest-on-top, and a re-run is idempotent. Injected sources (no network)."""
+    with tempfile.TemporaryDirectory() as td:
+        m, c, b = _scratch_truncated(Path(td), "2026-05-29")
+        sd, v2 = _scratch_shadow(Path(td))
+
+        def load_backfill(d):
+            iso = d.isoformat()
+            return _load_np(iso), _load_cps(iso), _mk_shadow(iso)
+
+        def v2_briefing_fn(d, summary_line, shadow_table, summary_json, recent):
+            return f"{summary_line}\n\nShadow read for {d.isoformat()}.\n\n**Calibration read:** ok."
+
+        kw = dict(metrics_path=m, cps_path=c, briefings_path=b, api_date=date(2026, 6, 3),
+                  np_latest=_load_np("2026-06-03"), cps_latest=_load_cps("2026-06-03"),
+                  load_backfill=load_backfill, no_claude=False, verbose=False,
+                  briefing_fn=_pass_briefing, notable_fn=lambda *a, **k: "note",
+                  shadow_diffs_path=sd, v2_briefings_path=v2,
+                  shadow_latest=_mk_shadow("2026-06-03"), v2_briefing_fn=v2_briefing_fn)
+        s = orch.run(**kw)
+
+        days = ["2026-06-01", "2026-06-02", "2026-06-03"]
+        _ok("shadow written all 3", s["shadow_written"] == days)
+        _ok("v2 briefing written all 3", s["v2_briefing_written"] == days)
+        # v1 fully written too — sister logs are additive, never gate v1
+        _ok("metrics still written all 3", s["metrics_written"] == days)
+        _ok("briefings still written all 3", s["briefings_written"] == days)
+        st = sd.read_text()
+        _ok("shadow newest-on-top",
+            st.index("## 2026-06-03") < st.index("## 2026-06-02") < st.index("## 2026-06-01"))
+        vt = parser.entry_text(v2, "2026-06-03")
+        _ok("v2 briefing starts with verbatim shadow-summary line",
+            vt.startswith("## 2026-06-03 (Wednesday)\n\n**Shadow summary:** Checked 1 / 0 agree / 1 V2_STRICTER"))
+        _ok("v2 briefing has Calibration read line", "**Calibration read:** ok." in vt)
+        # shadow table content present verbatim
+        _ok("shadow table row present", "| QQQ | SELL PREMIUM | NORMAL | No | COOL | V2_STRICTER |" in st)
+
+        # idempotent re-run -> nothing new
+        s2 = orch.run(**kw)
+        _ok("re-run writes no shadow", s2["shadow_written"] == [])
+        _ok("re-run writes no v2 briefing", s2["v2_briefing_written"] == [])
+
+
+def test_shadow_failure_does_not_block_v1():
+    """A shadow render/write failure is swallowed: v1 metrics + briefing still fully written."""
+    with tempfile.TemporaryDirectory() as td:
+        m, c, b = _scratch_truncated(Path(td), "2026-06-02")  # only 6/3 missing
+        sd, v2 = _scratch_shadow(Path(td))
+        bad_shadow = {"rows": [{"oops": "no ticker key"}],  # _shadow_row -> KeyError, caught
+                      "summary": {"n_ticker_days": 1, "divergence_counts": {}}}
+
+        s = orch.run(metrics_path=m, cps_path=c, briefings_path=b, api_date=date(2026, 6, 3),
+                     np_latest=_load_np("2026-06-03"), cps_latest=_load_cps("2026-06-03"),
+                     load_backfill=lambda d: (None, None, None), no_claude=False, verbose=False,
+                     briefing_fn=_pass_briefing, notable_fn=lambda *a, **k: "note",
+                     shadow_diffs_path=sd, v2_briefings_path=v2, shadow_latest=bad_shadow)
+        _ok("bad shadow not written (render failure caught)", s["shadow_written"] == [])
+        _ok("no v2 briefing when shadow render failed", s["v2_briefing_written"] == [])
+        _ok("metrics STILL written despite shadow failure", "2026-06-03" in s["metrics_written"])
+        _ok("briefing STILL written despite shadow failure", "2026-06-03" in s["briefings_written"])
+        _ok("shadow-diffs file untouched (no dated entry)", parser.last_logged_date(sd) is None)
+
+
 if __name__ == "__main__":
     print("Orchestrator tests:")
     test_backfill_three_days_then_idempotent()
@@ -180,4 +273,6 @@ if __name__ == "__main__":
     test_injected_claude_success()
     test_up_to_date_noop()
     test_partial_scan_and_cps_window()
+    test_shadow_sister_logs_additive()
+    test_shadow_failure_does_not_block_v1()
     print("All orchestrator tests passed.")

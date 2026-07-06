@@ -59,6 +59,20 @@ class TickerResult(BaseModel):
     pre_suppression_recommendation: Optional[str] = None
     pre_suppression_score: Optional[int] = None
     scan_quality_suppression_reason: Optional[str] = None
+    # ── v2 silent shadow (Phase A) — additive telemetry, populated when the v2
+    # substrate runs beside v1. All Optional/default so cached v1 blobs still
+    # parse and the history automation (which .get()s fields) is unaffected.
+    # These are ADVISORY only — v1 stays authoritative until Phase E.
+    sigma_fwd: Optional[float] = None
+    sigma_fwd_dn: Optional[float] = None
+    fvrp_ratio: Optional[float] = None
+    fvrp_z: Optional[float] = None
+    slope_1m3m: Optional[float] = None
+    accel_dn: Optional[float] = None
+    v2_gate_state: Optional[str] = None
+    v2_eligible: Optional[bool] = None
+    v2_warm: Optional[bool] = None
+    v2_ineligibility_reasons: list[str] = []
 
 
 class RegimeSummary(BaseModel):
@@ -140,6 +154,34 @@ class VrpHistoryPoint(BaseModel):
 class VrpHistoryResponse(BaseModel):
     year: int
     points: list[VrpHistoryPoint]
+
+
+# ════════════════════════════════════════════════════════════════════════
+# v2 shadow-comparison API (Phase A) — operator/dev surface, read-only.
+# Transitional validation instrument; removed at Phase E cutover.
+# ════════════════════════════════════════════════════════════════════════
+
+class ShadowSummaryResponse(BaseModel):
+    """Aggregates over a rolling window of shadow diffs (GET /api/shadow/summary)."""
+    n_ticker_days: int = 0
+    n_warm: int = 0
+    dates: list[str] = []
+    agreement_rate: Optional[float] = None
+    divergence_counts: dict[str, int] = {}
+    # The G2 canary: share of index/ETF ticker-days each side gates (non-actionable).
+    index_gating_rate_v1: Optional[float] = None
+    index_gating_rate_v2: Optional[float] = None
+    # Hysteresis payoff: mean gate-state transitions per ticker (expect v2 ≪ v1).
+    oscillation_v1: Optional[float] = None
+    oscillation_v2: Optional[float] = None
+    warm_coverage: Optional[float] = None
+
+
+class ShadowDiffResponse(BaseModel):
+    """Filtered shadow-diff drill rows joined to their drivers (GET /api/shadow/diff).
+    Rows are dicts (v1 + v2 driver columns vary) — see database.get_shadow_diffs."""
+    count: int = 0
+    rows: list[dict] = []
 
 
 # ════════════════════════════════════════════════════════════════════════

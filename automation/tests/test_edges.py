@@ -12,6 +12,7 @@ sys.path.insert(0, str(REPO))
 
 from automation.render.np_table import render_np_table  # noqa: E402
 from automation.render.cps_snapshot import render_cps_snapshot  # noqa: E402
+from automation.render.shadow_table import render_shadow_snapshot, shadow_summary_line  # noqa: E402
 from automation.render.statpack import compute_statpack  # noqa: E402
 
 
@@ -95,6 +96,64 @@ def test_first_day_no_deltas():
     _ok("first-day day_over_day empty", sp["day_over_day"] == [])
 
 
+def _srow(ticker, div="AGREE", elig=1, gate="WARM", **kw):
+    r = {"ticker": ticker, "is_etf": 1, "v1_action": "NO EDGE", "v1_regime": "NORMAL",
+         "v2_eligible": elig, "v2_gate_state": gate, "divergence_class": div, "v2_warm": 1,
+         "sigma_fwd": 0.2, "fvrp_ratio": 1.1, "fvrp_z": 0.3, "slope_1m3m": 0.91, "accel_dn": 0.98}
+    r.update(kw)
+    return r
+
+
+def test_shadow_empty_rows():
+    # No divergence rows at all -> just the summary line, no table.
+    out = render_shadow_snapshot([], {"n_ticker_days": 0, "divergence_counts": {},
+                                      "index_gating_rate_v1": None, "index_gating_rate_v2": None,
+                                      "oscillation_v1": None, "oscillation_v2": None,
+                                      "warm_coverage": None})
+    _ok("empty shadow = 1 line (no table)", len(out.splitlines()) == 1)
+    _ok("empty shadow summary line", out.startswith("**Shadow summary:** Checked 0 / 0 agree"))
+    _ok("None rates render as em dash",
+        "index-gating v1 — vs v2 — | oscillation v1 — vs v2 — | warm —" in out)
+
+
+def test_shadow_none_summary():
+    _ok("None summary -> (unavailable)", shadow_summary_line(None) == "**Shadow summary:** (unavailable)")
+    _ok("empty summary -> (unavailable)", shadow_summary_line({}) == "**Shadow summary:** (unavailable)")
+
+
+def test_shadow_all_agree_and_sort():
+    # all-AGREE (no decision-changing rows) still renders a table, sorted by ticker.
+    rows = [_srow("SPY"), _srow("AAA"), _srow("QQQ")]
+    out = render_shadow_snapshot(rows, {"n_ticker_days": 3, "divergence_counts": {"AGREE": 3},
+                                        "index_gating_rate_v1": 0.0, "index_gating_rate_v2": 0.0,
+                                        "oscillation_v1": 0.0, "oscillation_v2": 0.0,
+                                        "warm_coverage": 1.0})
+    body = out.splitlines()[4:]  # rows after summary(0) + blank(1) + header(2) + sep(3)
+    _ok("all-AGREE sorted by ticker", [r.split("|")[1].strip() for r in body] == ["AAA", "QQQ", "SPY"])
+    _ok("all-AGREE 3 agree line", "Checked 3 / 3 agree / 0 V2_STRICTER" in out)
+    _ok("0% rates render", "index-gating v1 0% vs v2 0% | oscillation v1 0.00 vs v2 0.00 | warm 100%" in out)
+
+
+def test_shadow_decision_changing_first():
+    # V2_STRICTER, then V2_LOOSER, then everything else — regardless of ticker order.
+    rows = [_srow("ZZZ", div="AGREE"), _srow("AAA", div="V2_LOOSER", elig=1),
+            _srow("MMM", div="V2_STRICTER", elig=0), _srow("BBB", div="STATE_MISMATCH")]
+    out = render_shadow_snapshot(rows, None)  # None summary -> (unavailable) header, table still renders
+    order = [r.split("|")[1].strip() for r in out.splitlines()[4:]]
+    _ok("V2_STRICTER first, then V2_LOOSER, then rest by ticker", order == ["MMM", "AAA", "BBB", "ZZZ"])
+    _ok("None summary header still valid", out.startswith("**Shadow summary:** (unavailable)"))
+
+
+def test_shadow_none_numeric_cells():
+    # A NODATA_SKEW row with all-None drivers -> every numeric cell is an em dash.
+    row = _srow("XLB", div="NODATA_SKEW", elig=0, gate="NODATA", v2_eligible=None,
+                sigma_fwd=None, fvrp_ratio=None, fvrp_z=None, slope_1m3m=None, accel_dn=None)
+    out = render_shadow_snapshot([row], None)
+    last = out.splitlines()[-1]
+    _ok("None eligible -> em dash", "| XLB | NO EDGE | NORMAL | — | NODATA | NODATA_SKEW |" in last)
+    _ok("None drivers -> em dashes", last.endswith("| — | — | — | — | — |"))
+
+
 def test_avg_vrp_js_rounding_tie():
     # eligible mean exactly 2.25 -> JS toFixed(1) = "2.3" (banker's would give 2.2)
     tied = [_t("A", 30, "NO EDGE", vrp=2.0), _t("B", 30, "NO EDGE", vrp=2.5)]
@@ -107,6 +166,8 @@ def test_avg_vrp_js_rounding_tie():
 if __name__ == "__main__":
     print("Edge-case tests:")
     for fn in [test_earnings_gate_skip, test_cps_empty_candidates, test_cps_unknown_overlay,
-               test_regime_precedence, test_first_day_no_deltas, test_avg_vrp_js_rounding_tie]:
+               test_regime_precedence, test_first_day_no_deltas, test_avg_vrp_js_rounding_tie,
+               test_shadow_empty_rows, test_shadow_none_summary, test_shadow_all_agree_and_sort,
+               test_shadow_decision_changing_first, test_shadow_none_numeric_cells]:
         fn()
     print("All edge-case tests passed.")

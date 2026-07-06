@@ -1,0 +1,22 @@
+{
+  "rows": [
+    {"date": "2026-06-03", "ticker": "QQQ", "is_etf": 1, "v1_action": "SELL PREMIUM", "v1_regime": "NORMAL", "v2_eligible": 0, "v2_gate_state": "COOL", "v2_transient": 0, "divergence_class": "V2_STRICTER", "divergence_reason": "fvrp below dead-zone", "v2_warm": 1, "v1_vrp_ratio": 1.18, "v1_term_slope": 0.912, "v1_rv_accel": 0.987, "fvrp_ratio": 1.04, "fvrp_z": -0.42, "slope_1m3m": 0.912, "accel_dn": 0.987, "sigma_fwd": 0.1823},
+    {"date": "2026-06-03", "ticker": "SPY", "is_etf": 1, "v1_action": "SELL PREMIUM", "v1_regime": "NORMAL", "v2_eligible": 0, "v2_gate_state": "COOL", "v2_transient": 0, "divergence_class": "V2_STRICTER", "divergence_reason": "fvrp below dead-zone", "v2_warm": 1, "v1_vrp_ratio": 1.09, "v1_term_slope": 0.905, "v1_rv_accel": 1.011, "fvrp_ratio": 0.98, "fvrp_z": -0.71, "slope_1m3m": 0.905, "accel_dn": 1.011, "sigma_fwd": 0.1512},
+    {"date": "2026-06-03", "ticker": "NKE", "is_etf": 0, "v1_action": "NO EDGE", "v1_regime": "NORMAL", "v2_eligible": 1, "v2_gate_state": "WARM", "v2_transient": 1, "divergence_class": "V2_LOOSER", "divergence_reason": "", "v2_warm": 1, "v1_vrp_ratio": 0.94, "v1_term_slope": 0.888, "v1_rv_accel": 0.942, "fvrp_ratio": 1.22, "fvrp_z": 1.35, "slope_1m3m": 0.888, "accel_dn": 0.942, "sigma_fwd": 0.2841},
+    {"date": "2026-06-03", "ticker": "GOOG", "is_etf": 0, "v1_action": "CONDITIONAL", "v1_regime": "NORMAL", "v2_eligible": 1, "v2_gate_state": "WARM", "v2_transient": 0, "divergence_class": "AGREE", "divergence_reason": "", "v2_warm": 1, "v1_vrp_ratio": 1.15, "v1_term_slope": 0.921, "v1_rv_accel": 1.005, "fvrp_ratio": 1.15, "fvrp_z": 0.88, "slope_1m3m": 0.921, "accel_dn": 1.005, "sigma_fwd": 0.3125},
+    {"date": "2026-06-03", "ticker": "XLF", "is_etf": 1, "v1_action": "NO EDGE", "v1_regime": "CAUTION", "v2_eligible": 1, "v2_gate_state": "HOT", "v2_transient": 0, "divergence_class": "STATE_MISMATCH", "divergence_reason": "v1 CAUTION vs v2 HOT", "v2_warm": 1, "v1_vrp_ratio": 1.02, "v1_term_slope": 0.933, "v1_rv_accel": 0.976, "fvrp_ratio": 1.08, "fvrp_z": 0.12, "slope_1m3m": 0.933, "accel_dn": 0.976, "sigma_fwd": 0.1998},
+    {"date": "2026-06-03", "ticker": "XLB", "is_etf": 1, "v1_action": "NO DATA", "v1_regime": "NORMAL", "v2_eligible": 0, "v2_gate_state": "NODATA", "v2_transient": 0, "divergence_class": "NODATA_SKEW", "divergence_reason": "no fvrp inputs", "v2_warm": 0, "v1_vrp_ratio": null, "v1_term_slope": null, "v1_rv_accel": null, "fvrp_ratio": null, "fvrp_z": null, "slope_1m3m": null, "accel_dn": null, "sigma_fwd": null}
+  ],
+  "summary": {
+    "n_ticker_days": 290,
+    "n_warm": 210,
+    "dates": ["2026-06-03", "2026-06-02", "2026-06-01", "2026-05-29", "2026-05-28", "2026-05-27"],
+    "agreement_rate": 0.7517,
+    "divergence_counts": {"AGREE": 218, "V2_STRICTER": 34, "V2_LOOSER": 12, "STATE_MISMATCH": 18, "NODATA_SKEW": 8},
+    "index_gating_rate_v1": 0.42,
+    "index_gating_rate_v2": 0.58,
+    "oscillation_v1": 0.35,
+    "oscillation_v2": 0.22,
+    "warm_coverage": 0.7241
+  }
+}

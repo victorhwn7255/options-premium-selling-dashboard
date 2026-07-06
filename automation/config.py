@@ -10,6 +10,9 @@ HISTORY_DIR = REPO_ROOT / "history"
 METRICS_FILE = HISTORY_DIR / "metrics-logs.md"
 CPS_FILE = HISTORY_DIR / "credit-put-spreads.md"
 BRIEFINGS_FILE = HISTORY_DIR / "daily-briefings.md"
+# v2-shadow sister logs (additive, best-effort — never gate the v1 run).
+SHADOW_DIFFS_FILE = HISTORY_DIR / "v2-metrics-logs.md"      # deterministic (analog of metrics-logs.md)
+V2_BRIEFINGS_FILE = HISTORY_DIR / "v2-briefings.md"      # Claude-written (analog of daily-briefings.md)
 
 AUTOMATION_DIR = REPO_ROOT / "automation"
 STAGING_DIR = AUTOMATION_DIR / "staging"
