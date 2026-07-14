@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import ThemeToggle from './ThemeToggle';
+import ViewModeToggle from './ViewModeToggle';
 import ExplainMetricsModal from './ExplainMetricsModal';
 import type { Theme } from '@/hooks/useTheme';
+import type { ViewMode } from '@/hooks/useViewMode';
 import type { VerificationResult, EarningsVerificationResult } from '@/lib/types';
 
 interface NavbarProps {
@@ -13,16 +15,15 @@ interface NavbarProps {
   onRefresh: () => void;
   refreshing: boolean;
   scanProgress: string | null;
-  onRefreshEarnings: () => void;
-  earningsRefreshing: boolean;
-  earningsRemaining: number;
+  viewMode: ViewMode;
+  onViewModeChange: (m: ViewMode) => void;
   scannedAt: string | null;
   verification: VerificationResult | null;
   earningsVerification: EarningsVerificationResult | null;
   onOpenRegimeGuide: () => void;
 }
 
-export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, scanProgress, onRefreshEarnings, earningsRefreshing, earningsRemaining, scannedAt, verification, earningsVerification, onOpenRegimeGuide }: NavbarProps) {
+export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, scanProgress, viewMode, onViewModeChange, scannedAt, verification, earningsVerification, onOpenRegimeGuide }: NavbarProps) {
   const [metricsModalOpen, setMetricsModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -161,8 +162,8 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
 
         {/* Right side */}
         <div className="ml-auto flex items-center gap-2 sm:gap-3.5">
-          {/* Market status badge (desktop only) */}
-          <span className={`font-mono text-xs font-medium px-2.5 py-1 rounded-full hidden sm:inline-flex items-center gap-1.5 ${
+          {/* Market status badge (desktop only) — 12px to match the date/toggle cluster */}
+          <span className={`font-mono text-[12px] font-medium px-2.5 py-1 rounded-full hidden sm:inline-flex items-center gap-1.5 ${
             isMarketClosed ? 'text-error bg-error-subtle' : 'text-secondary bg-secondary-subtle'
           }`}>
             <span className="relative flex h-2 w-2">
@@ -295,46 +296,15 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
             </span>
           )}
 
-          {/* Earnings refresh (desktop only) */}
-          <span className="relative group hidden sm:block">
-            <button
-              onClick={onRefreshEarnings}
-              disabled={earningsRefreshing || earningsRemaining <= 0}
-              className="p-1.5 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
-            >
-              <svg
-                className={`w-5 h-5 ${earningsRefreshing ? 'animate-spin' : ''}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-              </svg>
-            </button>
-            {/* Tooltip */}
-            <span
-              className="pointer-events-none absolute right-0 top-full mt-2 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-150 origin-top-right z-50"
-              style={{ background: 'var(--color-tooltip-bg)', color: 'var(--color-tooltip-text)' }}
-            >
-              <span className="flex items-start gap-2.5 rounded-lg px-3.5 py-2.5 shadow-lg whitespace-nowrap" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.18)' }}>
-                <svg className="w-3.5 h-3.5 mt-0.5 shrink-0 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                </svg>
-                <span className="flex flex-col gap-0.5">
-                  <span className="text-2xs font-medium" style={{ color: 'var(--color-tooltip-text)' }}>Refresh earnings dates</span>
-                  <span className="text-2xs" style={{ color: earningsRemaining > 0 ? 'var(--color-tooltip-label)' : 'var(--color-error)' }}>
-                    {earningsRemaining > 0 ? `${earningsRemaining} of 1 remaining today` : 'No refreshes remaining today'}
-                  </span>
-                </span>
-              </span>
-            </span>
-          </span>
-
-          {/* Date (desktop only) */}
-          <span className="font-mono text-sm text-txt-tertiary hidden sm:block">
+          {/* Date (desktop only) — 12px to match the view-mode toggle beside it */}
+          <span className="font-mono text-[12px] text-txt-tertiary hidden sm:block">
             {today}
           </span>
+
+          {/* [HUMAN|MACHINE] view toggle (desktop only; earnings refresh now lives in MACHINE's ops console) */}
+          <div className="hidden sm:flex">
+            <ViewModeToggle mode={viewMode} onChange={onViewModeChange} />
+          </div>
 
           {/* ThemeToggle — always visible */}
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
@@ -377,7 +347,7 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
           </div>
           {/* Row 2: Status + actions */}
           <div className="flex items-center justify-between">
-            <span className={`font-mono text-2xs font-medium px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 ${
+            <span className={`font-mono text-[12px] font-medium px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 ${
               isMarketClosed ? 'text-error bg-error-subtle' : 'text-secondary bg-secondary-subtle'
             }`}>
               <span className="relative flex h-1.5 w-1.5">
@@ -428,21 +398,6 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
                   )}
                 </span>
               )}
-              <button
-                onClick={() => { onRefreshEarnings(); setMenuOpen(false); }}
-                disabled={earningsRefreshing || earningsRemaining <= 0}
-                className="p-2 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors disabled:opacity-50"
-              >
-                <svg
-                  className={`w-3.5 h-3.5 ${earningsRefreshing ? 'animate-spin' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                </svg>
-              </button>
               {verification && (
                 <span className={`p-2 cursor-default ${verification.fail_count === 0 ? 'text-secondary' : 'text-warning'}`}>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -452,8 +407,12 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
               )}
             </div>
           </div>
-          {/* Row 3: Date */}
-          <span className="font-mono text-xs text-txt-tertiary">{today}</span>
+          {/* Row 3: Date — 12px to match the view-mode toggle below it */}
+          <span className="font-mono text-[12px] text-txt-tertiary">{today}</span>
+          {/* Row 4: [HUMAN|MACHINE] view toggle — doesn't auto-close the menu */}
+          <div className="pt-1">
+            <ViewModeToggle mode={viewMode} onChange={onViewModeChange} />
+          </div>
         </div>
       )}
 

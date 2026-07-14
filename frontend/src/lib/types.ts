@@ -139,6 +139,18 @@ export interface TickerResult {
   pre_suppression_recommendation?: string | null;
   pre_suppression_score?: number | null;
   scan_quality_suppression_reason?: string | null;
+  // v2 shadow-pipeline telemetry (Phase A, advisory-only; optional for old cached scans).
+  // Display-only in the MACHINE view — never used for gating client-side (P1).
+  sigma_fwd?: number | null;
+  sigma_fwd_dn?: number | null;
+  fvrp_ratio?: number | null;
+  fvrp_z?: number | null;
+  slope_1m3m?: number | null;
+  accel_dn?: number | null;
+  v2_gate_state?: string | null;
+  v2_eligible?: boolean | null;
+  v2_warm?: boolean | null;
+  v2_ineligibility_reasons?: string[] | null;
 }
 
 export interface RegimeSummary {
@@ -180,6 +192,48 @@ export interface HealthResponse {
   db_initialized: boolean;
   tickers_configured: number;
   historical_data_points: number;
+}
+
+// ── v2 shadow endpoints (MACHINE view only) ─────────────────────────────────
+
+export interface ShadowSummaryResponse {
+  n_ticker_days: number;
+  n_warm: number;
+  dates: string[];
+  agreement_rate: number | null;
+  divergence_counts: Record<string, number>;
+  index_gating_rate_v1: number | null;
+  index_gating_rate_v2: number | null;
+  oscillation_v1: number | null;
+  oscillation_v2: number | null;
+  warm_coverage: number | null;
+}
+
+export interface ShadowDiffRow {
+  date: string;
+  ticker: string;
+  is_etf: boolean | null;
+  v1_action: string | null;
+  v1_regime: string | null;
+  v2_eligible: boolean | null;
+  v2_gate_state: string | null;
+  v2_transient: boolean | null;
+  divergence_class: string | null;
+  divergence_reason: string | null;
+  v2_warm: boolean | null;
+  v1_vrp_ratio: number | null;
+  v1_term_slope: number | null;
+  v1_rv_accel: number | null;
+  fvrp_ratio: number | null;
+  fvrp_z: number | null;
+  slope_1m3m: number | null;
+  accel_dn: number | null;
+  sigma_fwd: number | null;
+}
+
+export interface ShadowDiffResponse {
+  count: number;
+  rows: ShadowDiffRow[];
 }
 
 export interface VerificationResult {

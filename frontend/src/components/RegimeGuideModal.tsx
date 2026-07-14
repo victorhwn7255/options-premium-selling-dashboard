@@ -20,6 +20,7 @@ const REGIME_DATA = [
     explanation: [
       "More than 40% of tickers have flipped to DANGER regime — deep backwardation (term slope > 1.15) or extreme IV with rising RV. This isn't a single-name event; it's systemic stress across the universe. This typically happens during broad selloffs, macro shocks, or cascading uncertainty (tariff escalations, credit events, pandemic scares).",
       "Premium selling in backwardation is like picking up pennies in front of a bulldozer that's already moving. The options market is telling you that realized volatility will likely exceed implied — meaning you'll collect less premium than the losses your short options generate.",
+      "For perspective: since daily logging began (Mar 24, 2026), no session has actually reached OFF SEASON — the worst logged stress day (Jun 10, 2026: universe slope crossing 1.0, five DANGER names) still only rated REGULAR SEASON. That rarity is the point: when this regime does fire, it is unambiguous.",
     ],
     dos: [
       'Go to cash or stay fully hedged',
@@ -71,15 +72,15 @@ const REGIME_DATA = [
       'Ignore the RV Accel status — if it says Caution or Avoid / Wait, wait',
     ],
     example: {
-      tag: 'Hypothetical',
+      tag: 'Jul 6, 2026',
       metrics: [
-        { label: 'Ticker', value: 'AAPL' },
-        { label: 'Structure', value: 'Put Spread' },
-        { label: 'DTE', value: '25 days' },
-        { label: 'RV Accel', value: 'Caution' },
+        { label: 'Stress', value: '48.3%' },
+        { label: 'CAUTION', value: '14 names' },
+        { label: 'Avg VRP', value: '-1.4' },
+        { label: 'RV Accel', value: '1.062' },
       ],
       narrative:
-        'AAPL scores 68 with a VRP of 9.2 and contango term structure (0.88). But RV accel is 1.14 — the status reads Caution, the scanner flags AAPL as CAUTION (RV accel above 1.10 forces it), and the market regime is REGULAR SEASON. You sell a 25-DTE put credit spread at the 15-delta strike instead of a naked put, and document your contract count and max loss in the trade journal. The dashboard tells you the environment is not clean; the trader decides the size.',
+        'Stress exploded from 6.9% to 48.3% in a single session — 14 tickers flipped to CAUTION at once — while the term structure stayed in firm contango (0.844). Pure acceleration-driven stress: realized vol waking up before the options market repriced, with average VRP at a cycle-worst −1.4 (no premium cushion at all). The lone clean SELL (SBUX, score 68) was carried; every one of the 14 CAUTIONs was avoided. The briefing called it a "defend-the-one-name tape, not a probe-for-the-window one." That is REGULAR SEASON in practice: the playbook shrinks to protecting what you hold.',
     },
   },
   {
@@ -110,15 +111,15 @@ const REGIME_DATA = [
       "Override your own position-sizing discipline because conditions are calm — record every entry's contract count in the trade journal",
     ],
     example: {
-      tag: 'Hypothetical',
+      tag: 'Jun 4, 2026',
       metrics: [
-        { label: 'Ticker', value: 'QQQ' },
-        { label: 'Structure', value: 'Strangle' },
-        { label: 'DTE', value: '38 days' },
-        { label: 'RV Accel', value: 'Good' },
+        { label: 'Avg VRP', value: '+2.4' },
+        { label: 'Term Slope', value: '0.93' },
+        { label: 'RV Accel', value: '0.96' },
+        { label: 'Tradeable', value: '3S / 4C' },
       ],
       narrative:
-        'QQQ scores 72 with VRP of 10.4, deep contango (term slope 0.82), and stable RV accel (1.03 — RV Accel status: Good). The regime is THE PLAYOFFS with 12 of 25 tickers tradeable. You sell a 38-DTE strangle at 16-delta on both sides; the dashboard tells you the environment is clean and the trader chooses the contract count. Textbook premium harvest — collect theta, manage at 50% profit.',
+        'Zero DANGER tickers, stress easing to 6.1%, average RV accel below 1.0 — a clean board. XLF crossed to SELL at score 74 (VRP 7.3, deep contango 0.86, accel 1.00): the briefing entered it at Quarter size on Day-1, 30-45 DTE. QQQ held as the core SELL at score 70 (slope 0.81, accel 0.69) — "the cleanest line on the board." One caution the same day proves the discipline: NKE also printed SELL at 65 with a monster VRP of 27.3, and the briefing flagged it "SCORE ARTIFACT — ignore" (accel 1.36, earnings 21d out). Playoffs means run the playbook — and still read the flags.',
     },
   },
   {
@@ -132,7 +133,8 @@ const REGIME_DATA = [
     ],
     explanation: [
       "This is the sweet spot. The options market is significantly overpricing future volatility relative to what's actually being realized — and the term structure confirms it with deep contango. The variance risk premium is fat and the market structure supports harvesting it.",
-      "THE FINALS typically appears after a vol spike has started to resolve — IV is still elevated from the fear but realized vol has already started dropping. This is when premium sellers have the biggest statistical edge. The VRP of 8+ means implied vol is overshooting realized by 8 or more annualized vol points across the universe — historically, that level of mispricing resolves in the seller's favor roughly 85% of the time.",
+      "THE FINALS typically appears after a vol spike has started to resolve — IV is still elevated from the fear but realized vol has already started dropping. This is when premium sellers have the biggest statistical edge: IV exceeds RV on roughly 70% of days for this universe in normal times, and a universe-wide VRP above 8 vol points marks the far tail of that mispricing.",
+      "Full honesty: THE FINALS has never actually triggered in live history — zero occurrences since daily logging began, with the closest read a +1.3 average VRP against the required +8. It demands a rare combination (a fat premium AND a calm curve, which usually arrive at different times), and the v2 engine retires this trigger as effectively unreachable. Treat this section as 'what to do if lightning strikes,' not a regime to wait for.",
     ],
     dos: [
       'Be more aggressive — this is the regime where edge is widest',
@@ -148,7 +150,7 @@ const REGIME_DATA = [
       "Assume it lasts forever — THE FINALS often transitions to THE PLAYOFFS within 1-2 weeks as IV normalizes",
     ],
     example: {
-      tag: 'Hypothetical',
+      tag: 'Hypothetical — this regime has never occurred live',
       metrics: [
         { label: 'Ticker', value: 'AMZN' },
         { label: 'Structure', value: 'Strangle' },
@@ -180,7 +182,17 @@ const KEY_METRICS = [
   {
     label: 'TRADEABLE',
     title: 'Tradeable Count',
-    desc: "How many tickers in the non-earnings universe score above the minimum threshold. The denominator excludes earnings-gated tickers (within 14 days of reporting). A low ratio like 1/25 confirms a hostile environment; a high ratio like 18/25 signals broad opportunity.",
+    desc: "How many tickers earn a SELL or CONDITIONAL, out of the 33-ticker universe minus earnings-gated names (single stocks within 14 days of reporting). A low ratio like 1/29 confirms a hostile environment; a high ratio like 18/29 signals broad opportunity.",
+  },
+  {
+    label: 'FVRP (v2 · shadow)',
+    title: 'Forward Volatility Risk Premium',
+    desc: "The v2 engine's upgrade to VRP: premium measured against a forecast of future volatility (σ_fwd) instead of the trailing 30 days, plus a z-score asking \"is this rich for THIS stock vs its own past year?\" Advisory only — visible in the MACHINE view; v1 still makes every live call.",
+  },
+  {
+    label: 'σ_FWD (v2 · shadow)',
+    title: 'Forward Volatility Forecast',
+    desc: "A statistical forecast of each ticker's realized volatility over the next 21 sessions, trained on 10 years of data across the whole universe. The windshield to v1's rear-view mirror — it is the denominator of everything v2 does.",
   },
 ];
 
@@ -317,6 +329,40 @@ export default function RegimeGuideModal({ currentRegime, onClose }: RegimeGuide
               />
             </div>
           ))}
+
+          {/* What's coming: the v2 engine (shadow preview) */}
+          <div className="border-t border-border pt-6">
+            <h3 className="font-secondary text-lg font-medium text-txt mb-3">
+              What&rsquo;s Coming: The v2 Engine <span className="font-mono text-xs text-txt-tertiary align-middle">(shadow preview)</span>
+            </h3>
+            <div className="space-y-3 text-xs text-txt-secondary leading-relaxed">
+              <p>
+                Everything above measures edge against the <strong className="text-txt">rear-view mirror</strong> — what volatility <em>was</em> over
+                the last 30 days. The v2 engine swaps in a <strong className="text-txt">windshield</strong>: a forecast of the next 21 sessions
+                (σ_fwd), trained on 10 years of data across the whole universe. Premium is then judged as <strong className="text-txt">Forward
+                VRP</strong> — is this option rich versus where volatility is <em>going</em>, and rich <em>for this particular stock</em> against
+                its own history (the z-score)?
+              </p>
+              <p>
+                The regime layer changes too. Instead of daily threshold labels, each ticker gets a small <strong className="text-txt">state
+                machine</strong> (NORMAL / CAUTION / DANGER) driven by five gates — earnings, a faster 1M/3M term slope, <em>downside-only</em>
+                vol acceleration (a rally no longer reads as &ldquo;risk&rdquo;), negative forward premium, and a book-wide freeze. Every state
+                change needs two consecutive confirming sessions, like a thermostat rather than a light switch — no more flip-flopping labels
+                on one noisy day.
+              </p>
+              <p>
+                Two real days show its character. <strong className="text-txt">Jul 7, 2026 — SBUX:</strong> v1 offered a live trade; v2 vetoed it
+                (premium at its own median, z &minus;0.04, into the steepest vol slope on the board) — and held that veto for six straight sessions.
+                <strong className="text-txt"> Same day — MSFT:</strong> v1&rsquo;s blunt CAUTION filter said NO EDGE; v2 flagged the richest premium
+                on the entire board (FVRP 1.33, z +1.62). One veto, one catch — that trade-off is exactly what the shadow period is measuring.
+              </p>
+              <p className="italic text-txt-tertiary">
+                Status: running silently since July 2026, logged daily, changing nothing you see here. v1 makes every live decision until v2 earns
+                the cutover with evidence. The raw v2 numbers are visible today in the MACHINE view, and each metric is explained in the
+                &ldquo;Explain Metrics&rdquo; guide&rsquo;s 🔭 section.
+              </p>
+            </div>
+          </div>
 
           {/* Quick Reference: Key Metrics */}
           <div className="border-t border-border pt-6">
