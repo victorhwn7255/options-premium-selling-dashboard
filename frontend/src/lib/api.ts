@@ -1,6 +1,7 @@
 import type {
   ScanResponse, HealthResponse, VerificationResult, EarningsVerificationResult,
   ComparisonResponse, VrpHistoryResponse, CreditPutSpreadsResponse,
+  ShadowSummaryResponse, ShadowDiffResponse,
 } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
@@ -135,4 +136,26 @@ export async function fetchCreditPutSpreads(): Promise<CreditPutSpreadsResponse>
   if (!res.ok) throw new Error(`CPS fetch failed: ${res.status}`);
   const raw = await res.json();
   return camelizeKeysDeep<CreditPutSpreadsResponse>(raw);
+}
+
+// ── MACHINE view (raw wire-format reads; no camelization) ──────────────────
+
+export async function fetchShadowSummary(window = 20): Promise<ShadowSummaryResponse> {
+  const res = await fetch(`${API_BASE}/api/shadow/summary?window=${window}`);
+  if (!res.ok) throw new Error(`Shadow summary fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchShadowDiff(limit = 500): Promise<ShadowDiffResponse> {
+  const res = await fetch(`${API_BASE}/api/shadow/diff?limit=${limit}`);
+  if (!res.ok) throw new Error(`Shadow diff fetch failed: ${res.status}`);
+  return res.json();
+}
+
+/** Same endpoint as fetchCreditPutSpreads but WITHOUT camelizeKeysDeep —
+ *  the MACHINE view renders wire-format snake_case field names verbatim. */
+export async function fetchCreditPutSpreadsRaw(): Promise<Record<string, unknown>> {
+  const res = await fetch(`${API_BASE}/api/credit-put-spreads/latest`);
+  if (!res.ok) throw new Error(`CPS raw fetch failed: ${res.status}`);
+  return res.json();
 }

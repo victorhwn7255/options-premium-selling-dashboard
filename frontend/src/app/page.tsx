@@ -8,32 +8,32 @@ import Leaderboard from '@/components/Leaderboard';
 import TabBar, { DashboardTab } from '@/components/TabBar';
 import CreditPutSpreadsTab from '@/components/CreditPutSpreadsTab';
 import JournalComingSoon from '@/components/JournalComingSoon';
+import MachineView from '@/components/machine/MachineView';
 import { useTheme } from '@/hooks/useTheme';
+import { useViewMode } from '@/hooks/useViewMode';
 import { buildScoredData, enrichWithEarningsWarnings } from '@/lib/scoring';
-import { fetchLatestScan, triggerScan, refreshEarnings, fetchEarningsRemaining, fetchScanStatus, fetchVerificationLatest, fetchEarningsVerificationLatest, fetchComparison, fetchVrpHistory } from '@/lib/api';
+import { fetchLatestScan, triggerScan, fetchScanStatus, fetchVerificationLatest, fetchEarningsVerificationLatest, fetchComparison, fetchVrpHistory } from '@/lib/api';
 import type { ScanResponse, VerificationResult, EarningsVerificationResult, TickerDelta, VrpHistoryPoint } from '@/lib/types';
 
 const VRP_GRID_YEAR = 2026;
 
 export default function Home() {
   const { theme, toggleTheme } = useTheme();
+  const { mode, setMode } = useViewMode();
   const [activeTab, setActiveTab] = useState<DashboardTab>('naked-puts');
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   const [apiData, setApiData] = useState<ScanResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [scanProgress, setScanProgress] = useState<string | null>(null);
-  const [earningsRefreshing, setEarningsRefreshing] = useState(false);
-  const [earningsRemaining, setEarningsRemaining] = useState<number>(1);
   const [regimeGuideOpen, setRegimeGuideOpen] = useState(false);
   const [verification, setVerification] = useState<VerificationResult | null>(null);
   const [earningsVerification, setEarningsVerification] = useState<EarningsVerificationResult | null>(null);
   const [deltaMap, setDeltaMap] = useState<Record<string, TickerDelta>>({});
   const [vrpHistory, setVrpHistory] = useState<VrpHistoryPoint[]>([]);
 
-  // Fetch earnings remaining count + verification status on mount
+  // Fetch verification status on mount
   useEffect(() => {
-    fetchEarningsRemaining().then(r => setEarningsRemaining(r.remaining)).catch(() => {});
     fetchVerificationLatest().then(v => setVerification(v)).catch(() => {});
     fetchEarningsVerificationLatest().then(v => setEarningsVerification(v)).catch(() => {});
     fetchVrpHistory(VRP_GRID_YEAR).then(r => setVrpHistory(r.points)).catch(() => {});
@@ -146,28 +146,6 @@ export default function Home() {
     setRefreshing(false);
   }, []);
 
-  const handleEarningsRefresh = useCallback(async () => {
-    if (!apiData || earningsRemaining <= 0) return;
-    setEarningsRefreshing(true);
-    try {
-      const { earnings, remaining } = await refreshEarnings();
-      setEarningsRemaining(remaining);
-      setApiData(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          tickers: prev.tickers.map(t => ({
-            ...t,
-            earnings_dte: (t.ticker in earnings && earnings[t.ticker] !== null) ? earnings[t.ticker] : t.earnings_dte,
-          })),
-        };
-      });
-    } catch {
-      // keep existing data
-    }
-    setEarningsRefreshing(false);
-  }, [apiData, earningsRemaining]);
-
   return (
     <div className="min-h-screen bg-bg font-primary">
       <Navbar
@@ -176,9 +154,8 @@ export default function Home() {
         onRefresh={handleRefresh}
         scanProgress={scanProgress}
         refreshing={refreshing}
-        onRefreshEarnings={handleEarningsRefresh}
-        earningsRefreshing={earningsRefreshing}
-        earningsRemaining={earningsRemaining}
+        viewMode={mode}
+        onViewModeChange={setMode}
         scannedAt={apiData?.scanned_at ?? null}
         verification={verification}
         earningsVerification={earningsVerification}
@@ -186,7 +163,18 @@ export default function Home() {
       />
 
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-5 pb-16">
-        {loading ? (
+        {mode === 'machine' ? (
+          /* MACHINE — raw verbatim data view + ops console (display-only; P1) */
+          <MachineView
+            apiData={apiData}
+            loading={loading}
+            refreshing={refreshing}
+            scanProgress={scanProgress}
+            verification={verification}
+            earningsVerification={earningsVerification}
+            deltaMap={deltaMap}
+          />
+        ) : loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />

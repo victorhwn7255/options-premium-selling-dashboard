@@ -27,6 +27,46 @@ After-market-close scan snapshots. One entry per trading day, descending order.
 
 ---
 
+## 2026-07-13 (Monday)
+
+| Ticker | Score | IV | IV Pct | RV30 | VRP | Term Slope | RV Accel | 25Δ Skew | θ/V | Earnings | Regime |
+|--------|-------|----|--------|------|-----|------------|----------|----------|-----|----------|--------|
+| SBUX | 67 | 36.7 | 71 | 25.1 | 11.5 | 0.79 | 0.93 | 0.0 | 0.54 | 16d | SELL (NORMAL) |
+| AMZN | 63 | 42.5 | 89 | 33.7 | 8.9 | 0.78 | 0.65 | -0.2 | 0.64 | 17d | CONDITIONAL (NORMAL) |
+| MSFT | 59 | 43.2 | 99 | 40.9 | 2.3 | 0.80 | 0.83 | -0.6 | 0.64 | 16d | WATCHLIST (NORMAL) |
+| QQQ | 54 | 23.8 | 76 | 29.8 | -6.0 | 0.69 | 0.88 | 3.3 | 0.39 | ETF | WATCHLIST (NORMAL) |
+| PLTR | 49 | 62.0 | 69 | 66.5 | -4.5 | 0.79 | 0.75 | 0.4 | 0.95 | 21d | WATCHLIST (NORMAL) |
+| HOOD | 49 | 71.6 | 75 | 79.4 | -7.8 | 0.88 | 0.76 | 0.7 | 1.06 | 16d | WATCHLIST (NORMAL) |
+| AAPL | 47 | 26.9 | 56 | 33.7 | -6.8 | 0.73 | 0.82 | 2.1 | 0.41 | 17d | WATCHLIST (NORMAL) |
+| GLD | 46 | 22.6 | 62 | 27.4 | -4.8 | 0.87 | 0.65 | 1.5 | 0.39 | ETF | WATCHLIST (NORMAL) |
+| CAT | 46 | 50.0 | 97 | 54.1 | -4.1 | 0.90 | 1.06 | 1.6 | 0.74 | 22d | WATCHLIST (NORMAL) |
+| MCD | 44 | 25.5 | 96 | 24.7 | 0.8 | 0.88 | 1.08 | -0.9 | 0.39 | 22d | NO EDGE (NORMAL) |
+| EEM | 43 | 32.3 | 88 | 38.2 | -5.9 | 1.02 | 0.76 | 2.5 | 0.48 | ETF | NO EDGE (NORMAL) |
+| UBER | 43 | 43.9 | 77 | 42.4 | 1.6 | 0.79 | 1.05 | -0.6 | 0.67 | 23d | NO EDGE (NORMAL) |
+| HD | 43 | 27.7 | 61 | 29.6 | -1.9 | 0.90 | 0.84 | 1.5 | 0.43 | 36d | NO EDGE (NORMAL) |
+| NVDA | 41 | 39.2 | 42 | 43.2 | -4.0 | 0.80 | 0.76 | 1.8 | 0.60 | 44d | NO EDGE (NORMAL) |
+| NKE | 39 | 35.9 | 46 | 38.4 | -2.5 | 0.81 | 0.91 | 0.2 | 0.54 | 78d | NO EDGE (NORMAL) |
+| SPY | 38 | 13.6 | 32 | 15.4 | -1.9 | 0.51 | 0.77 | 2.3 | 0.24 | ETF | NO EDGE (NORMAL) |
+| IWM | 37 | 19.4 | 11 | 19.3 | 0.1 | 0.69 | 0.58 | 2.1 | 0.32 | ETF | NO EDGE (NORMAL) |
+| XOM | 37 | 31.5 | 84 | 26.5 | 5.0 | 1.01 | 0.98 | 0.0 | 0.43 | 18d | NO EDGE (NORMAL) |
+| KO | 36 | 21.2 | 87 | 24.7 | -3.5 | 0.92 | 1.11 | 0.5 | 0.32 | 15d | NO EDGE (CAUTION) |
+| TLT | 33 | 9.5 | 8 | 9.3 | 0.2 | 0.75 | 0.92 | 0.2 | 0.13 | ETF | NO EDGE (NORMAL) |
+| XLI | 32 | 20.0 | 64 | 21.3 | -1.3 | 1.00 | 0.84 | 0.0 | 0.33 | ETF | NO EDGE (NORMAL) |
+| META | 32 | 55.5 | 98 | 53.7 | 1.8 | 0.98 | 1.14 | -0.8 | 0.82 | 16d | NO EDGE (CAUTION) |
+| XLE | 25 | 22.0 | 38 | 22.7 | -0.7 | 0.96 | 0.90 | 0.0 | 0.33 | ETF | NO EDGE (NORMAL) |
+| XLF | 23 | 16.9 | 46 | 15.4 | 1.5 | 0.87 | 1.15 | 0.0 | 0.28 | ETF | NO EDGE (CAUTION) |
+| WMT | 22 | 22.9 | 33 | 25.8 | -2.8 | 0.77 | 1.18 | 0.9 | 0.38 | 38d | NO EDGE (CAUTION) |
+| XLV | 21 | 17.5 | 67 | 20.6 | -3.1 | 0.97 | 1.22 | 0.0 | 0.30 | ETF | NO EDGE (CAUTION) |
+| XLB | 14 | 18.9 | 13 | 21.5 | -2.6 | 1.00 | 1.01 | 0.0 | 0.69 | ETF | NO EDGE (NORMAL) |
+| GOOG | 0 | 38.1 | 87 | 33.4 | 4.8 | 0.98 | 0.97 | 0.5 | 0.57 | 9d | Earnings in 9d |
+| NFLX | 0 | 47.3 | 93 | 35.8 | 11.5 | 1.56 | 1.27 | -0.3 | 0.71 | 3d | Earnings in 3d |
+| GS | 0 | 35.4 | 81 | 35.6 | -0.3 | 1.16 | 0.95 | -0.7 | 0.54 | 1d | Earnings in 1d |
+| TSLA | 0 | 47.2 | 43 | 58.7 | -11.5 | 0.80 | 1.27 | 0.6 | 0.72 | 9d | Earnings in 9d |
+| JPM | 0 | 25.4 | 60 | 23.4 | 2.1 | 1.17 | 0.98 | 0.7 | 0.38 | 1d | Earnings in 1d |
+| JNJ | 0 | 25.6 | 90 | 28.6 | -3.0 | 1.29 | 1.27 | 0.0 | 0.37 | 2d | Earnings in 2d |
+
+---
+
 ## 2026-07-10 (Friday)
 
 | Ticker | Score | IV | IV Pct | RV30 | VRP | Term Slope | RV Accel | 25Δ Skew | θ/V | Earnings | Regime |

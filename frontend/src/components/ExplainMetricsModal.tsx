@@ -92,6 +92,22 @@ function MetricCard({ metric }: { metric: MetricDefinition }) {
             ))}
           </div>
         )}
+
+        {/* Real case study box (dated, sourced from history/) */}
+        {metric.example && (
+          <div
+            className="mt-4 bg-surface-alt rounded-md px-4 py-3"
+            style={{ borderLeft: '3px solid var(--color-secondary)' }}
+          >
+            <div className="font-primary text-[10px] font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--color-secondary)' }}>
+              Real case study · {metric.example.tag}
+            </div>
+            <div
+              className="text-xs text-txt-secondary leading-relaxed [&_strong]:text-txt [&_strong]:font-medium [&_em]:font-secondary [&_em]:italic [&_em]:text-primary"
+              dangerouslySetInnerHTML={{ __html: metric.example.body }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -156,9 +172,13 @@ export default function ExplainMetricsModal({ open, onClose }: ExplainMetricsMod
             return (
               <div key={section.key} className="mb-6 last:mb-0">
                 {/* Section label */}
-                <div className="font-primary text-[10px] font-semibold tracking-widest uppercase text-txt-tertiary mb-3 px-1">
+                <div className="font-primary text-[10px] font-semibold tracking-widest uppercase text-txt-tertiary mb-1 px-1">
                   {section.label}
                 </div>
+                {section.desc && (
+                  <p className="text-xs text-txt-tertiary leading-relaxed mb-3 px-1">{section.desc}</p>
+                )}
+                {!section.desc && <div className="mb-3" />}
                 <div className="space-y-3">
                   {sectionMetrics.map(metric => (
                     <MetricCard key={metric.id} metric={metric} />
@@ -172,7 +192,7 @@ export default function ExplainMetricsModal({ open, onClose }: ExplainMetricsMod
         {/* Footer */}
         <div className="border-t border-border-subtle px-6 sm:px-8 py-4">
           <p className="text-xs italic text-txt-tertiary leading-relaxed">
-            All metrics update daily after market close (~6:30 PM ET). The scoring engine combines these metrics into a single 0&ndash;100 score per ticker, filtered by the earnings gate and adjusted by the market regime. When in doubt, trust the score &mdash; it&apos;s doing the math so you don&apos;t have to.
+            All metrics update daily after market close (~6:30 PM ET). The scoring engine combines these metrics into a single 0&ndash;100 score per ticker, filtered by the earnings gate and adjusted by the market regime. When in doubt, trust the score &mdash; it&apos;s doing the math so you don&apos;t have to. The score shown is v1&apos;s; the v2 engine (&#128301; section above) runs in shadow &mdash; its full raw telemetry lives in the MACHINE view.
           </p>
         </div>
       </div>
