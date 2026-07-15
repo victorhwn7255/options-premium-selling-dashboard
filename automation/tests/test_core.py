@@ -43,7 +43,10 @@ def test_statpack():
 
 
 def test_parser():
-    _eq("parser.last_logged_date", parser.last_logged_date(METRICS), date(2026, 6, 3))
+    # The live history file grows daily (the automation appends), so pin only a floor —
+    # exact-equality against the newest entry goes stale the next trading day.
+    assert parser.last_logged_date(METRICS) >= date(2026, 6, 3), "last_logged_date lost entries"
+    print(f"  PASS  parser.last_logged_date >= 2026-06-03 ({parser.last_logged_date(METRICS)})")
     _eq("parser.has_entry(6/3)", parser.has_entry(METRICS, "2026-06-03"), True)
     _eq("parser.has_entry(9999)", parser.has_entry(METRICS, "9999-01-01"), False)
     np62 = parser.parse_np_table(METRICS, "2026-06-02")
@@ -57,7 +60,12 @@ def test_parser():
 def test_writer():
     with tempfile.TemporaryDirectory() as td:
         tmp = Path(td) / "metrics-logs.md"
-        shutil.copy(METRICS, tmp)
+        # Self-contained seed — copying the live file goes stale the moment the automation
+        # appends the date this test inserts (which it did: 2026-06-04 is long since logged).
+        tmp.write_text(
+            "# Test Log\n\n> **IMPORTANT:** New entries go immediately below this line.\n\n---\n\n"
+            "## 2026-06-03 (Wednesday)\n\n| Ticker | Score |\n|---|---|\n| OLD | 1 |\n\n---\n"
+        )
         block = "## 2026-06-04 (Thursday)\n\n| Ticker | Score |\n|---|---|\n| TST | 99 |"
         writer.insert_entry(tmp, "2026-06-04", block)
         text = tmp.read_text()

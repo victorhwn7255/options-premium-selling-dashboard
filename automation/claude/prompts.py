@@ -79,6 +79,27 @@ STATE_MISMATCH = same eligibility, different gate state. NODATA_SKEW = v2 lacked
 z-score; the Phase-B plan gates on an FVRP "dead-zone" whose bounds are set by matching v1's \
 historical eligibility quantiles.
 
+METRIC DEFINITIONS — read these precisely; misreading them corrupts the calibration record:
+- "oscillation" = mean CUMULATIVE gate-state transitions per ticker over the ROLLING 10-date \
+summary window. It is NOT a daily flip rate: 1.00 means the average ticker changed state about \
+once across the WHOLE window, not that the board flipped overnight. While fewer than 10 dates \
+exist the window is still filling, so oscillation and "Checked" rise mechanically day over day \
+even at a constant churn rate; once 10 dates accumulate, "Checked" caps at 33 tickers x 10 days \
+= 330 and every summary count becomes rolling (old days fall out — a flat or falling count is \
+then normal, not a data problem).
+- "day-flips" (when present at the end of the summary line, e.g. "day-flips v1 2/33 vs v2 3/33") \
+= the TRUE day-over-day churn: how many tickers changed v1 regime / v2 gate state since the \
+prior session, out of those comparable on both days. Base ALL churn/stability claims on this \
+field; if it is absent, say churn is not directly measurable that day — never infer it from \
+oscillation.
+- "Earnings" column (when present) = days to that name's next earnings from the live scan \
+("ETF" = exempt, "TBD" = unknown/today). CRITICAL: a non-ETF at <= 14d is earnings-gated in the \
+LIVE v1 UI (score zeroed, no trade offered) — the "v1 Action" shown for it is the backend's \
+PRE-earnings-gate view, so NEVER count such a name as a live v1 ticket or part of "v1's live \
+book". Live v2 would gate it too (gate G1); the Phase-A shadow deliberately omits G1 on BOTH \
+sides, so a V2_LOOSER clear on a name inside the earnings window is a shadow artifact, not a \
+real divergence — flag it as such instead of scoring it, and exclude it from calibration anchors.
+
 TODAY'S DETERMINISTIC SHADOW TABLE (already logged in v2-metrics-logs.md; do not restate it as a table):
 {shadow_table}
 

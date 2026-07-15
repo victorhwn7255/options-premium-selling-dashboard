@@ -21,7 +21,7 @@ Quick-reference definitions for every domain term used in the codebase. Look up 
 **This file does NOT cover:**
 - Why formulas are shaped this way — see `1-domain/methodology.md`
 - How terms combine into a score — see `1-domain/scoring-and-strategy.md`
-- Full metric derivation with code paths — see `references/metrics_report.md`
+- Full metric derivation with code paths — see `references/metrics_v1.md` (v2 metrics: `references/metrics_v2.md`)
 
 ---
 

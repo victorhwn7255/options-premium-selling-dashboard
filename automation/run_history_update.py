@@ -19,7 +19,7 @@ from . import config
 from .history import parser, writer
 from .render.cps_snapshot import render_cps_snapshot
 from .render.np_table import render_np_table
-from .render.shadow_table import render_shadow_snapshot, shadow_summary_line
+from .render.shadow_table import compute_day_flips, render_shadow_snapshot, shadow_summary_line
 from .render.statpack import compute_statpack
 from .sources import api_source, db_source
 from .sources.trading_calendar import is_trading_day, trading_days_between
@@ -90,6 +90,7 @@ def run(
     v2_briefings_path=None,        # v2 Claude sister log (additive, best-effort)
     shadow_latest: dict | None = None,  # {"rows": [...], "summary": {...}} for api_date, or None
     v2_briefing_fn=None,           # (d, summary_line, shadow_table, summary_json, recent) -> body
+    prev_shadow_rows_fn=None,      # (iso_date) -> rows|None — prior-day rows for day-flips (best-effort)
 ) -> dict:
     """Process every trading day from the most-behind file up to api_date. Returns a summary."""
     from .claude.runner import ClaudeAuthError
@@ -166,10 +167,23 @@ def run(
 
         # --- SHADOW CAPTURE (deterministic v2 sister log; best-effort — NEVER gates v1) ---
         shadow_block_md = None
+        shadow_flips = None
         if shadow_diffs_path is not None and shadow_raw:
             try:
+                # Earnings DTE rides in from the same day's NP payload (shadow_diff rows lack it) —
+                # the v1-UI reality check for the earnings window (added 2026-07-15).
+                earn_map = {t.get("ticker"): t.get("earnings_dte")
+                            for t in np_raw.get("tickers", [])}
+                if prev_shadow_rows_fn is not None:
+                    try:  # day-flips: true day-over-day churn vs the prior trading day
+                        shadow_flips = compute_day_flips(
+                            shadow_raw.get("rows") or [],
+                            prev_shadow_rows_fn(_prev_trading_day(d).isoformat()))
+                    except Exception:  # noqa: BLE001 — churn segment is optional, never blocks
+                        shadow_flips = None
                 shadow_block_md = render_shadow_snapshot(
-                    shadow_raw.get("rows") or [], shadow_raw.get("summary"))
+                    shadow_raw.get("rows") or [], shadow_raw.get("summary"),
+                    earnings_by_ticker=earn_map, flips=shadow_flips)
             except Exception as e:  # noqa: BLE001 — a render failure must not touch v1 history
                 _log(f"shadow-diffs render {iso} failed ({e}) — v1 history unaffected", verbose=verbose)
             if shadow_block_md and not parser.has_entry(shadow_diffs_path, iso):
@@ -229,7 +243,9 @@ def run(
         if (claude_on and claude_ok and v2_briefings_path is not None and shadow_block_md
                 and not parser.has_entry(v2_briefings_path, iso)):
             try:
-                summary_line = shadow_summary_line(shadow_raw.get("summary"))
+                # Same (summary, flips) inputs as the logged table -> byte-identical line, so the
+                # briefing's verbatim-first-line contract holds.
+                summary_line = shadow_summary_line(shadow_raw.get("summary"), shadow_flips)
                 body = v2_briefing_fn(d, summary_line, shadow_block_md,
                                       shadow_raw.get("summary") or {},
                                       parser.latest_entries(v2_briefings_path, 5))
@@ -299,6 +315,16 @@ def main(argv=None) -> int:
                 db_source.read_cps_by_date(snap, d.isoformat()),
                 db_source.read_shadow_by_date(snap, d.isoformat()))
 
+    def prev_shadow_rows(iso: str):
+        """Prior-day shadow rows for the day-flips segment (best-effort: API, then snapshot)."""
+        try:
+            return api_source.fetch_shadow_rows(iso)
+        except Exception:  # noqa: BLE001
+            if snap is not None:
+                sh = db_source.read_shadow_by_date(snap, iso)
+                return sh["rows"] if sh else None
+            return None
+
     summary = run(
         metrics_path=metrics_file,
         cps_path=cps_file,
@@ -313,6 +339,7 @@ def main(argv=None) -> int:
         shadow_diffs_path=shadow_diffs_file,
         v2_briefings_path=v2_briefings_file,
         shadow_latest=shadow_latest,
+        prev_shadow_rows_fn=prev_shadow_rows,
     )
     _log(f"done: {json.dumps(summary)}", verbose=verbose)
     return 0

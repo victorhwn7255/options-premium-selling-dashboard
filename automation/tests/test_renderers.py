@@ -14,7 +14,8 @@ sys.path.insert(0, str(REPO))
 
 from automation.render.np_table import render_np_table  # noqa: E402
 from automation.render.cps_snapshot import render_cps_snapshot  # noqa: E402
-from automation.render.shadow_table import render_shadow_snapshot  # noqa: E402
+from automation.render.shadow_table import (  # noqa: E402
+    compute_day_flips, render_shadow_snapshot, shadow_summary_line)
 
 FIX = REPO / "automation" / "fixtures"
 
@@ -38,12 +39,32 @@ def check_cps(date: str) -> None:
 
 
 def check_shadow(date: str) -> None:
-    # Fixture is {"rows": [...], "summary": {...}}; a representative slice of a day's rows +
-    # the rolling 10-day summary (the live shape: window summary above the day's divergences).
+    # Fixture is {"rows": [...], "summary": {...}, "earnings": {...}, "prev_rows": [...]};
+    # a representative slice of a day's rows + the rolling 10-day summary (the live shape:
+    # window summary above the day's divergences), plus the earnings map (from the same
+    # day's NP payload) and the prior day's rows (for the day-flips churn segment).
     raw = json.loads((FIX / f"shadow_{date}.json").read_text())
     expected = _load(FIX / "expected" / f"shadow_{date}.md")
-    got = render_shadow_snapshot(raw["rows"], raw["summary"])
+    got = render_shadow_snapshot(raw["rows"], raw["summary"],
+                                 earnings_by_ticker=raw.get("earnings"),
+                                 flips=compute_day_flips(raw["rows"], raw.get("prev_rows")))
     _assert_equal(f"SHADOW {date}", expected, got)
+
+
+def check_shadow_edges() -> None:
+    """day-flips omission + earnings fallbacks: no prior day -> no segment (pre-2026-07-15
+    format); no earnings map -> ETF/TBD cells; the summary line stays otherwise identical."""
+    raw = json.loads((FIX / "shadow_2026-06-03.json").read_text())
+    assert compute_day_flips(raw["rows"], None) is None, "no prev day must yield None"
+    assert compute_day_flips(raw["rows"], []) is None, "empty prev day must yield None"
+    line = shadow_summary_line(raw["summary"], None)
+    assert "day-flips" not in line, "flips=None must omit the segment"
+    assert line == shadow_summary_line(raw["summary"], compute_day_flips(raw["rows"], None)), \
+        "line must be stable through the None path"
+    no_map = render_shadow_snapshot(raw["rows"], raw["summary"])
+    assert "| NKE | NO EDGE | NORMAL | TBD |" in no_map, "missing earnings map must render TBD"
+    assert "| QQQ | SELL PREMIUM | NORMAL | ETF |" in no_map, "ETF rows must render ETF"
+    print("  PASS  SHADOW edges (day-flips omission, earnings fallbacks)")
 
 
 def _assert_equal(label: str, expected: str, got: str) -> None:
@@ -67,6 +88,7 @@ def test_renderers_golden():
         check_np(date)
         check_cps(date)
     check_shadow("2026-06-03")
+    check_shadow_edges()
 
 
 if __name__ == "__main__":

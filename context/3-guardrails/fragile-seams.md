@@ -1,13 +1,16 @@
 ---
-last_verified: 2026-04-16
-verified_against: dc030c3
+last_verified: 2026-07-15
+verified_against: human-machine-toggle (v2-era seams added)
 rot_risk: high
 rot_triggers:
   - backend/calculator.py
   - backend/marketdata_client.py
   - backend/main.py
   - backend/csv_store.py
+  - backend/theta_core.py
   - frontend/src/lib/api.ts
+  - frontend/src/lib/scoring.ts
+  - automation/render/np_table.py
 audience: both
 ---
 
@@ -178,6 +181,30 @@ The methodology footer displays: *"VRP magnitude (0-40) + Term structure (0-25) 
 **Where:** `page.tsx:handleRefresh()` (lines 113–130)
 
 After a scan completes, `page.tsx` starts a separate polling loop: 12 attempts × 10 seconds = 2 minutes, checking `/api/verify/latest` and `/api/verify/earnings/latest` for results matching the new scan's `scanned_at` timestamp. If the Yahoo verification takes longer than 2 minutes (network issues, yfinance rate limits), the verification badges show stale data from the previous scan with no visual indication that they're outdated.
+
+---
+
+## v2-Era Seams (Phase A onward, 2026-07)
+
+### The additive-response guard (CRITICAL)
+
+The `automation/` history pipeline **hard-indexes** fields of the scan response: `signal_score`, `recommendation`, `ticker` (`automation/render/np_table.py`), `scanned_at` (`run_history_update.py`), and DB columns `scanned_at/regime/tickers` (`sources/db_source.py`). **Renaming or removing any of these breaks the daily history files silently the next morning.** All API-response evolution must be additive (the v2 telemetry fields are). After any deploy that touches the response shape, verify: `python3 -m automation.run_history_update --dry-run` parses cleanly.
+
+### scoring.ts freezes at Phase B (P1)
+
+The earnings gate lives frontend-side in `scoring.ts` (ADR-003) — yet `scoring.ts` is **frozen once Phase B lands**: no new gate/eligibility logic may be added client-side, ever; the API is the only source of gate state. If a gate needs to change post-freeze, it moves server-side. Do not "helpfully" add v2 fields to the `convertApiTicker` mapper — the MACHINE view reads them from the raw response deliberately.
+
+### The golden-master pair must never drift
+
+`backend/theta_core.py` is a **verbatim copy** of `references/theta_harvest_core.py` — the 1e-9 oracle, guarded by `test_theta_core.py` (13 tests). Every `[PROVISIONAL]` threshold lives in its `CONFIG` dict and nowhere else (P3). Editing either file independently, or hardcoding a threshold at a call site, breaks the discipline the whole v2 arc depends on. If a threshold must change: CONFIG in the reference, re-port, plus the matching `references/*_v2*` doc (P5).
+
+### v2 shadow isolation — keep the try/except sacred
+
+The entire v2 shadow step in `run_full_scan()` is wrapped in `try/except`, mirroring the CPS branch. This is what lets v2 fail without costing a v1 scan (proven live: a v1 skew-chain 404 killed a manual scan while v2 logged "0 rows" and exited cleanly). Never move v2 computation outside that wrapper, and never let a v2 exception propagate.
+
+### Local DB ≠ prod DB
+
+`backend/data/vol_history.db` is a bind mount — **local and prod are fully independent files** that never sync. Backfills run locally do nothing for prod (the Phase A seed had to be re-run inside the prod container; prod showed "warm 0%" while local was fully warm). When diagnosing data issues, always check *which* DB you're looking at first (see also the Docker lesson in `tasks/lessons.md`).
 
 ---
 

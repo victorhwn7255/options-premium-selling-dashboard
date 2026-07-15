@@ -66,12 +66,17 @@ def et_date(scanned_at_utc: str) -> date:
     return datetime.fromisoformat(scanned_at_utc.replace("Z", "+00:00")).astimezone(config.ET).date()
 
 
+def fetch_shadow_rows(iso_date: str | None = None) -> list[dict]:
+    """GET /api/shadow/diff -> that ET date's divergence rows (all sleeves). Also used for the
+    *prior* trading day when computing the day-flips churn segment (prod keeps all dates)."""
+    date_q = f"date={iso_date}&" if iso_date else ""
+    return _get(f"/api/shadow/diff?{date_q}warm_only=false&limit=100")["rows"]
+
+
 def fetch_latest_shadow(iso_date: str | None = None) -> dict:
     """v2-shadow surface for the shadow-diffs log: that day's divergence rows + rolling summary.
 
     GET /api/shadow/diff (that ET date's rows, all sleeves) and /api/shadow/summary (10-day
     rolling aggregate). Returns {"rows": [...], "summary": {...}}. Best-effort at the call site
     (the orchestrator never lets a shadow failure block the v1 history)."""
-    date_q = f"date={iso_date}&" if iso_date else ""
-    rows = _get(f"/api/shadow/diff?{date_q}warm_only=false&limit=100")["rows"]
-    return {"rows": rows, "summary": _get("/api/shadow/summary?window=10")}
+    return {"rows": fetch_shadow_rows(iso_date), "summary": _get("/api/shadow/summary?window=10")}

@@ -1,14 +1,16 @@
 ---
-last_verified: 2026-04-16
-verified_against: dc030c3
+last_verified: 2026-07-15
+verified_against: human-machine-toggle (v2 Phase A shadow live; MACHINE view added)
 rot_risk: medium
 rot_triggers:
   - docker-compose.yml
   - backend/main.py
+  - backend/forecast.py
   - frontend/src/app/page.tsx
   - frontend/src/lib/api.ts
   - frontend/src/lib/scoring.ts
   - frontend/src/components/RegimeBanner.tsx
+  - frontend/src/components/machine/
 audience: both
 ---
 
@@ -94,9 +96,23 @@ Stock snapshot → 180-day bars → Options chain (2 API calls) → Earnings dat
                      └── Position construction hints
 ```
 
+**v2 shadow step** (Phase A, 2026-07 — after the scoring loop, before `store_scan_result`):
+
+```
+per ticker (during loop):  persist live OHLCV → daily_bars · capture chain partials (iv30/iv90 → slope_1m3m)
+post-loop (cross-ticker):  train pooled forecaster from stored daily_bars (~seconds)
+                           → global factor G_t (panel-coverage guard: <90% valid → carry-forward + low_coverage)
+                           → per-ticker sigma_fwd / sigma_fwd_dn → FVRP ratio → fvrp_z (trailing window, min 60 obs)
+                           → hysteretic GateState (seeded from prior persisted state)
+                           → shadow eligibility vs [PROVISIONAL] dead zones → divergence classification
+                           → write daily_iv v2 columns + gate_state + shadow_diff rows
+```
+
+**Advisory only** — v1 stays authoritative until Phase E (`ELIGIBILITY_AUTHORITY` flag). The entire step is `try/except`-isolated exactly like the CPS branch: a v2 failure logs `"v2 shadow: 0 rows"` and can never break the v1 scan (confirmed live). v2 telemetry rides **additively** on `TickerResult` (10 optional fields) — served, cached, ignored by v1 frontend logic. Served by `GET /api/shadow/summary?window=N` and `GET /api/shadow/diff` (read-only; consumed by the automation's v2 logs and the MACHINE view).
+
 **Post-scan** (fire-and-forget, non-blocking):
 1. Yahoo Finance metrics verification (compares RV30, spot against independent computation)
-2. Yahoo Finance earnings verification (overrides FMP if >5-day discrepancy, backfills missing dates)
+2. Yahoo Finance earnings verification (overrides FMP if >5-day discrepancy, backfills missing dates — this is why the manual earnings-refresh button was removed from the UI in 2026-07: the pipeline self-heals nightly)
 
 ---
 
@@ -161,6 +177,8 @@ Engineered guarantee: the CPS branch is wrapped in `try/except` inside `run_full
 
 **Regime computation** (`RegimeBanner.tsx:computeRegime()`): runs on the transformed `DashboardTicker[]`, excludes SKIP and NO DATA tickers, produces the NBA-themed market regime. See [scoring-and-strategy.md § Dashboard-Level Market Regime](../1-domain/scoring-and-strategy.md#dashboard-level-market-regime).
 
+**[HUMAN | MACHINE] view mode** (added 2026-07-14): a navbar toggle (`useViewMode`, `localStorage('oh-view')`, `?view=machine` URL override) swaps the entire dashboard body for the **MACHINE view** — a monospace, full-precision, verbatim render of everything the API returns, including all v2 shadow telemetry and the otherwise-unrendered `/api/shadow/*` endpoints, plus a `[COPY_ALL]` export. Anti-drift core in `lib/machine-format.ts`: one `MachineSection[]` descriptor feeds both the React renderer and the clipboard serializer, so screen and paste can never diverge; a `TICKERS.OTHER` catch-all guarantees future API fields are never silently dropped. Display-only by construction (P1) — it renders API fields verbatim, computes nothing, and imports nothing from `scoring.ts`. Tables >50 rows render collapsed behind `[+]`. HUMAN mode is byte-identical to the pre-toggle UI. There are deliberately **no mutation controls** anywhere: scan triggering belongs to the 18:30 ET cron and earnings dates self-heal nightly.
+
 ---
 
 ## Ownership Boundary
@@ -204,7 +222,7 @@ The frontend **ignores** the backend's `overall_regime` field entirely. The back
 |---------|------|----------------|------|---------|
 | MarketData.app | Starter $12/mo | `/v1/stocks/quotes/`, `/v1/stocks/candles/D/`, `/v1/options/chain/` (×2), `/v1/stocks/earnings/` | 10 calls/min (token bucket) | Primary data: spot, bars, options, earnings fallback |
 | FMP | Free/paid | `/stable/earnings` | Uncapped (SQLite-cached) | Earnings dates (primary source) |
-| Yahoo Finance | Free (yfinance) | Bars, VIX close, earnings dates | Post-scan only (blocking I/O in executor) | Verification + earnings override |
+| Yahoo Finance | Free (yfinance) | Bars, VIX close, earnings dates | Post-scan only (blocking I/O in executor) + one-time v2 backfill | Verification + earnings override; 10y multi-regime `daily_bars`/`index_daily` seed (`backfill_bars.py`) |
 
 MarketData.app is the only required external dependency. FMP and Yahoo are optional (FMP for better earnings, Yahoo for verification).
 
@@ -223,23 +241,30 @@ main.py
   ├── database            (all CRUD functions)
   ├── csv_store           (append_daily_csv, append_quotes_csv)
   ├── models              (all Pydantic response models)
+  ├── theta_core          (v2: verbatim golden-master port — CONFIG home (P3), 1e-9 oracle)
+  ├── estimators          (v2: bars → daily variance inputs → EWMA replay; recompute-from-bars, no persisted state)
+  ├── forecast            (v2: pooled-ridge ForecastEngine — sigma_fwd/sigma_fwd_dn + global factor)
   └── [runtime] utils.verify_metrics  (optional, sys.path hack for Docker)
 
 calculator  → marketdata_client (DailyBar, OptionContract)
 scorer      → calculator (VolSurface)
 csv_store   → marketdata_client (OptionContract)
 fmp_client  → database (get_cached_earnings, store_cached_earnings)
+forecast    → theta_core, estimators, database
+(one-time scripts: backfill_bars.py — yfinance 10y OHLC seed; backfill_v2.py — train + backfill v2 columns)
 ```
 
 **Frontend** (component tree):
 
 ```
-page.tsx
-  ├── Navbar → ThemeToggle, ExplainMetricsModal
-  ├── RegimeBanner (exports computeRegime)
-  ├── Leaderboard → DetailPanel
-  └── RegimeGuideModal → RegimeSection
+page.tsx  ── mode ternary: HUMAN (below) | MACHINE (machine/MachineView)
+  ├── Navbar → ThemeToggle, ViewModeToggle, ExplainMetricsModal
+  ├── RegimeBanner (exports computeRegime) → VrpActivityGrid
+  ├── TabBar → Leaderboard → DetailPanel | CreditPutSpreadsTab | JournalComingSoon
+  ├── RegimeGuideModal → RegimeSection
+  └── machine/MachineView → MachineSectionView   (self-fetches health + shadow + CPS raw)
 
-Hooks: useTheme (localStorage + DOM), useCssColors (getComputedStyle + MutationObserver)
-Lib:   api.ts (fetch wrappers), scoring.ts (transform), types.ts, metrics-content.ts
+Hooks: useTheme (localStorage + DOM), useViewMode ('oh-view' + ?view=), useCssColors (getComputedStyle + MutationObserver)
+Lib:   api.ts (fetch wrappers), scoring.ts (transform — FROZEN at Phase B, P1), types.ts,
+       metrics-content.ts (explainer cards incl. the v2 · shadow section), machine-format.ts (MACHINE descriptors + serializer)
 ```

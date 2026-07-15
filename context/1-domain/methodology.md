@@ -14,7 +14,7 @@ audience: both
 
 Why the math is shaped the way it is. This file explains the academic basis, the approximations we accept, and the limitations we live with. A quant-literate reader should leave with a clear understanding of what the model captures, what it doesn't, and where the known gaps are.
 
-For the actual scoring formula and breakpoints, see [`1-domain/scoring-and-strategy.md`](scoring-and-strategy.md). For domain term definitions, see [`1-domain/glossary.md`](glossary.md). For the trading strategy built on top of this methodology, see [`references/strategy.md`](../../references/strategy.md).
+For the actual scoring formula and breakpoints, see [`1-domain/scoring-and-strategy.md`](scoring-and-strategy.md). For domain term definitions, see [`1-domain/glossary.md`](glossary.md). For the trading strategy built on top of this methodology, see [`references/strategy_v1.md`](../../references/strategy_v1.md).
 
 ## Scope
 
@@ -22,8 +22,8 @@ For the actual scoring formula and breakpoints, see [`1-domain/scoring-and-strat
 
 **This file does NOT cover:**
 - Scoring formula and breakpoints — see `1-domain/scoring-and-strategy.md`
-- Metric computation details — see `references/metrics_report.md`
-- Trading strategy and position management — see `references/strategy.md`
+- Metric computation details — see `references/metrics_v1.md`
+- Trading strategy and position management — see `references/strategy_v1.md`
 
 ---
 

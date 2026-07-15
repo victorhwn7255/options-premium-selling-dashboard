@@ -11,7 +11,7 @@ interface RegimeGuideModalProps {
 const REGIME_DATA = [
   {
     regime: 'OFF SEASON',
-    tagline: "Game's out of reach — sit on the bench, protect your capital",
+    tagline: 'Too dangerous to sell — sit out and protect your capital',
     colorToken: 'error' as const,
     triggerLogic: 'threshold',
     triggers: [
@@ -48,7 +48,7 @@ const REGIME_DATA = [
   },
   {
     regime: 'REGULAR SEASON',
-    tagline: 'Every possession counts — play tight, no turnovers',
+    tagline: 'Stressed market — trade small and careful, or skip the day',
     colorToken: 'warning' as const,
     triggerLogic: 'threshold',
     triggers: [
@@ -85,7 +85,7 @@ const REGIME_DATA = [
   },
   {
     regime: 'THE PLAYOFFS',
-    tagline: "Running your sets — nothing weird, execute the playbook",
+    tagline: 'Normal market — run the standard playbook',
     colorToken: 'secondary' as const,
     triggerLogic: 'default (no other regime triggers)',
     triggers: [
@@ -124,7 +124,7 @@ const REGIME_DATA = [
   },
   {
     regime: 'THE FINALS',
-    tagline: "You're on fire — wide VRP in contango, keep shooting",
+    tagline: 'Options are unusually overpriced — the best days to sell',
     colorToken: 'accent' as const,
     triggerLogic: 'both required',
     triggers: [

@@ -8,15 +8,36 @@
     {"date": "2026-06-03", "ticker": "XLB", "is_etf": 1, "v1_action": "NO DATA", "v1_regime": "NORMAL", "v2_eligible": 0, "v2_gate_state": "NODATA", "v2_transient": 0, "divergence_class": "NODATA_SKEW", "divergence_reason": "no fvrp inputs", "v2_warm": 0, "v1_vrp_ratio": null, "v1_term_slope": null, "v1_rv_accel": null, "fvrp_ratio": null, "fvrp_z": null, "slope_1m3m": null, "accel_dn": null, "sigma_fwd": null}
   ],
   "summary": {
-    "n_ticker_days": 290,
-    "n_warm": 210,
-    "dates": ["2026-06-03", "2026-06-02", "2026-06-01", "2026-05-29", "2026-05-28", "2026-05-27"],
-    "agreement_rate": 0.7517,
-    "divergence_counts": {"AGREE": 218, "V2_STRICTER": 34, "V2_LOOSER": 12, "STATE_MISMATCH": 18, "NODATA_SKEW": 8},
-    "index_gating_rate_v1": 0.42,
-    "index_gating_rate_v2": 0.58,
-    "oscillation_v1": 0.35,
-    "oscillation_v2": 0.22,
-    "warm_coverage": 0.7241
-  }
+  "n_ticker_days": 290,
+  "n_warm": 210,
+  "dates": [
+    "2026-06-03",
+    "2026-06-02",
+    "2026-06-01",
+    "2026-05-29",
+    "2026-05-28",
+    "2026-05-27"
+  ],
+  "agreement_rate": 0.7517,
+  "divergence_counts": {
+    "AGREE": 218,
+    "V2_STRICTER": 34,
+    "V2_LOOSER": 12,
+    "STATE_MISMATCH": 18,
+    "NODATA_SKEW": 8
+  },
+  "index_gating_rate_v1": 0.42,
+  "index_gating_rate_v2": 0.58,
+  "oscillation_v1": 0.35,
+  "oscillation_v2": 0.22,
+  "warm_coverage": 0.7241
+},
+  "earnings": {"NKE": 21},
+  "prev_rows": [
+    {"ticker": "QQQ", "v1_regime": "NORMAL", "v2_gate_state": "COOL"},
+    {"ticker": "SPY", "v1_regime": "NORMAL", "v2_gate_state": "WARM"},
+    {"ticker": "NKE", "v1_regime": "CAUTION", "v2_gate_state": "WARM"},
+    {"ticker": "GOOG", "v1_regime": "NORMAL", "v2_gate_state": "WARM"},
+    {"ticker": "XLF", "v1_regime": "CAUTION", "v2_gate_state": "HOT"}
+  ]
 }

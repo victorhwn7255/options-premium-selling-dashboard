@@ -1,14 +1,29 @@
 # History Auto-Updater
 
-Automatically appends the daily entries to `history/metrics-logs.md`, `history/credit-put-spreads.md`,
-and `history/daily-briefings.md` from the live dashboard. Runs on your Mac via `launchd`, uses your
-Claude **Max subscription** (no API cost), and **never** touches git — you review and push manually.
+Automatically appends the daily entries to **five** history files from the live dashboard:
+`history/metrics-logs.md`, `history/credit-put-spreads.md`, `history/daily-briefings.md`, plus (since
+2026-07-06, the v2 shadow era) `history/v2-metrics-logs.md` and `history/v2-briefings.md`. Runs on
+your Mac via `launchd`, uses your Claude **Max subscription** (no API cost), and **never** touches
+git — you review and push manually.
 
 ## How it works
 Deterministic Python fetches the scan, reproduces the exact tables, and computes every number;
-Claude (headless `claude -p`) writes only the briefing prose + CPS Notable. Self-healing: backfills
-any missed trading days (from the live API for today, or the prod SQLite over SSH for past days).
+Claude (headless `claude -p`) writes only the briefing prose + CPS Notable + the v2 briefing. Self-healing:
+backfills any missed trading days (from the live API for today, or the prod SQLite over SSH for past days).
 Capture-before-Claude: data is written before Claude runs, so an auth failure never loses data.
+
+**The two v2 logs** read prod's `GET /api/shadow/*` endpoints (`render/shadow_table.py` renders the
+deterministic divergence table; `run_v2_briefing` writes the analysis ending in a **Calibration read**).
+Both are **best-effort and OFF the metrics+briefing done-gate** — a shadow-fetch or Claude failure never
+blocks the v1 history (pre-deploy the job logged `shadow fetch failed (HTTP 404) — continuing`, by design).
+They retire/merge into the v1 logs at the Phase E cutover.
+
+Since 2026-07-15 the shadow table carries an **Earnings** column (DTE from the same day's NP payload —
+the v1-UI reality check: `v1_action` in `shadow_diff` is the backend's *pre*-earnings-gate view) and the
+summary line ends with **day-flips** (true day-over-day gate churn, computed against the prior trading
+day's rows via `/api/shadow/diff?date=` with a DB-snapshot fallback; omitted if neither is reachable —
+never blocks). Rationale: the API's `oscillation` is a rolling-window *cumulative* metric that the
+briefing writer had misread as daily churn; `V2_BRIEFING_PROMPT` now carries the metric definitions.
 
 ## Run manually
 ```bash
@@ -29,9 +44,10 @@ zsh automation/launchd/install.sh        # install + load the daily 09:00 SGT jo
 launchctl start com.optionharvest.history # run once now
 launchctl list | grep optionharvest      # status
 ```
-The plist ships in **`--shadow`** mode (writes to `staging/shadow/`). After the shadow-validation
-period, edit `automation/launchd/com.optionharvest.history.plist`, remove the `<string>--shadow</string>`
-line, and re-run `install.sh` to go live on the real history files.
+**The job has been LIVE since 2026-06-05** (writes the real history files daily at 09:00 SGT; runs on
+next wake if the Mac was asleep). To revert to validation mode, add `<string>--shadow</string>` back to
+`automation/launchd/com.optionharvest.history.plist` and re-run `install.sh` — shadow mode writes to
+`staging/shadow/` and leaves the real history untouched.
 
 `install.sh` builds a tiny ad-hoc-signed wrapper app (`launchd/ThetaHarvest.app`, from `launchd/app/`
 + `make_icon.py`) and points the job at it, so Login Items & Extensions → "Allow in the Background"
@@ -44,9 +60,9 @@ but a **generic icon** + "unidentified developer". A custom icon (the θ `AppIco
 the bundle) only renders if the app is signed with a paid **Apple Developer ID**, or registered via
 **SMAppService**. Name was the free win; the icon was not worth a paid cert.
 
-## Phase 6 — shadow validation
-For ~1–2 weeks, let it run in `--shadow` and each morning compare `staging/shadow/*.md` against what
-you'd write by hand. When consistent, flip to live (above).
+## Shadow validation (historical — completed 2026-06-05)
+The original rollout ran ~2 weeks in `--shadow`, comparing `staging/shadow/*.md` against hand-written
+entries each morning, then flipped live. The mode remains available for validating future pipeline changes.
 
 ## Gotchas
 - **Paths are hardcoded** in `launchd/run.sh` AND `launchd/app/launcher.c` (nvm node + framework

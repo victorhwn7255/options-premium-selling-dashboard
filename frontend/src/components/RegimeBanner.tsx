@@ -15,7 +15,7 @@ export function computeRegime(data: DashboardTicker[]) {
   if (eligible.length === 0) {
     return {
       regime: 'THE PLAYOFFS', colorClass: 'text-secondary', borderClass: 'border-l-secondary',
-      desc: '', detail: 'All tickers near earnings — insufficient data for regime.',
+      desc: '', detail: 'Every ticker is too close to earnings — not enough clean data to judge the market today.',
       avgVRP: 0, avgTermSlope: 0, avgRVAccel: 0,
       tradeableCount: 0, eligibleCount: 0, total: data.length, isHostile: false,
     };
@@ -40,26 +40,26 @@ export function computeRegime(data: DashboardTicker[]) {
     regime = 'OFF SEASON';
     colorClass = 'text-error';
     borderClass = 'border-l-error';
-    desc = "Game's out of reach — sit on the bench, protect your capital";
-    detail = `${dangerPctStr}% of tickers in DANGER regime — systemic stress across the universe. No premium selling today.`;
+    desc = 'Too dangerous to sell — sit out and protect your capital';
+    detail = `${dangerCount} of ${eligible.length} tickers (${dangerPctStr}%) are in DANGER — stress across the whole market. No premium selling today.`;
   } else if (stressPct > 0.25) {
     regime = 'REGULAR SEASON';
     colorClass = 'text-warning';
     borderClass = 'border-l-warning';
-    desc = 'Every possession counts — play tight, no turnovers';
-    detail = `${stressPctStr}% stressed (${dangerCount} DANGER, ${stressCount - dangerCount} CAUTION). Defined-risk only; demand cleaner setups before entering.`;
+    desc = 'Stressed market — trade small and careful, or skip the day';
+    detail = `${stressCount} of ${eligible.length} tickers (${stressPctStr}%) are stressed: ${dangerCount} DANGER, ${stressCount - dangerCount} CAUTION. If you trade at all, use spreads (losses capped) and take only the cleanest setups.`;
   } else if (avgVRP > 8 && avgTermSlope < 0.90) {
     regime = 'THE FINALS';
     colorClass = 'text-accent';
     borderClass = 'border-l-accent';
-    desc = "You're on fire — wide VRP in contango, keep shooting";
-    detail = `Avg VRP at ${avgVRP.toFixed(1)} with deep contango — statistical edge is at its widest.`;
+    desc = 'Options are unusually overpriced — the best days to sell';
+    detail = `Sellers are being paid ${avgVRP.toFixed(1)} vol points more than stocks are actually moving, with a calm term structure — the edge is as wide as it gets.`;
   } else {
     regime = 'THE PLAYOFFS';
     colorClass = 'text-secondary';
     borderClass = 'border-l-secondary';
-    desc = 'Running your sets — nothing weird, execute the playbook';
-    detail = `Most tickers in normal regime with stable vol. Run your standard playbook.`;
+    desc = 'Normal market — run the standard playbook';
+    detail = `Most tickers look healthy and volatility is stable. Sell premium on the top-scoring names as usual.`;
   }
 
   return {

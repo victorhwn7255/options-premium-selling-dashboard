@@ -150,7 +150,7 @@ def test_shadow_none_numeric_cells():
                 sigma_fwd=None, fvrp_ratio=None, fvrp_z=None, slope_1m3m=None, accel_dn=None)
     out = render_shadow_snapshot([row], None)
     last = out.splitlines()[-1]
-    _ok("None eligible -> em dash", "| XLB | NO EDGE | NORMAL | — | NODATA | NODATA_SKEW |" in last)
+    _ok("None eligible -> em dash", "| XLB | NO EDGE | NORMAL | ETF | — | NODATA | NODATA_SKEW |" in last)
     _ok("None drivers -> em dashes", last.endswith("| — | — | — | — | — |"))
 
 

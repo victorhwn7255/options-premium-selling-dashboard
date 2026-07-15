@@ -16,15 +16,22 @@ Authoritative data lives in the `shadow_diff` + `daily_iv` tables; this file is 
 3. Capture two blocks per entry: **Shadow summary** line, then the divergence **table**
 
 **Required fields:**
-- **Shadow summary** — `Checked N / A agree / S V2_STRICTER / L V2_LOOSER / M state_mismatch / K nodata | index-gating v1 X% vs v2 Y% | oscillation v1 a vs v2 b | warm C%`
-- **Table** — Ticker / v1 Action / v1 Regime / v2 Eligible / v2 Gate / Divergence / sigma_fwd / FVRP / z / 1M/3M / accel_dn
+- **Shadow summary** — `Checked N / A agree / S V2_STRICTER / L V2_LOOSER / M state_mismatch / K nodata | index-gating v1 X% vs v2 Y% | oscillation v1 a vs v2 b | warm C% | day-flips v1 f/N vs v2 g/N`
+  (the `day-flips` segment is present from 2026-07-15 onward and is omitted when the prior day's rows are unavailable)
+- **Table** — Ticker / v1 Action / v1 Regime / Earnings / v2 Eligible / v2 Gate / Divergence / sigma_fwd / FVRP / z / 1M/3M / accel_dn
 
 **Column order:**
 ```
-| Ticker | v1 Action | v1 Regime | v2 Eligible | v2 Gate | Divergence | sigma_fwd | FVRP | z | 1M/3M | accel_dn |
+| Ticker | v1 Action | v1 Regime | Earnings | v2 Eligible | v2 Gate | Divergence | sigma_fwd | FVRP | z | 1M/3M | accel_dn |
 ```
 
 **Divergence values:** `AGREE` | `V2_STRICTER` (v1 trades, v2 gates) | `V2_LOOSER` (v2 allows, v1 gates) | `STATE_MISMATCH` | `NODATA_SKEW`. Rows are sorted decision-changing-first (V2_STRICTER, then V2_LOOSER), then by ticker.
+
+**Reading the fields correctly:**
+- `oscillation` = mean *cumulative* gate-state transitions per ticker over the rolling 10-date summary window — **not** a daily flip rate. It rises mechanically while the window is still filling; once 10 dates accumulate, `Checked` caps at 330 and all summary counts become rolling. Use `day-flips` (true day-over-day churn) for stability claims.
+- `Earnings` = days to next earnings from the same day's live scan (`ETF` = exempt, `TBD` = unknown/today). A non-ETF at ≤ 14d is earnings-gated in the **live v1 UI** (score 0, no trade) — the `v1 Action` shown is the backend's *pre*-earnings-gate view. The Phase-A shadow omits the G1 earnings gate on both sides (deliberately, for symmetric comparison), so eligibility divergences on names inside the earnings window are shadow artifacts, not real live divergences.
+
+**Format changes:** 2026-07-15 — added the `Earnings` column and the `day-flips` summary segment. Entries before that date have neither.
 
 ---
 

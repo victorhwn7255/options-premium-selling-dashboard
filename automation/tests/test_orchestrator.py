@@ -32,7 +32,8 @@ def _load_cps(d):
 
 
 def _scratch_shadow(dst_dir: Path):
-    """Copy the two v2 sister seed files (no dated entries yet) into dst_dir."""
+    """Copy the two v2 sister log files into dst_dir (live copies — since 2026-07-06 they
+    carry real dated entries, so tests must not assume an empty log)."""
     out = []
     for name in ("v2-metrics-logs.md", "v2-briefings.md"):
         p = dst_dir / name
@@ -238,7 +239,7 @@ def test_shadow_sister_logs_additive():
             vt.startswith("## 2026-06-03 (Wednesday)\n\n**Shadow summary:** Checked 1 / 0 agree / 1 V2_STRICTER"))
         _ok("v2 briefing has Calibration read line", "**Calibration read:** ok." in vt)
         # shadow table content present verbatim
-        _ok("shadow table row present", "| QQQ | SELL PREMIUM | NORMAL | No | COOL | V2_STRICTER |" in st)
+        _ok("shadow table row present", "| QQQ | SELL PREMIUM | NORMAL | ETF | No | COOL | V2_STRICTER |" in st)
 
         # idempotent re-run -> nothing new
         s2 = orch.run(**kw)
@@ -253,6 +254,7 @@ def test_shadow_failure_does_not_block_v1():
         sd, v2 = _scratch_shadow(Path(td))
         bad_shadow = {"rows": [{"oops": "no ticker key"}],  # _shadow_row -> KeyError, caught
                       "summary": {"n_ticker_days": 1, "divergence_counts": {}}}
+        before = parser.last_logged_date(sd)  # seed carries the real (growing) shadow log
 
         s = orch.run(metrics_path=m, cps_path=c, briefings_path=b, api_date=date(2026, 6, 3),
                      np_latest=_load_np("2026-06-03"), cps_latest=_load_cps("2026-06-03"),
@@ -263,7 +265,7 @@ def test_shadow_failure_does_not_block_v1():
         _ok("no v2 briefing when shadow render failed", s["v2_briefing_written"] == [])
         _ok("metrics STILL written despite shadow failure", "2026-06-03" in s["metrics_written"])
         _ok("briefing STILL written despite shadow failure", "2026-06-03" in s["briefings_written"])
-        _ok("shadow-diffs file untouched (no dated entry)", parser.last_logged_date(sd) is None)
+        _ok("shadow-diffs file untouched (no new dated entry)", parser.last_logged_date(sd) == before)
 
 
 if __name__ == "__main__":

@@ -128,7 +128,7 @@ export default function VrpActivityGrid({ year, points }: VrpActivityGridProps) 
           <span className="font-mono text-[11px] text-txt-secondary">{year}</span>
           {totalScans > 0 && (
             <span className="text-[11px] text-txt-tertiary">
-              · {totalScans} scans · YTD mean {yearAvg.toFixed(1)}
+              · {totalScans} trading days · YTD mean {yearAvg.toFixed(1)}
             </span>
           )}
         </div>
@@ -223,13 +223,11 @@ export default function VrpActivityGrid({ year, points }: VrpActivityGridProps) 
         className="mt-5 text-[10px] text-txt-tertiary leading-relaxed"
         style={{ paddingLeft: 34 }}
       >
-        <span className="text-txt-secondary font-medium">Full-universe measure</span>
+        <span className="text-txt-secondary font-medium">Each square is one trading day</span>
         {' — '}
-        mean VRP across all 33 tickers per scan day, including earnings-gated and NO DATA names.
-        Distinct from the banner&apos;s <span className="font-mono">Avg VRP</span> tile, which uses
-        only the eligible set (excludes earnings-gated and NO DATA), so the two values can disagree
-        — when they do, earnings-gated mega-caps are typically carrying inflated pre-event premium.
-        Brighter = wider edge · buckets ≤2 / 2–4 / 4–7 / &gt;7.
+        brighter = fatter premium (avg VRP, all 33 tickers: ≤2 / 2–4 / 4–7 / &gt;7).
+        The <span className="font-mono">Avg VRP</span> tile above excludes earnings-gated names,
+        so the two can differ.
       </p>
 
       {/* Tooltip */}
@@ -259,7 +257,7 @@ export default function VrpActivityGrid({ year, points }: VrpActivityGridProps) 
               </>
             )}
             {tip.status === 'upcoming' && <span>Upcoming</span>}
-            {tip.status === 'no-scan' && <span>No scan</span>}
+            {tip.status === 'no-scan' && <span>No data</span>}
           </div>
           {/* Tail pointing down */}
           <div

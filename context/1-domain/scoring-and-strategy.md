@@ -16,7 +16,7 @@ audience: both
 
 This file answers: **"How does a ticker go from raw market data to a SELL / SKIP / AVOID decision?"** It documents the composite scoring formula, the gates that override it, the regime system that modifies recommendations, and where each piece lives in code. It is the single source of truth for the scoring engine's current behavior.
 
-For the trading *strategy* behind these choices (when to trade, daily workflow, position management), see [`references/strategy.md`](../../references/strategy.md). For the *academic rationale* behind the formula's shape (why VRP ratio, why a dead zone at 1.15, why close-to-close RV), see [`1-domain/methodology.md`](methodology.md). For domain term definitions, see [`1-domain/glossary.md`](glossary.md).
+For the trading *strategy* behind these choices (when to trade, daily workflow, position management), see [`references/strategy_v1.md`](../../references/strategy_v1.md). For the *academic rationale* behind the formula's shape (why VRP ratio, why a dead zone at 1.15, why close-to-close RV), see [`1-domain/methodology.md`](methodology.md). For domain term definitions, see [`1-domain/glossary.md`](glossary.md).
 
 ## Scope
 
@@ -31,9 +31,9 @@ For the trading *strategy* behind these choices (when to trade, daily workflow, 
 **This file does NOT cover:**
 - Academic basis for VRP or why specific approximations were chosen — see `1-domain/methodology.md`
 - Known fragile areas in the scoring pipeline — see `3-guardrails/fragile-seams.md`
-- Strategy thesis, daily workflow, position management rules — see `references/strategy.md`
-- Metric formulas (how ATM IV is interpolated, how RV is computed) — see `references/metrics_report.md`
-- Deliberate design decisions (why earnings gate is frontend-only, why negative VRP cap is 44) — see `3-guardrails/decisions/`
+- Strategy thesis, daily workflow, position management rules — see `references/strategy_v1.md`
+- Metric formulas (how ATM IV is interpolated, how RV is computed) — see `references/metrics_v1.md`
+- Deliberate design decisions (why earnings gate is frontend-only, why negative VRP cap is 54 per ADR-013) — see `3-guardrails/decisions/`
 
 ---
 
