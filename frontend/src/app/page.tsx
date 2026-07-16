@@ -7,7 +7,7 @@ import RegimeGuideModal from '@/components/RegimeGuideModal';
 import Leaderboard from '@/components/Leaderboard';
 import TabBar, { DashboardTab } from '@/components/TabBar';
 import CreditPutSpreadsTab from '@/components/CreditPutSpreadsTab';
-import JournalComingSoon from '@/components/JournalComingSoon';
+import JournalTab from '@/components/JournalTab';
 import MachineView from '@/components/machine/MachineView';
 import { useTheme } from '@/hooks/useTheme';
 import { useViewMode } from '@/hooks/useViewMode';
@@ -259,7 +259,7 @@ export default function Home() {
 
             {activeTab === 'journal' && (
               <div id="tabpanel-journal" role="tabpanel" aria-labelledby="tab-journal">
-                <JournalComingSoon />
+                <JournalTab />
               </div>
             )}
           </>

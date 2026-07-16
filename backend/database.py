@@ -310,6 +310,59 @@ def init_db():
         if col not in existing:
             conn.execute(f"ALTER TABLE daily_iv ADD COLUMN {col} {typ}")
 
+    # Trade Journal J1 (2026-07-16, additive) — journal skin over the Phase-C
+    # substrate. The Phase-A1 `positions` columns are untouched; these add the
+    # plan-at-entry / exit bookkeeping the journal needs. Phase-C fields
+    # (f_star, dials, binding_cap) stay NULL until Phase C populates them.
+    # See tasks/positions-journal-build-plan.md.
+    pos_existing = {row[1] for row in conn.execute("PRAGMA table_info(positions)")}
+    journal_cols = (
+        ("scan_ref", "TEXT"),          # entry-day scan_results.scanned_at (signal-snapshot FK)
+        ("thesis", "TEXT"),
+        ("target_capture", "REAL"),    # plan-at-entry profit target (default 0.75 at API layer)
+        ("exit_dte_plan", "INTEGER"),  # plan-at-entry time exit (default 21 at API layer)
+        ("max_loss_plan", "REAL"),
+        ("checklist_json", "TEXT"),    # backend-evaluated entry checklist snapshot
+        ("exit_reason", "TEXT"),       # profit_target|time_exit|earnings_wall|danger_underwater|stop|rolled|assigned|expired|discretionary
+        ("followed_plan", "INTEGER"),
+        ("roll_group_id", "INTEGER"),
+        ("user_id", "INTEGER"),        # nullable, unused — future-proofing only
+        ("updated_at", "TEXT"),
+    )
+    for col, typ in journal_cols:
+        if col not in pos_existing:
+            conn.execute(f"ALTER TABLE positions ADD COLUMN {col} {typ}")
+
+    conn.executescript("""
+        /* Daily EOD state per open position, written by the scan's mark step.
+           mark_source: scan_chain | quote_fallback | carried | csv_backfill.
+           A 'carried' row reuses the last known mark on a data gap — flagged,
+           never silently interpolated (see tasks/lessons.md 2026-06-04). */
+        CREATE TABLE IF NOT EXISTS position_marks (
+            position_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            underlying_close REAL,
+            option_bid REAL,
+            option_ask REAL,
+            option_mid REAL,           -- net mark per share (debit to close the structure)
+            short_delta REAL,          -- short leg delta magnitude (TESTED flag input)
+            unrealized_pnl REAL,       -- (entry_credit - net_mark) * 100 * contracts
+            capture_pct REAL,          -- (entry_credit - net_mark) / entry_credit
+            dte INTEGER,
+            earnings_dte INTEGER,
+            mark_source TEXT NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (position_id, date)
+        );
+
+        /* Single-user app settings (NAV, journal defaults). Key/value. */
+        CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+
     conn.commit()
     conn.close()
 
@@ -1260,6 +1313,201 @@ def get_shadow_summary(window_days: int = 10) -> dict:
         "oscillation_v2": _oscillation(3),
         "warm_coverage": (warm / n) if n else None,
     }
+
+
+# ── Trade Journal (J1) ─────────────────────────────────────────────────────
+# CRUD + marks + settings for the positions/journal feature. All journal
+# routes sit behind auth.require_owner; these helpers stay auth-agnostic.
+# See tasks/positions-journal-build-plan.md.
+
+_POSITION_WRITABLE = {
+    "ticker", "structure", "status", "short_strike", "long_strike", "expiry",
+    "contracts", "entry_date", "entry_credit", "entry_fills", "entry_commissions",
+    "close_date", "close_debit", "close_fills", "close_commissions", "realized_pnl",
+    "entry_spot", "entry_iv", "entry_sigma_fwd", "entry_fvrp",
+    "scan_ref", "thesis", "target_capture", "exit_dte_plan", "max_loss_plan",
+    "checklist_json", "exit_reason", "followed_plan", "roll_group_id",
+}
+
+
+def _rows_to_dicts(cursor) -> list[dict]:
+    cols = [d[0] for d in cursor.description]
+    return [dict(zip(cols, row)) for row in cursor.fetchall()]
+
+
+def create_position(fields: dict) -> int:
+    """Insert a position from an allowlisted field dict; returns the new id."""
+    data = {k: v for k, v in fields.items() if k in _POSITION_WRITABLE}
+    data.setdefault("status", "open")
+    data["updated_at"] = datetime.utcnow().isoformat() + "Z"
+    cols = ", ".join(data.keys())
+    ph = ", ".join("?" * len(data))
+    conn = get_connection()
+    try:
+        cur = conn.execute(f"INSERT INTO positions ({cols}) VALUES ({ph})", list(data.values()))
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
+
+
+def get_position(position_id: int) -> Optional[dict]:
+    conn = get_connection()
+    try:
+        cur = conn.execute("SELECT * FROM positions WHERE id = ?", (position_id,))
+        rows = _rows_to_dicts(cur)
+        return rows[0] if rows else None
+    finally:
+        conn.close()
+
+
+def get_positions(status: Optional[str] = None) -> list[dict]:
+    """All positions, newest first; optionally filtered by status."""
+    conn = get_connection()
+    try:
+        if status:
+            cur = conn.execute(
+                "SELECT * FROM positions WHERE status = ? ORDER BY id DESC", (status,))
+        else:
+            cur = conn.execute("SELECT * FROM positions ORDER BY id DESC")
+        return _rows_to_dicts(cur)
+    finally:
+        conn.close()
+
+
+def update_position(position_id: int, fields: dict) -> bool:
+    """Allowlisted partial update. Returns False if the position doesn't exist."""
+    data = {k: v for k, v in fields.items() if k in _POSITION_WRITABLE}
+    if not data:
+        return get_position(position_id) is not None
+    data["updated_at"] = datetime.utcnow().isoformat() + "Z"
+    sets = ", ".join(f"{k} = ?" for k in data)
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            f"UPDATE positions SET {sets} WHERE id = ?", [*data.values(), position_id])
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
+def store_position_mark(position_id: int, mark_date: str, *, underlying_close=None,
+                        option_bid=None, option_ask=None, option_mid=None,
+                        short_delta=None, unrealized_pnl=None, capture_pct=None,
+                        dte=None, earnings_dte=None, mark_source: str = "scan_chain"):
+    """Idempotent per (position, date): the scan retry path may mark twice."""
+    conn = get_connection()
+    try:
+        conn.execute(
+            """INSERT INTO position_marks
+               (position_id, date, underlying_close, option_bid, option_ask, option_mid,
+                short_delta, unrealized_pnl, capture_pct, dte, earnings_dte, mark_source)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT(position_id, date) DO UPDATE SET
+                 underlying_close=excluded.underlying_close, option_bid=excluded.option_bid,
+                 option_ask=excluded.option_ask, option_mid=excluded.option_mid,
+                 short_delta=excluded.short_delta, unrealized_pnl=excluded.unrealized_pnl,
+                 capture_pct=excluded.capture_pct, dte=excluded.dte,
+                 earnings_dte=excluded.earnings_dte, mark_source=excluded.mark_source""",
+            (position_id, mark_date, underlying_close, option_bid, option_ask, option_mid,
+             short_delta, unrealized_pnl, capture_pct, dte, earnings_dte, mark_source))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_position_marks(position_id: int) -> list[dict]:
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            "SELECT * FROM position_marks WHERE position_id = ? ORDER BY date ASC",
+            (position_id,))
+        return _rows_to_dicts(cur)
+    finally:
+        conn.close()
+
+
+def get_latest_position_marks() -> dict[int, dict]:
+    """{position_id: latest mark row} — one query for the open-book endpoint."""
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            """SELECT m.* FROM position_marks m
+               JOIN (SELECT position_id, MAX(date) AS d FROM position_marks
+                     GROUP BY position_id) latest
+               ON latest.position_id = m.position_id AND latest.d = m.date""")
+        return {r["position_id"]: r for r in _rows_to_dicts(cur)}
+    finally:
+        conn.close()
+
+
+def get_setting(key: str) -> Optional[str]:
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT value FROM app_settings WHERE key = ?", (key,)).fetchone()
+        return row[0] if row else None
+    finally:
+        conn.close()
+
+
+def get_all_settings() -> dict[str, str]:
+    conn = get_connection()
+    try:
+        return dict(conn.execute("SELECT key, value FROM app_settings").fetchall())
+    finally:
+        conn.close()
+
+
+def set_setting(key: str, value: str):
+    conn = get_connection()
+    try:
+        conn.execute(
+            """INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, ?)
+               ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at""",
+            (key, value, datetime.utcnow().isoformat() + "Z"))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def store_trade_telemetry(fields: dict):
+    """Insert the Module-G per-closed-trade row (spec Module G; Phase C/D consumer).
+    NULLs are fine everywhere — missing telemetry must never block a close."""
+    allow = {"position_id", "ticker", "margin_per_contract", "margin_util_at_entry",
+             "fill_vs_mid_entry", "fill_vs_mid_exit", "quoted_spread_entry",
+             "quoted_spread_exit", "iv_entry", "sigma_fwd_entry", "rv_realized_hold",
+             "capture", "dial_R", "dial_O", "f_star_at_entry", "stressed_loss_at_entry"}
+    data = {k: v for k, v in fields.items() if k in allow}
+    if not data:
+        return
+    cols = ", ".join(data.keys())
+    ph = ", ".join("?" * len(data))
+    conn = get_connection()
+    try:
+        conn.execute(f"INSERT INTO trades ({cols}) VALUES ({ph})", list(data.values()))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def upsert_portfolio_daily_partial(day: str, *, nav=None, notional_short_put=None,
+                                   margin_total=None):
+    """Journal-owned partial fill of portfolio_daily (nav/notional/margin only).
+    The PSR/stress columns stay NULL until Phase C computes them."""
+    conn = get_connection()
+    try:
+        conn.execute(
+            """INSERT INTO portfolio_daily (date, nav, notional_short_put, margin_total)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(date) DO UPDATE SET
+                 nav=COALESCE(excluded.nav, nav),
+                 notional_short_put=COALESCE(excluded.notional_short_put, notional_short_put),
+                 margin_total=COALESCE(excluded.margin_total, margin_total)""",
+            (day, nav, notional_short_put, margin_total))
+        conn.commit()
+    finally:
+        conn.close()
 
 
 # Initialize on import

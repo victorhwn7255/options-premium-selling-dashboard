@@ -84,8 +84,29 @@ docker stats                               # Live resource usage
 | `CORS_ORIGINS` | No | — | Extra CORS origins, comma-separated (appended to default localhost list) |
 | `CLOUDFLARE_TUNNEL_TOKEN` | No | — | Cloudflare tunnel for public access |
 | `RISK_FREE_RATE` | No | `0.043` | BSM IV solver discount rate for `backfill.py` |
+| `JOURNAL_TOKEN` | Journal | — | Bearer secret for the trade-journal API (automation/scripts path). With no journal env at all, every journal route 403s — fail closed. |
+| `CF_ACCESS_TEAM_DOMAIN` | Journal | — | e.g. `myteam.cloudflareaccess.com` — enables Cf-Access JWT verification (browser path) |
+| `CF_ACCESS_AUD` | Journal | — | The Access application's AUD tag (paired with team domain) |
+| `JOURNAL_DEV_OPEN` | No | — | `1` = journal routes open without credentials. **Local dev only — never set on prod.** |
 
 Set via `.env` file in the project root (gitignored) or passed directly to Docker.
+
+### Trade-journal privacy (Cloudflare Access — one-time dashboard setup)
+
+The journal/positions surface (`/api/positions*`, `/api/journal*`, `/api/settings*`) is
+owner-only. Backend enforcement is `backend/auth.py:require_owner` (fail-closed 403 on
+reads AND writes). The browser path needs a Cloudflare Access app (Zero Trust dashboard):
+
+1. **Access → Applications → Add self-hosted app** — domain `theta.thevixguy.com`,
+   paths `/api/positions*`, `/api/journal*`, `/api/settings*` (add `/journal*` if a
+   dedicated page route ever exists; today the Journal tab lives on `/`).
+2. **Policy: Allow → Include → Emails** = the owner's email. Login method: One-Time PIN.
+3. Copy the app's **AUD tag** → set `CF_ACCESS_TEAM_DOMAIN` + `CF_ACCESS_AUD` on the backend.
+4. **Service Auth → Create service token** for the Mac automation (briefing integration, J2) —
+   it sends `CF-Access-Client-Id/Secret` headers; alternatively it can use `JOURNAL_TOKEN`.
+
+Until the Access app exists, the API-level gate alone already protects everything (no
+credentials configured → 403); Access adds the edge wall + the browser login path.
 
 ---
 
