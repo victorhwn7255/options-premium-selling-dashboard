@@ -217,15 +217,23 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
     try:
         # 1. Get current price
         snapshot = await client.get_stock_snapshot(ticker)
-        if not snapshot or snapshot.price <= 0:
-            logger.warning(f"{ticker}: No price data")
-            return None
+        spot = snapshot.price if (snapshot and snapshot.price and snapshot.price > 0) else None
 
         # 2. Get daily bars — 120 trading days for RV + chart history
         from_date = date.today() - timedelta(days=180)
         bars = await client.get_daily_bars(ticker, from_date, date.today())
         if len(bars) < 11:
             logger.warning(f"{ticker}: Only {len(bars)} bars, need 11+")
+            return None
+
+        # 1b. Quote-feed gap fallback: the scan runs after the close, when the last daily
+        # bar's close IS the spot — don't drop the whole ticker because the cached quote
+        # feed had a hole (XLB 2026-07-15: HTTP 203 s=no_data on /stocks/quotes/).
+        if spot is None:
+            spot = bars[-1].close
+            logger.warning(f"{ticker}: no quote — using last daily close {spot} as spot")
+        if not spot or spot <= 0:
+            logger.warning(f"{ticker}: No price data")
             return None
 
         # 3. Get options chain (Starter $12/mo required)
@@ -247,7 +255,7 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
             earnings_dte = (earn_date - date.today()).days
 
         # 3c. Extract ATM theta/vega from options chain
-        theta, vega = find_atm_greeks(contracts, snapshot.price)
+        theta, vega = find_atm_greeks(contracts, spot)
 
         # 3d. Compute ATR 14
         atr14 = compute_atr14(bars)
@@ -258,7 +266,7 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
         # 5. Build vol surface
         surface = build_vol_surface(
             ticker=ticker,
-            spot_price=snapshot.price,
+            spot_price=spot,
             bars=bars,
             contracts=contracts,
             historical_ivs=historical_ivs,
@@ -277,7 +285,7 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
                 skew_25d=surface.skew.skew_25d,
                 rv10=surface.rv.rv10,
                 iv_percentile=surface.iv.iv_percentile,
-                spot=snapshot.price,
+                spot=spot,
                 earnings_dte=earnings_dte,
             )
 
@@ -286,11 +294,11 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
         trading_date = datetime.now(tz=ZoneInfo("America/New_York")).date().isoformat()
         if surface.iv.iv_current is not None:
             append_daily_csv(
-                ticker, trading_date, snapshot.price,
+                ticker, trading_date, spot,
                 surface.iv.iv_current, surface.rv.rv30,
                 surface.vrp, surface.term_structure.slope,
             )
-        append_quotes_csv(ticker, trading_date, contracts, snapshot.price)
+        append_quotes_csv(ticker, trading_date, contracts, spot)
 
         # ── v2 silent substrate (Phase A): persist OHLC to daily_bars and capture
         # the chain-derived partials (iv30/iv90/slope_1m3m). Fully wrapped — any
@@ -299,7 +307,7 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
         v2_partial = None
         try:
             _persist_bars_v2(ticker, bars)
-            v2_partial = _v2_chain_partials(surface, contracts, snapshot.price)
+            v2_partial = _v2_chain_partials(surface, contracts, spot)
         except Exception as e:
             logger.debug("%s: v2 partial skipped — %s: %s", ticker, type(e).__name__, e)
 
@@ -315,7 +323,7 @@ async def scan_single_ticker(ticker: str, meta: dict) -> dict:
             # Only used downstream when ticker is in CPS_UNIVERSE; cheap to
             # always include because both already live in this function scope.
             "_contracts": contracts,
-            "_spot": snapshot.price,
+            "_spot": spot,
             # ── v2 (Phase A): chain-derived shadow partials (None on failure).
             "_v2": v2_partial,
         }

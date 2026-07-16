@@ -61,7 +61,11 @@ def _briefing_valid(text: str, sp: dict) -> bool:
 def run_briefing(d: date, statpack: dict, np_table: str, cps_block: str,
                  recent_briefings: str, n: int = 7) -> str:
     """Return the daily-briefings entry body (regime line → narrative → Position line).
-    Raises ClaudeAuthError on auth failure, RuntimeError if the output can't be validated."""
+    Raises ClaudeAuthError on auth failure, RuntimeError if the output can't be validated.
+
+    600s timeout: this is by far the largest prompt (7 recent briefings + both tables +
+    statpack) and twice overran the 300s default (2026-07-09, 2026-07-15) — the run is a
+    nightly batch job, so trading wall-clock for fewer briefing-pending days is free."""
     prompt = prompts.BRIEFING_PROMPT.format(
         date=d.isoformat(), weekday=d.strftime("%A"),
         regime_label=statpack["regime_label"], tradeable_str=statpack["tradeable_str"],
@@ -69,7 +73,7 @@ def run_briefing(d: date, statpack: dict, np_table: str, cps_block: str,
         np_table=np_table, cps_block=cps_block or "(no CPS data today)",
         recent_briefings=recent_briefings, n=n,
     )
-    out = _invoke(prompt)
+    out = _invoke(prompt, timeout=600)
     if not _briefing_valid(out, statpack):
         # One stricter retry — most failures are a stray preamble or a tweaked number.
         strict = prompt + (
@@ -78,7 +82,7 @@ def run_briefing(d: date, statpack: dict, np_table: str, cps_block: str,
             f"(<qualifier>) | **Tradeable:** {statpack['tradeable_str']} | "
             f"**Avg VRP:** {statpack['avg_vrp_str']}\nand contain a **Position:** line. Nothing else."
         )
-        out = _invoke(strict)
+        out = _invoke(strict, timeout=600)
         if not _briefing_valid(out, statpack):
             raise RuntimeError("briefing output failed validation (numbers/format)")
     return out
