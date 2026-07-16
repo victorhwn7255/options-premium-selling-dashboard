@@ -108,11 +108,15 @@ Seven tables added by the v2 build (all `CREATE TABLE IF NOT EXISTS`, inert to v
 | `index_daily` | VIX family (`^VIX`, `^VIX3M`, `^VVIX`) daily OHLC from yfinance. PUT (Cboe PutWrite) deferred to Phase D. | `backfill_bars.py` | ✅ ~7.5k rows |
 | `gate_state` | v2 hysteretic gate per ticker-day: `state` (NORMAL/CAUTION/DANGER) + `transient` flag. Feeds the shadow oscillation metric. | live scan shadow step + `backfill_v2.py` | ✅ |
 | `shadow_diff` | The daily v1↔v2 divergence log: v1 action/regime vs v2 eligibility/gate + `divergence_class` (AGREE / V2_STRICTER / V2_LOOSER / STATE_MISMATCH / NODATA_SKEW) + reason + `v2_warm`. Served by `GET /api/shadow/diff` and summarized by `/api/shadow/summary`; source of `history/v2-metrics-logs.md`. | live scan shadow step only (not backfills) | ✅ since 2026-07-06 |
-| `positions` | Open option positions | Journal / Phase C | ⬜ empty by design |
-| `trades` | Closed-trade records (feeds Phase D realized-capture/PSR and Phase F trials) | Journal / Phase C-D | ⬜ empty by design |
-| `portfolio_daily` | Daily portfolio aggregates (Greeks, margin, drawdown state) | Phase D | ⬜ empty by design |
+| `positions` | Option positions (Phase-A1 columns + the 2026-07-16 journal columns: `scan_ref` FK to the entry-day `scan_results` row, `thesis`, plan-at-entry `target_capture`/`exit_dte_plan`/`max_loss_plan`, backend-evaluated `checklist_json`, `exit_reason`, `followed_plan`, `roll_group_id`, nullable `user_id`). Phase-C fields (`f_star`, dials, `binding_cap`) stay NULL until Phase C. | Journal API (`positions_api.py`) / Phase C | ✅ live (trade-journal J1) |
+| `trades` | Per-closed-trade Module-G telemetry (fill_vs_mid, quoted spreads, capture, rv_realized_hold…) — written by the journal's close flow; feeds Phase D realized-capture/PSR and Phase F trials. NULLs never block a close. | Journal close flow / Phase C-D | ✅ accrues per close |
+| `portfolio_daily` | Daily portfolio aggregates. Journal writes the partial row (nav from settings, `notional_short_put`, `margin_total`); PSR/stress columns stay NULL until Phase C. | Journal mark step / Phase C-D | ✅ partial |
+| `position_marks` | Daily EOD state per open position: net option mark from the scan's in-memory chain, `short_delta`, unrealized P&L, `capture_pct`, DTE, `mark_source` (`scan_chain` / `quote_fallback` / `carried` / `csv_backfill` — carried = last mark reused on a data gap, flagged, never interpolated). PK `(position_id, date)`. | scan mark step + `journal_backfill.py` | ✅ live (J1) |
+| `app_settings` | Single-user key/value (NAV, journal defaults) | Journal API | ✅ |
 
 Also: **`trial_registry.jsonl`** (file, beside the DB) — append-only registry for Phase F's pre-registered trials T1–T3; the only mechanism allowed to change live behavior post-cutover (P2). Created empty.
+
+> **Journal access:** every `positions`/`journal`/`settings` route requires owner credentials (`backend/auth.py:require_owner` — Cloudflare Access JWT / bearer / dev-open; fail-closed 403 on reads and writes). See `deployment.md § Trade-journal privacy`.
 
 ### Tables: `verification_results` + `earnings_verification_results`
 

@@ -312,6 +312,30 @@ class MarketDataClient:
         logger.info(f"Fetched {len(contracts)} options contracts for {underlying}")
         return contracts
 
+    async def get_option_quote(self, occ_symbol: str) -> Optional[dict]:
+        """Targeted single-contract quote (journal mark fallback — used only when a
+        held contract is missing from the day's scanned chain, e.g. the ticker's
+        scan failed). `occ_symbol` is standard OCC: TICKER + YYMMDD + C/P + strike*1000
+        zero-padded to 8 (AMZN260320P00200000). Returns
+        {bid, ask, mid, last, delta, underlying_price} or None."""
+        url = f"{self.BASE}/v1/options/quotes/{occ_symbol}/"
+        data = await self._get(url)
+        if not data or data.get("s") != "ok":
+            return None
+
+        def _first(key):
+            v = data.get(key)
+            return v[0] if isinstance(v, list) and v else None
+
+        bid, ask = _first("bid"), _first("ask")
+        mid = _first("mid")
+        if mid is None and bid is not None and ask is not None:
+            mid = round((bid + ask) / 2, 4)
+        return {
+            "bid": bid, "ask": ask, "mid": mid, "last": _first("last"),
+            "delta": _first("delta"), "underlying_price": _first("underlyingPrice"),
+        }
+
     # ── Earnings endpoint ────────────────────────────────
 
     async def get_earnings(self, ticker: str) -> Optional[str]:

@@ -9,3 +9,4 @@ pydantic==2.10.4
 tqdm>=4.66
 apscheduler>=4.0.0a5
 yfinance>=0.2.36
+PyJWT[crypto]>=2.8.0

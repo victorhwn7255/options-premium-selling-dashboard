@@ -7,6 +7,11 @@ services:
       - MARKETDATA_TOKEN=${MARKETDATA_TOKEN}
       - FMP_API_KEY=${FMP_API_KEY}
       - CORS_ORIGINS=${CORS_ORIGINS:-}
+      # Trade Journal (J1) — owner gate. All optional: with none set, every
+      # journal route 403s (fail closed). Never set JOURNAL_DEV_OPEN here.
+      - JOURNAL_TOKEN=${JOURNAL_TOKEN:-}
+      - CF_ACCESS_TEAM_DOMAIN=${CF_ACCESS_TEAM_DOMAIN:-}
+      - CF_ACCESS_AUD=${CF_ACCESS_AUD:-}
     volumes:
       - ./backend/data:/app/data
       - ./utils:/app/utils

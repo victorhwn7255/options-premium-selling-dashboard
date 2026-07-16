@@ -50,7 +50,10 @@ from database import (
     store_daily_bars, store_daily_iv_v2, get_fvrp_history, get_last_good_global_factor,
     store_gate_state, get_latest_gate_state,
     store_shadow_diff, get_shadow_diffs, get_shadow_summary,
+    # ── Trade Journal (J1) ──
+    get_positions,
 )
+from positions_api import router as journal_router, mark_open_positions_from_scan
 from models import (
     ScanResponse, TickerResult, RegimeSummary,
     HistoricalPoint, HealthResponse, TermStructurePointOut, SkewPointOut,
@@ -209,6 +212,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Trade Journal (J1) — every route in this router requires owner credentials
+# (auth.require_owner: Cloudflare Access JWT / bearer token / dev-open).
+# The public scan/regime/CPS surface is untouched.
+app.include_router(journal_router)
 
 
 # ── Core Scan Logic ─────────────────────────────────────
@@ -722,6 +730,14 @@ async def run_full_scan() -> ScanResponse:
     # post-loop cross-ticker forecast/shadow step.
     v2_inputs: dict[str, dict] = {}
 
+    # Trade Journal (J1): tickers with open positions get their in-memory chain
+    # harvested for the post-loop mark step — no second data pass, no re-fetch.
+    try:
+        journal_tickers = {p["ticker"] for p in get_positions(status="open")}
+    except Exception:  # noqa: BLE001 — journal must never touch the v1 scan
+        journal_tickers = set()
+    journal_chain_inputs: dict[str, dict] = {}
+
     for result in scan_results:
         if isinstance(result, Exception):
             errors.append(str(result))
@@ -736,6 +752,11 @@ async def run_full_scan() -> ScanResponse:
                 "contracts": data.get("_contracts") or [],
                 "spot": data.get("_spot") or 0.0,
                 "atr14": data.get("atr14"),
+            }
+        if ticker in journal_tickers:
+            journal_chain_inputs[ticker] = {
+                "contracts": data.get("_contracts") or [],
+                "spot": data.get("_spot"),
             }
         if data.get("_v2"):
             v2_inputs[ticker] = data["_v2"]
@@ -910,6 +931,18 @@ async def run_full_scan() -> ScanResponse:
         )
     except Exception:
         logger.exception("CPS build/persist failed — Naked Puts unaffected")
+
+    # ── Trade Journal (J1): mark open positions from the in-memory chains ──
+    # Isolated exactly like CPS and the v2 shadow — a mark failure can never
+    # affect the v1 scan. No open positions → no-op.
+    try:
+        earnings_map = {r.ticker: r.earnings_dte for r in results}
+        n_marked = await mark_open_positions_from_scan(
+            journal_chain_inputs, earnings_map, client)
+        if n_marked:
+            logger.info("Journal: marked %d open position(s)", n_marked)
+    except Exception:
+        logger.exception("journal mark step failed — v1 scan unaffected")
 
     return response
 

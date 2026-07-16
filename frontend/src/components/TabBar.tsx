@@ -15,7 +15,7 @@ interface TabDefinition {
 const TABS: TabDefinition[] = [
   { id: 'naked-puts',           label: 'Naked Puts' },
   { id: 'credit-put-spreads',   label: 'Credit Put Spreads' },
-  { id: 'journal',              label: 'Journal', suffix: 'Coming Soon', comingSoon: true },
+  { id: 'journal',              label: 'Journal' },
 ];
 
 interface TabBarProps {
