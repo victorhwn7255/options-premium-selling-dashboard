@@ -1,0 +1,38 @@
+# Theta Harvest
+
+> Volatility premium scanner for options sellers. Every trading day after the US
+> close (6:30 PM ET), it scans 33 liquid US stocks and ETFs, fuses five volatility
+> signals (volatility risk premium, IV percentile, term structure, realized-vol
+> stability, 25-delta skew) into a 0–100 edge score, applies hard risk gates
+> (earnings, backwardation, rising realized vol, thin premium), and publishes an
+> at-a-glance market regime. It measures how favorable premium-selling conditions
+> are — it does not predict direction, and it says NO as clearly as GO.
+
+Important for agents: the dashboard is client-side rendered — fetching the HTML
+returns an empty shell. **All data lives in the public JSON API below** (read-only,
+no auth, no JavaScript needed). One scan per trading day; data is stable between
+closes. Please don't poll aggressively.
+
+## Data API (JSON, read-only)
+
+- [Latest scan](https://theta.thevixguy.com/api/scan/latest): the full daily result —
+  per-ticker scores, recommendations (SELL PREMIUM / CONDITIONAL / WATCHLIST /
+  AVOID / NO EDGE), VRP, IV rank/percentile, term slope, RV acceleration, skew,
+  earnings distance, per-ticker regime, plus advisory v2 shadow-engine fields
+  (sigma_fwd, fvrp_ratio, gate state)
+- [Scan comparison](https://theta.thevixguy.com/api/scan/comparison): day-over-day deltas vs the previous scan
+- [Ticker history](https://theta.thevixguy.com/api/ticker/SPY/history): historical IV/RV series per ticker
+- [VRP history](https://theta.thevixguy.com/api/vrp-history?year=2026): daily average VRP across the universe
+- [Universe](https://theta.thevixguy.com/api/universe): the 33-ticker universe and sectors
+- [v2 shadow summary](https://theta.thevixguy.com/api/shadow/summary?window=10): next-gen engine vs live engine divergence aggregates (advisory)
+- [v2 shadow diff](https://theta.thevixguy.com/api/shadow/diff): per-ticker v1-vs-v2 divergence rows (advisory)
+- [Credit put spreads](https://theta.thevixguy.com/api/credit-put-spreads/latest): defined-risk spread candidates for SPY/QQQ/IWM
+- [Health](https://theta.thevixguy.com/api/health): system status
+
+## About
+
+- [Source & methodology (GitHub)](https://github.com/victorhwn7255/options-premium-selling-dashboard):
+  full README with the scoring model, risk gates, architecture, and roadmap
+
+Educational dashboard — not financial advice. Journal/positions endpoints are
+private (operator-only) and not listed here.
