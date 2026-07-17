@@ -32,7 +32,7 @@ from database import (
     store_position_mark, get_position_marks, get_latest_position_marks,
     get_setting, get_all_settings, set_setting,
     store_trade_telemetry, upsert_portfolio_daily_partial,
-    get_latest_scan,
+    get_latest_scan, get_bars,
 )
 
 logger = logging.getLogger("option-harvest")
@@ -249,7 +249,6 @@ def _latest_scan_rows() -> dict[str, dict]:
 def _hold_rv(ticker: str, start: str, end: str) -> Optional[float]:
     """Annualized realized vol over the holding window from stored daily bars."""
     try:
-        from database import get_bars
         bars = get_bars(ticker)  # chronological; filter to the hold window
         closes = [b["c"] for b in bars if b.get("c") and start <= b["date"] <= end]
         if len(closes) < 5:
@@ -373,7 +372,9 @@ async def close_position(position_id: int, body: PositionClose):
         "realized_pnl": realized,
         "exit_reason": body.exit_reason,
         "followed_plan": None if body.followed_plan is None else int(body.followed_plan),
-        "thesis": (p.get("thesis") or "") + (f"\n[close] {body.notes}" if body.notes else "") or None,
+        # Exit commentary lives with the close, not in the entry thesis
+        # (simplify-2026-07-17-journal §S2).
+        "close_fills": json.dumps({"notes": body.notes}) if body.notes else None,
     })
 
     # Module-G telemetry (Phase C/D consumer) — every input degrades to NULL.

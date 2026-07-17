@@ -62,18 +62,6 @@ export async function fetchUniverse() {
   return res.json();
 }
 
-export async function refreshEarnings(): Promise<{ earnings: Record<string, number | null>; remaining: number }> {
-  const res = await fetch(`${API_BASE}/api/earnings/refresh`, { method: 'POST' });
-  if (!res.ok) throw new Error(`Earnings refresh failed: ${res.status}`);
-  return res.json();
-}
-
-export async function fetchEarningsRemaining(): Promise<{ remaining: number }> {
-  const res = await fetch(`${API_BASE}/api/earnings/remaining`);
-  if (!res.ok) throw new Error(`Earnings remaining check failed: ${res.status}`);
-  return res.json();
-}
-
 export async function fetchVerificationLatest(): Promise<VerificationResult | null> {
   const res = await fetch(`${API_BASE}/api/verify/latest`);
   if (!res.ok) return null;

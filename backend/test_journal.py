@@ -143,9 +143,12 @@ def test_lifecycle_http():
         r = c.post(f"/api/positions/{pos['id']}/close",
                    json={"close_debit": 0.40, "close_commissions": 2.6,
                          "exit_reason": "profit_target", "followed_plan": True,
-                         "close_date": "2026-07-17"})
+                         "close_date": "2026-07-17", "notes": "hit target fast"})
         _ok("close 200", r.status_code == 200)
         closed = r.json()
+        _ok("close notes in close_fills, not thesis",
+            json.loads(closed["close_fills"])["notes"] == "hit target fast"
+            and (closed["thesis"] or "") == (pos["thesis"] or ""))
         # (2.00-0.40)*100*2 - 5.2 = 314.8
         _ok("realized pnl", abs(closed["realized_pnl"] - 314.8) < 1e-6)
         _ok("status closed", closed["status"] == "closed")

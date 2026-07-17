@@ -39,6 +39,48 @@ Authoritative data lives in the `shadow_diff` + `daily_iv` tables; this file is 
 
 ---
 
+## 2026-07-16 (Thursday)
+
+**Shadow summary:** Checked 296 / 125 agree / 23 V2_STRICTER / 8 V2_LOOSER / 138 state_mismatch / 2 nodata | index-gating v1 99% vs v2 97% | oscillation v1 1.70 vs v2 1.15 | warm 89% | day-flips v1 7/32 vs v2 1/32
+
+| Ticker | v1 Action | v1 Regime | Earnings | v2 Eligible | v2 Gate | Divergence | sigma_fwd | FVRP | z | 1M/3M | accel_dn |
+|--------|-----------|-----------|----------|-------------|---------|------------|-----------|------|------|-------|----------|
+| AMZN | CONDITIONAL | NORMAL | 14d | No | DANGER | V2_STRICTER | 0.340 | 1.30 | +1.47 | 1.156 | 0.587 |
+| MSFT | CONDITIONAL | NORMAL | 13d | No | DANGER | V2_STRICTER | 0.329 | 1.41 | +1.85 | 1.185 | 0.706 |
+| PLTR | CONDITIONAL | NORMAL | 18d | No | DANGER | V2_STRICTER | 0.699 | 0.93 | +0.60 | 1.107 | 0.635 |
+| SBUX | SELL PREMIUM | NORMAL | 13d | No | DANGER | V2_STRICTER | 0.303 | 1.22 | +0.62 | 1.203 | 0.871 |
+| AAPL | WATCHLIST | NORMAL | 14d | No | CAUTION | STATE_MISMATCH | 0.303 | 0.92 | +0.16 | 1.035 | 0.726 |
+| CAT | WATCHLIST | NORMAL | 19d | No | DANGER | STATE_MISMATCH | 0.424 | 1.23 | +1.17 | 1.087 | 0.992 |
+| EEM | WATCHLIST | NORMAL | ETF | No | CAUTION | STATE_MISMATCH | 0.276 | 1.30 | +1.04 | 1.027 | 0.991 |
+| GLD | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.223 | 1.07 | -0.61 | 0.996 | 0.854 |
+| GOOG | AVOID | DANGER | 6d | No | DANGER | AGREE | 0.326 | 1.23 | +1.05 | 1.131 | 0.704 |
+| GS | NO EDGE | CAUTION | 89d | No | CAUTION | AGREE | 0.369 | 0.91 | -0.55 | 0.987 | 0.694 |
+| HD | NO EDGE | NORMAL | 33d | No | CAUTION | STATE_MISMATCH | 0.287 | 0.95 | -0.28 | 0.948 | 0.996 |
+| HOOD | NO EDGE | CAUTION | 13d | No | DANGER | STATE_MISMATCH | 0.720 | 1.11 | +1.91 | 1.115 | 0.696 |
+| IWM | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.214 | 0.86 | -1.21 | 0.917 | 0.703 |
+| JNJ | NO EDGE | CAUTION | 89d | No | DANGER | STATE_MISMATCH | 0.270 | 0.93 | -0.52 | 1.007 | 1.409 |
+| JPM | NO EDGE | NORMAL | 89d | No | NORMAL | AGREE | 0.309 | 0.72 | -2.10 | 0.918 | 0.885 |
+| KO | NO EDGE | NORMAL | 12d | No | DANGER | STATE_MISMATCH | 0.206 | 1.04 | +0.75 | 1.053 | 1.066 |
+| MCD | NO EDGE | NORMAL | 19d | No | DANGER | STATE_MISMATCH | 0.234 | 1.12 | +0.99 | 1.038 | 1.033 |
+| META | NO EDGE | CAUTION | 13d | No | DANGER | STATE_MISMATCH | 0.449 | 1.25 | +1.56 | 1.169 | 0.772 |
+| NFLX | AVOID | DANGER | 0d | No | DANGER | AGREE | 0.407 | 1.24 | +1.51 | 1.149 | 0.802 |
+| NKE | NO EDGE | NORMAL | 75d | No | NORMAL | AGREE | 0.375 | 0.91 | -0.63 | 0.848 | 0.733 |
+| NVDA | NO EDGE | NORMAL | 41d | No | NORMAL | AGREE | 0.485 | 0.84 | -0.65 | 0.938 | 0.859 |
+| QQQ | WATCHLIST | NORMAL | ETF | No | NORMAL | AGREE | 0.244 | 1.00 | +0.39 | 0.989 | 0.910 |
+| SPY | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.157 | 0.87 | -0.44 | 0.893 | 0.682 |
+| TLT | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.113 | 0.82 | -0.71 | 0.907 | 0.976 |
+| TSLA | NO EDGE | CAUTION | 6d | No | CAUTION | AGREE | 0.546 | 0.90 | +0.21 | 1.042 | 0.977 |
+| UBER | WATCHLIST | NORMAL | 20d | No | DANGER | STATE_MISMATCH | 0.464 | 1.02 | +1.10 | 1.146 | 1.011 |
+| WMT | NO EDGE | NORMAL | 35d | No | NORMAL | AGREE | 0.263 | 0.98 | -0.57 | 0.933 | 0.738 |
+| XLB | NO EDGE | NORMAL | ETF | No | CAUTION | STATE_MISMATCH | 0.218 | 1.06 | -0.60 | 1.009 | 0.938 |
+| XLE | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.291 | 0.89 | +0.26 | 1.018 | 0.641 |
+| XLF | NO EDGE | CAUTION | ETF | No | CAUTION | AGREE | 0.208 | 0.77 | -1.17 | 1.063 | 0.986 |
+| XLI | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.213 | 1.14 | +1.00 | 1.110 | 0.845 |
+| XLV | NO EDGE | NORMAL | ETF | No | CAUTION | STATE_MISMATCH | 0.184 | 0.73 | -2.34 | 0.627 | 1.286 |
+| XOM | NO EDGE | CAUTION | 15d | No | DANGER | STATE_MISMATCH | 0.306 | 0.95 | +0.48 | 1.018 | 0.710 |
+
+---
+
 ## 2026-07-15 (Wednesday)
 
 **Shadow summary:** Checked 263 / 109 agree / 19 V2_STRICTER / 8 V2_LOOSER / 125 state_mismatch / 2 nodata | index-gating v1 99% vs v2 97% | oscillation v1 1.48 vs v2 1.12 | warm 87% | day-flips v1 8/32 vs v2 2/32

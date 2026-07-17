@@ -54,16 +54,41 @@ function FlagChips({ position }: { position: Position }) {
 function LockedCard() {
   return (
     <div className="bg-surface rounded-lg border border-border overflow-hidden">
-      <div className="px-6 py-10 sm:py-14 text-center max-w-2xl mx-auto">
-        <div className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-widest border border-border-subtle bg-surface-alt text-txt-tertiary mb-4">
-          Private
+      <div className="px-6 py-12 sm:py-16 text-center max-w-2xl mx-auto">
+        {/* Lock mark — quiet, in the app's line-icon style */}
+        <div className="mx-auto mb-5 w-11 h-11 rounded-full border border-border-subtle bg-surface-alt flex items-center justify-center">
+          <svg className="w-5 h-5 text-txt-tertiary" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+            <rect x="5" y="11" width="14" height="9" rx="2" />
+            <path strokeLinecap="round" d="M8 11V8a4 4 0 1 1 8 0v3" />
+          </svg>
         </div>
-        <h2 className="font-secondary text-xl sm:text-2xl font-medium text-txt mb-3">Journal</h2>
-        <p className="text-sm text-txt-secondary leading-relaxed">
-          The trade journal and live positions belong to the operator&apos;s account and are
-          not part of the public dashboard. Everything else — the scanner, regime read, and
-          spreads tab — is open above.
+        <div className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-widest border border-border-subtle bg-surface-alt text-txt-tertiary mb-4">
+          Operator only
+        </div>
+        <h2 className="font-secondary text-xl sm:text-2xl font-medium text-txt mb-3">
+          The book is private
+        </h2>
+        <p className="text-sm text-txt-secondary leading-relaxed max-w-md mx-auto">
+          Live positions and the trade journal belong to the operator&apos;s account.
+          Everything else here — the scanner, the regime read, the spreads tab — is
+          open and stays open.
         </p>
+        <div className="mt-8 pt-6 border-t border-border-subtle max-w-md mx-auto">
+          <a
+            href="/api/positions/open"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded border border-border text-txt-secondary hover:border-primary hover:text-txt transition-colors"
+          >
+            Owner sign-in
+            <span aria-hidden="true">→</span>
+          </a>
+          <p className="mt-3 text-[11px] text-txt-tertiary leading-relaxed">
+            Opens the verification flow in a new tab — a one-time PIN goes to the
+            operator&apos;s email. Finish it, come back, and this page unlocks itself.
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -322,6 +347,19 @@ export default function JournalTab() {
       .catch(() => alive && setAccess('locked'));
     return () => { alive = false; };
   }, [reload]);
+
+  // While locked, re-probe on window focus — so finishing the owner sign-in
+  // (a PIN flow in another tab) unlocks this page the moment you come back.
+  useEffect(() => {
+    if (access !== 'locked') return;
+    const recheck = () => {
+      probeJournalAccess()
+        .then(ok => { if (ok) { setAccess('open'); reload(); } })
+        .catch(() => {});
+    };
+    window.addEventListener('focus', recheck);
+    return () => window.removeEventListener('focus', recheck);
+  }, [access, reload]);
 
   if (access === 'checking') {
     return <div className="text-center py-12 text-sm text-txt-tertiary">Checking access…</div>;
