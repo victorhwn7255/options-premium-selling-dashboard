@@ -491,12 +491,14 @@ export default function DetailPanel({ ticker, delta, v2 }: DetailPanelProps) {
                     <ReferenceArea
                       y1={Math.min(v2.sigma_fwd, v2.sigma_fwd_dn) * 100}
                       y2={Math.max(v2.sigma_fwd, v2.sigma_fwd_dn) * 100}
+                      ifOverflow="extendDomain"
                       fill={colors.secondary} fillOpacity={0.08} stroke="none"
                     />
                   )}
                   {v2?.sigma_fwd != null && (
                     <ReferenceLine
                       y={v2.sigma_fwd * 100}
+                      ifOverflow="extendDomain"
                       stroke={colors.secondary} strokeDasharray="5 2" strokeWidth={1.5}
                       label={{ value: 'σ_fwd', position: 'insideTopRight', fontSize: 9, fill: colors.secondary, fontFamily: "'JetBrains Mono', monospace" }}
                     />
@@ -561,8 +563,10 @@ export default function DetailPanel({ ticker, delta, v2 }: DetailPanelProps) {
       </div>
 
       {/* v2 Shadow — advisory (Phase B). Gate state + eligibility + exact reasons + forward
-          metrics. Everything comes from the API's eligibility object; v1 decides live (P1). */}
-      {v2?.v2_gate_state && (
+          metrics. Gated on the nested `eligibility` (not the flat mirror) so a pre-Phase-B
+          cached blob — flat fields present, eligibility null — hides the section until the
+          first Phase-B scan rather than showing a verdict it can't source. v1 decides live (P1). */}
+      {v2?.eligibility && (
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-border-subtle">
           <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
             <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">

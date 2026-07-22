@@ -1284,12 +1284,21 @@ def get_shadow_summary(window_days: int = 10) -> dict:
     def _nonactionable_v1(a):
         return a not in ("SELL PREMIUM", "CONDITIONAL")
 
-    idx_gate_v1 = (sum(1 for r in idx if _nonactionable_v1(r[3])) / len(idx)) if idx else None
+    def _v1_gated(r):
+        # Match _shadow_divergence's v1 view: raw non-actionable OR earnings-gated. A dated
+        # in-window earnings name v1's backend still rates SELL/CONDITIONAL is treated as gated
+        # (both engines gate it → it reads AGREE/STATE_MISMATCH with v2 also ineligible), so this
+        # rate stays consistent with the divergence counts shown beside it. No-op for ETFs
+        # (earnings-exempt: a both-gate ETF is already raw-non-actionable).  cols: (is_etf,
+        # divergence_class, v2_eligible, v1_action, v2_warm)
+        return _nonactionable_v1(r[3]) or (r[1] in ("AGREE", "STATE_MISMATCH") and not r[2])
+
+    idx_gate_v1 = (sum(1 for r in idx if _v1_gated(r)) / len(idx)) if idx else None
     idx_gate_v2 = (sum(1 for r in idx if not r[2]) / len(idx)) if idx else None
     # Single-name sleeve gating rate (B0.5 per-sleeve health metric — the forensics
     # showed v2 DANGER-gates ~53% of single names vs ~2% of the index sleeve).
     single = [r for r in diffs if not r[0]]
-    single_gate_v1 = (sum(1 for r in single if _nonactionable_v1(r[3])) / len(single)) if single else None
+    single_gate_v1 = (sum(1 for r in single if _v1_gated(r)) / len(single)) if single else None
     single_gate_v2 = (sum(1 for r in single if not r[2]) / len(single)) if single else None
 
     def _oscillation(col_idx):
