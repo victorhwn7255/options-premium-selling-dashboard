@@ -1040,7 +1040,6 @@ async def health_check():
     )
 
 
-@app.get("/api/scan/latest", response_model=ScanResponse)
 def _cached_scan_response(cached: dict, message: Optional[str] = None) -> ScanResponse:
     """Build a ScanResponse from a cached scan dict — the single builder shared by
     get_latest_cached_scan + the three trigger_scan short-circuits, which had four
@@ -1067,6 +1066,7 @@ def _cached_scan_response(cached: dict, message: Optional[str] = None) -> ScanRe
     )
 
 
+@app.get("/api/scan/latest", response_model=ScanResponse)
 async def get_latest_cached_scan():
     """Return the most recent cached scan result, or an empty response if none exists."""
     cached = get_latest_scan()
