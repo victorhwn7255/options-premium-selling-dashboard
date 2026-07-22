@@ -188,6 +188,30 @@ def test_checklist_gate():
         _ok("deviation recorded", "CAUTION" in checklist["deviation_reason"])
 
 
+def test_roll_failed_replacement_leaves_old_leg_open():
+    """simplify-2026-07-22 roll bug: if the roll's new leg fails its checklist,
+    the OLD leg must stay open (not be orphaned closed-with-no-replacement)."""
+    with tempfile.TemporaryDirectory() as td:
+        _fresh_db(td)
+        auth._DEV_OPEN = True
+        papi.get_latest_scan = _fake_scan  # clean scan → entry checklist passes
+        c = _client()
+        r = c.post("/api/positions", json={
+            "ticker": "AMZN", "structure": "naked_put", "short_strike": 210,
+            "expiry": "2026-08-21", "contracts": 1, "entry_credit": 2.0})
+        pid = r.json()["id"]
+        # Roll into a replacement that FAILS the checklist and carries no deviation_reason
+        papi.get_latest_scan = lambda: _fake_scan(score=40, regime="CAUTION", ratio=1.0)
+        r = c.post(f"/api/positions/{pid}/roll", json={
+            "close": {"close_debit": 0.5, "exit_reason": "rolled"},
+            "open": {"ticker": "AMZN", "structure": "naked_put", "short_strike": 205,
+                     "expiry": "2026-09-19", "contracts": 1, "entry_credit": 1.5}})
+        _ok("roll with bad replacement -> 422", r.status_code == 422)
+        after = c.get(f"/api/positions/{pid}").json()
+        _ok("old leg still OPEN (not orphaned closed)", after["status"] == "open")
+        _ok("old leg not marked realized", after["realized_pnl"] is None)
+
+
 def test_flags_edges():
     today = date.today()
     pos = {"expiry": (today + timedelta(days=10)).isoformat(), "short_strike": 210,
@@ -214,5 +238,6 @@ if __name__ == "__main__":
     test_auth_fail_closed()
     test_lifecycle_http()
     test_checklist_gate()
+    test_roll_failed_replacement_leaves_old_leg_open()
     test_flags_edges()
     print("All journal tests passed.")

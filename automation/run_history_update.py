@@ -11,9 +11,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from datetime import date, datetime, timedelta
+from pathlib import Path
 
 from . import config
 from .history import parser, writer
@@ -121,6 +123,51 @@ def run(
                "shadow_written": [], "v2_briefing_written": [], "skipped": []}
     claude_on = not (no_claude or dry_run)
     claude_ok = True  # flipped off on an auth failure so we stop retrying mid-run
+
+    # --- v2-BRIEFING SELF-HEAL (best-effort; runs even on nothing-to-do days) ---
+    # A v2-only Claude failure leaves the day "done" (the done-gate is metrics +
+    # v1-briefing), so the main loop never revisits it (2026-07-21 timeout). Any
+    # recent shadow-diffs entry missing its v2-briefings twin is regenerated here,
+    # reconstructing the inputs from the logged deterministic entry itself.
+    # Oldest-first + newer-than-current-top so insert_entry (always splices at the
+    # top) preserves descending order; an older mid-file gap is logged, not forced.
+    if (claude_on and claude_ok and shadow_diffs_path is not None
+            and v2_briefings_path is not None):
+        try:
+            shadow_dates = re.findall(r"^##\s+(\d{4}-\d{2}-\d{2})\b",
+                                      Path(shadow_diffs_path).read_text(), re.M)[:5]
+        except OSError:
+            shadow_dates = []
+        v2_top = parser.last_logged_date(v2_briefings_path)
+        for iso in reversed(shadow_dates):  # oldest -> newest
+            if parser.has_entry(v2_briefings_path, iso):
+                continue
+            if v2_top and date.fromisoformat(iso) < v2_top:
+                _log(f"v2-briefing {iso} missing below the newest entry — manual backfill needed",
+                     verbose=verbose)
+                continue
+            try:
+                et = parser.entry_text(shadow_diffs_path, iso) or ""
+                body = et.split("\n", 1)[1].strip() if "\n" in et else ""
+                line = next((ln for ln in body.splitlines()
+                             if ln.startswith("**Shadow summary:**")), None)
+                if not line:
+                    continue
+                d2 = date.fromisoformat(iso)
+                out = v2_briefing_fn(d2, line, body,
+                                     "(unavailable — self-healed from the logged shadow table)",
+                                     parser.latest_entries(v2_briefings_path, 5))
+                writer.insert_entry(v2_briefings_path, iso, _heading(d2) + "\n\n" + out)
+                summary["v2_briefing_written"].append(iso)
+                v2_top = d2
+                _log(f"wrote v2-briefings {iso} (self-heal)", verbose=verbose)
+            except ClaudeAuthError as e:
+                claude_ok = False
+                _log(f"⚠️ Claude re-login needed — v2-briefing self-heal {iso} pending: {e}",
+                     verbose=verbose)
+                break
+            except Exception as e:  # noqa: BLE001 — self-heal never blocks the run
+                _log(f"v2-briefing self-heal {iso} failed ({e}) — still pending", verbose=verbose)
 
     if not todo:
         _log("up to date — nothing to do", verbose=verbose)
@@ -306,7 +353,18 @@ def main(argv=None) -> int:
     need_backfill = any(d < api_date for d in trading_days_between(anchor, api_date)
                         if not (parser.has_entry(metrics_file, d.isoformat())
                                 and parser.has_entry(briefings_file, d.isoformat())))
-    snap = db_source.snapshot_db() if need_backfill else None
+    # Guarded: by here today's NP/CPS/shadow data is already in hand — the snapshot
+    # is needed ONLY for past backfill days. An scp blip (the same wake-race the API
+    # fetches retry) must not crash the run and discard today's capture; degrade to
+    # snap=None (past days SKIP and self-heal next run). Mirrors the shadow-fetch
+    # guard above. (simplify-2026-07-22 snapshot-db-unguarded)
+    snap = None
+    if need_backfill:
+        try:
+            snap = db_source.snapshot_db()
+        except Exception as e:  # noqa: BLE001
+            _log(f"prod DB snapshot failed ({e}) — today's capture proceeds, past days backfill next run",
+                 verbose=verbose)
 
     def load_backfill(d: date):
         if snap is None:

@@ -227,7 +227,9 @@ def test_shadow_sister_logs_additive():
 
         days = ["2026-06-01", "2026-06-02", "2026-06-03"]
         _ok("shadow written all 3", s["shadow_written"] == days)
-        _ok("v2 briefing written all 3", s["v2_briefing_written"] == days)
+        # containment, not equality: the seed files are live copies, so the
+        # self-heal pass may legitimately regenerate a real missing recent entry
+        _ok("v2 briefing written all 3", set(days) <= set(s["v2_briefing_written"]))
         # v1 fully written too — sister logs are additive, never gate v1
         _ok("metrics still written all 3", s["metrics_written"] == days)
         _ok("briefings still written all 3", s["briefings_written"] == days)
@@ -256,11 +258,15 @@ def test_shadow_failure_does_not_block_v1():
                       "summary": {"n_ticker_days": 1, "divergence_counts": {}}}
         before = parser.last_logged_date(sd)  # seed carries the real (growing) shadow log
 
+        def _no_v2(*a, **k):  # hermetic: self-heal must never reach real Claude in tests
+            raise RuntimeError("v2 briefing disabled in this test")
+
         s = orch.run(metrics_path=m, cps_path=c, briefings_path=b, api_date=date(2026, 6, 3),
                      np_latest=_load_np("2026-06-03"), cps_latest=_load_cps("2026-06-03"),
                      load_backfill=lambda d: (None, None, None), no_claude=False, verbose=False,
                      briefing_fn=_pass_briefing, notable_fn=lambda *a, **k: "note",
-                     shadow_diffs_path=sd, v2_briefings_path=v2, shadow_latest=bad_shadow)
+                     shadow_diffs_path=sd, v2_briefings_path=v2, shadow_latest=bad_shadow,
+                     v2_briefing_fn=_no_v2)
         _ok("bad shadow not written (render failure caught)", s["shadow_written"] == [])
         _ok("no v2 briefing when shadow render failed", s["v2_briefing_written"] == [])
         _ok("metrics STILL written despite shadow failure", "2026-06-03" in s["metrics_written"])

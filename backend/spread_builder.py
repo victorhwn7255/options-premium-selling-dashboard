@@ -667,6 +667,32 @@ def build_candidate_outcome_for_ticker(
     )
 
 
+_CPS_ACTION_RANK = {"SELL_CPS": 0, "WATCH_CPS": 1, "WAIT": 2}
+_CPS_RV_ORDER = {"Excellent": 0, "Good": 1, "Acceptable": 2, "Caution": 3, "Avoid / Wait": 4}
+
+
+def _cps_avg_bar(c) -> float:
+    """Mean of the two legs' bid_ask_ratio (tighter = better); 1.0 when unknown."""
+    vals = [v for v in (c.short_put.bid_ask_ratio, c.long_put.bid_ask_ratio) if v is not None]
+    return sum(vals) / len(vals) if vals else 1.0
+
+
+def rank_cps_candidates(candidates: list) -> None:
+    """The single authoritative CPS ordering — sorts in place. Called by BOTH
+    build_credit_put_spread_candidates() and main._build_cps_response() so the two
+    can never drift again (they had: main's copy dropped the _avg_bar liquidity
+    tiebreaker — simplify-2026-07-22). Key: action tier · base score desc ·
+    credit/width desc · tighter avg bid/ask · RV-accel status · term slope."""
+    candidates.sort(key=lambda c: (
+        _CPS_ACTION_RANK.get(c.action, 3),
+        -c.base_score,
+        -c.credit_to_width,
+        _cps_avg_bar(c),
+        _CPS_RV_ORDER.get(c.rv_accel_status or "Acceptable", 2),
+        c.term_slope if c.term_slope is not None else 1.0,
+    ))
+
+
 def build_credit_put_spread_candidates(
     scan_results: dict,
     option_chains: dict[str, list[OptionContract]],
@@ -727,32 +753,5 @@ def build_credit_put_spread_candidates(
         ):
             actionable.append(outcome.candidate)
 
-    _RV_ORDER = {
-        "Excellent": 0, "Good": 1, "Acceptable": 2, "Caution": 3, "Avoid / Wait": 4,
-    }
-
-    def _rv_rank(c: CreditPutSpreadCandidate) -> int:
-        return _RV_ORDER.get(c.rv_accel_status or "Acceptable", 2)
-
-    def _avg_bar(c: CreditPutSpreadCandidate) -> float:
-        vals = [
-            v for v in (c.short_put.bid_ask_ratio, c.long_put.bid_ask_ratio)
-            if v is not None
-        ]
-        return sum(vals) / len(vals) if vals else 1.0
-
-    def _action_rank(c: CreditPutSpreadCandidate) -> int:
-        # SELL_CPS first, then WATCH_CPS, then WAIT
-        return {"SELL_CPS": 0, "WATCH_CPS": 1, "WAIT": 2}.get(c.action, 3)
-
-    actionable.sort(
-        key=lambda c: (
-            _action_rank(c),
-            -c.base_score,
-            -c.credit_to_width,
-            _avg_bar(c),
-            _rv_rank(c),
-            c.term_slope if c.term_slope is not None else 1.0,
-        )
-    )
+    rank_cps_candidates(actionable)  # single authoritative ordering (shared with main)
     return actionable

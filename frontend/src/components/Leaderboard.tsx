@@ -2,7 +2,8 @@
 
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import DetailPanel from '@/components/DetailPanel';
-import type { DashboardTicker, RvAccelStatus, TickerDelta } from '@/lib/types';
+import { ThinPremiumBadge, EarningsWarningBadge, RvAccelStatusChip } from './badges';
+import type { DashboardTicker, TickerDelta } from '@/lib/types';
 
 interface LeaderboardProps {
   data: DashboardTicker[];
@@ -110,18 +111,6 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
   );
 }
 
-function ThinPremiumBadge({ visible }: { visible: boolean }) {
-  if (!visible) return null;
-  return (
-    <span
-      title="VRP ratio just above 1.15 dead zone — premium is thin"
-      className="inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border border-warning-30 bg-warning-subtle text-warning whitespace-nowrap"
-    >
-      Thin Premium
-    </span>
-  );
-}
-
 function CautionPill({ reason }: { reason?: string }) {
   if (!reason) return null;
   return (
@@ -134,20 +123,6 @@ function CautionPill({ reason }: { reason?: string }) {
   );
 }
 
-function EarningsWarningBadge({
-  warning, label, detail,
-}: { warning?: string | null; label?: string; detail?: string }) {
-  if (!warning || !label) return null;
-  return (
-    <span
-      title={detail || label}
-      className="inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border border-warning-30 bg-warning-subtle text-warning whitespace-nowrap"
-    >
-      {label}
-    </span>
-  );
-}
-
 function DeltaChip({ value, precision = 1 }: { value: number | null | undefined; precision?: number }) {
   if (value == null) return null;
   const sign = value > 0 ? '+' : '';
@@ -155,28 +130,6 @@ function DeltaChip({ value, precision = 1 }: { value: number | null | undefined;
   return (
     <span className={`font-mono text-[10px] ${color} ml-1 hidden lg:inline`}>
       {sign}{value.toFixed(precision)}
-    </span>
-  );
-}
-
-function RvAccelStatusChip({ status }: { status?: RvAccelStatus }) {
-  // Only surface a chip when the volatility environment is degraded enough to
-  // warrant trader attention. Excellent / Good / Acceptable stay silent so the
-  // signal column doesn't carry visual noise on every clean row.
-  if (!status) return null;
-  if (status.label !== 'Caution' && status.label !== 'Avoid / Wait') return null;
-  const isCaution = status.label === 'Caution';
-
-  return (
-    <span
-      title={`RV Accel — ${status.label}: ${status.description}`}
-      className={`inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border ${
-        isCaution
-          ? 'text-warning bg-warning-subtle border-warning-30'
-          : 'text-error bg-error-subtle border-error-20'
-      }`}
-    >
-      RV {status.label}
     </span>
   );
 }

@@ -68,7 +68,7 @@ from scan_quality import compute_scan_quality, suppress_actionable
 # ── Credit Put Spreads (Phase 3) ──
 import config as cfg
 from regime_overlay import fetch_regime_overlay
-from spread_builder import build_candidate_outcome_for_ticker
+from spread_builder import build_candidate_outcome_for_ticker, rank_cps_candidates
 # ── v2 silent shadow substrate (Phase A) ──
 import theta_core as tc
 import estimators as est
@@ -486,16 +486,9 @@ def _build_cps_response(
         except Exception:
             logger.exception("record_cps_candidate failed for %s", ticker)
 
-    # Top-level ranking — same key as build_credit_put_spread_candidates().
-    _action_order = {"SELL_CPS": 0, "WATCH_CPS": 1, "WAIT": 2}
-    _rv_order = {"Excellent": 0, "Good": 1, "Acceptable": 2, "Caution": 3, "Avoid / Wait": 4}
-    candidates.sort(key=lambda c: (
-        _action_order.get(c.action, 9),
-        -c.base_score,
-        -c.credit_to_width,
-        _rv_order.get(c.rv_accel_status or "Acceptable", 2),
-        c.term_slope if c.term_slope is not None else 1.0,
-    ))
+    # Top-level ranking — the single shared ranker (was a drifted inline copy that
+    # had dropped the _avg_bar liquidity tiebreaker; simplify-2026-07-22).
+    rank_cps_candidates(candidates)
 
     message = None
     if not candidates:
@@ -1047,6 +1040,32 @@ async def health_check():
 
 
 @app.get("/api/scan/latest", response_model=ScanResponse)
+def _cached_scan_response(cached: dict, message: Optional[str] = None) -> ScanResponse:
+    """Build a ScanResponse from a cached scan dict — the single builder shared by
+    get_latest_cached_scan + the three trigger_scan short-circuits, which had four
+    near-identical copies differing only by `message` (simplify-2026-07-22). Enriches
+    is_etf from UNIVERSE, hydrates the models, applies the scan-quality gate."""
+    for t in cached["tickers"]:
+        if t.get("ticker") in UNIVERSE:
+            t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
+    ticker_models = [TickerResult(**t) for t in cached["tickers"]]
+    quality, reason = _apply_scan_quality(ticker_models)
+    return ScanResponse(
+        timestamp=cached["scanned_at"],
+        regime=RegimeSummary(**cached["regime"]),
+        tickers=ticker_models,
+        historical={
+            k: [HistoricalPoint(**p) for p in v]
+            for k, v in cached["historical"].items()
+        },
+        scanned_at=cached["scanned_at"],
+        cached=True,
+        message=message,
+        scan_quality=quality,
+        scan_quality_reason=reason,
+    )
+
+
 async def get_latest_cached_scan():
     """Return the most recent cached scan result, or an empty response if none exists."""
     cached = get_latest_scan()
@@ -1060,27 +1079,7 @@ async def get_latest_cached_scan():
             cached=False,
             message="No scan results yet. The scanner runs automatically after market close (~6:30 PM ET).",
         )
-    # Enrich cached tickers with is_etf from UNIVERSE (may be missing in old data)
-    for t in cached["tickers"]:
-        if t.get("ticker") in UNIVERSE:
-            t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
-
-    ticker_models = [TickerResult(**t) for t in cached["tickers"]]
-    quality, reason = _apply_scan_quality(ticker_models)
-
-    return ScanResponse(
-        timestamp=cached["scanned_at"],
-        regime=RegimeSummary(**cached["regime"]),
-        tickers=ticker_models,
-        historical={
-            k: [HistoricalPoint(**p) for p in v]
-            for k, v in cached["historical"].items()
-        },
-        scanned_at=cached["scanned_at"],
-        cached=True,
-        scan_quality=quality,
-        scan_quality_reason=reason,
-    )
+    return _cached_scan_response(cached)
 
 
 @app.get("/api/shadow/summary", response_model=ShadowSummaryResponse)
@@ -1190,25 +1189,7 @@ async def trigger_scan():
     if not _is_trading_day(today_et):
         cached = get_latest_scan()
         if cached and cached.get("scanned_at"):
-            for t in cached["tickers"]:
-                if t.get("ticker") in UNIVERSE:
-                    t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
-            ticker_models = [TickerResult(**t) for t in cached["tickers"]]
-            quality, reason = _apply_scan_quality(ticker_models)
-            return ScanResponse(
-                timestamp=cached["scanned_at"],
-                regime=RegimeSummary(**cached["regime"]),
-                tickers=ticker_models,
-                historical={
-                    k: [HistoricalPoint(**p) for p in v]
-                    for k, v in cached["historical"].items()
-                },
-                scanned_at=cached["scanned_at"],
-                cached=True,
-                message="Market is closed today. Showing last available scan.",
-                scan_quality=quality,
-                scan_quality_reason=reason,
-            )
+            return _cached_scan_response(cached, "Market is closed today. Showing last available scan.")
         return JSONResponse({"status": "closed", "message": "Market is closed today"})
 
     # Block scans before 6:30 PM ET (market closes 4 PM, data settles by ~6:30 PM)
@@ -1216,48 +1197,13 @@ async def trigger_scan():
     if now_et.hour < 18 or (now_et.hour == 18 and now_et.minute < 30):
         cached = get_latest_scan()
         if cached and cached.get("scanned_at"):
-            for t in cached["tickers"]:
-                if t.get("ticker") in UNIVERSE:
-                    t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
-            ticker_models = [TickerResult(**t) for t in cached["tickers"]]
-            quality, reason = _apply_scan_quality(ticker_models)
-            return ScanResponse(
-                timestamp=cached["scanned_at"],
-                regime=RegimeSummary(**cached["regime"]),
-                tickers=ticker_models,
-                historical={
-                    k: [HistoricalPoint(**p) for p in v]
-                    for k, v in cached["historical"].items()
-                },
-                scanned_at=cached["scanned_at"],
-                cached=True,
-                message="Scan available after 6:30 PM ET.",
-                scan_quality=quality,
-                scan_quality_reason=reason,
-            )
+            return _cached_scan_response(cached, "Scan available after 6:30 PM ET.")
         return JSONResponse({"status": "waiting", "message": "Scan available after 6:30 PM ET"})
 
     cached = get_latest_scan()
     if cached and cached.get("scanned_at") and _is_scanned_today(cached["scanned_at"]):
         # Already scanned today — return cached result
-        for t in cached["tickers"]:
-            if t.get("ticker") in UNIVERSE:
-                t["is_etf"] = UNIVERSE[t["ticker"]].get("etf", False)
-        ticker_models = [TickerResult(**t) for t in cached["tickers"]]
-        quality, reason = _apply_scan_quality(ticker_models)
-        return ScanResponse(
-            timestamp=cached["scanned_at"],
-            regime=RegimeSummary(**cached["regime"]),
-            tickers=ticker_models,
-            historical={
-                k: [HistoricalPoint(**p) for p in v]
-                for k, v in cached["historical"].items()
-            },
-            scanned_at=cached["scanned_at"],
-            cached=True,
-            scan_quality=quality,
-            scan_quality_reason=reason,
-        )
+        return _cached_scan_response(cached)
 
     # If a scan is already running, return status
     if _scan_task and not _scan_task.done():

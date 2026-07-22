@@ -404,12 +404,19 @@ async def roll_position(position_id: int, body: PositionRoll):
     old = get_position(position_id)
     if not old:
         raise HTTPException(404, "position not found")
+    if old["status"] != "open":
+        raise HTTPException(409, f"position is {old['status']}, not open")
+    # Open the NEW leg first, then close the old one. If the replacement fails
+    # its entry checklist (422), we must not have already committed the old leg
+    # closed-with-no-replacement — that would orphan it invisibly. Worst case
+    # here is instead a harmless no-op (nothing changed) or, only after both
+    # succeed, two rows sharing a roll_group_id. (simplify-2026-07-22 roll bug)
+    group = old.get("roll_group_id") or position_id
+    new_pos = await open_position(body.open)          # may 422 — old leg untouched
+    update_position(new_pos["id"], {"roll_group_id": group})
     body.close.exit_reason = "rolled"
     await close_position(position_id, body.close)
-    group = old.get("roll_group_id") or position_id
     update_position(position_id, {"roll_group_id": group})
-    new_pos = await open_position(body.open)
-    update_position(new_pos["id"], {"roll_group_id": group})
     return {"closed": get_position(position_id), "opened": get_position(new_pos["id"])}
 
 

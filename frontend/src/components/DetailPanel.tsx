@@ -6,8 +6,9 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import type { DashboardTicker, RvAccelStatus, VolHistoryPoint, TermStructurePoint2, TickerDelta } from '@/lib/types';
+import type { DashboardTicker, VolHistoryPoint, TermStructurePoint2, TickerDelta } from '@/lib/types';
 import { fetchTickerHistory } from '@/lib/api';
+import { ThinPremiumBadge, EarningsWarningBadge, RvAccelStatusChip } from './badges';
 import { useCssColors } from '@/hooks/useCssColors';
 
 interface DetailPanelProps {
@@ -85,53 +86,6 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
       style={{ color: c.colorStyle }}
     >
       {c.label}
-    </span>
-  );
-}
-
-function ThinPremiumBadge({ visible }: { visible: boolean }) {
-  if (!visible) return null;
-  return (
-    <span
-      title="VRP ratio just above 1.15 dead zone — premium is thin"
-      className="inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border border-warning-30 bg-warning-subtle text-warning whitespace-nowrap"
-    >
-      Thin Premium
-    </span>
-  );
-}
-
-function EarningsWarningBadge({
-  warning, label, detail,
-}: { warning?: string | null; label?: string; detail?: string }) {
-  if (!warning || !label) return null;
-  return (
-    <span
-      title={detail || label}
-      className="inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border border-warning-30 bg-warning-subtle text-warning whitespace-nowrap"
-    >
-      {label}
-    </span>
-  );
-}
-
-function RvAccelStatusChip({ status }: { status?: RvAccelStatus }) {
-  // Mirrors Leaderboard.tsx: hide on Excellent / Good / Acceptable, show on
-  // Caution / Avoid-Wait. Display-only — does not prescribe size.
-  if (!status) return null;
-  if (status.label !== 'Caution' && status.label !== 'Avoid / Wait') return null;
-  const isCaution = status.label === 'Caution';
-
-  return (
-    <span
-      title={`RV Accel — ${status.label}: ${status.description}`}
-      className={`inline-flex items-center px-2 py-0.5 rounded-full font-primary text-[10px] font-semibold tracking-wide border ${
-        isCaution
-          ? 'text-warning bg-warning-subtle border-warning-30'
-          : 'text-error bg-error-subtle border-error-20'
-      }`}
-    >
-      RV {status.label}
     </span>
   );
 }

@@ -112,13 +112,17 @@ def run_v2_briefing(d: date, summary_line: str, shadow_table: str, summary_json,
                     recent_v2_briefings: str, n: int = 5) -> str:
     """Return the v2-briefings entry body (verbatim shadow-summary line -> analysis ->
     `**Calibration read:**` line). Raises ClaudeAuthError on auth failure, RuntimeError if the
-    output can't be validated. Mirrors run_briefing (verbatim-header validation + one retry)."""
+    output can't be validated. Mirrors run_briefing (verbatim-header validation + one retry).
+
+    600s timeout: the v2 prompt has grown dense (5 recent entries + corrigenda + the full
+    divergence table) and overran the 300s default on 2026-07-21 — same latency profile as
+    the v1 briefing, so same headroom. Nightly batch job; wall-clock is free."""
     sj = summary_json if isinstance(summary_json, str) else json.dumps(summary_json, indent=2)
     prompt = prompts.V2_BRIEFING_PROMPT.format(
         date=d.isoformat(), weekday=d.strftime("%A"), summary_line=summary_line,
         shadow_table=shadow_table, summary_json=sj, recent_v2_briefings=recent_v2_briefings, n=n,
     )
-    out = _invoke(prompt)
+    out = _invoke(prompt, timeout=600)
     if not _v2_briefing_valid(out, summary_line):
         # One stricter retry — most failures are a stray preamble or a tweaked number.
         strict = prompt + (
@@ -126,7 +130,7 @@ def run_v2_briefing(d: date, summary_line: str, shadow_table: str, summary_json,
             "calibration line). Your output must START with exactly this line, character-for-"
             f"character:\n{summary_line}\nand contain a `**Calibration read:**` line. Nothing else."
         )
-        out = _invoke(strict)
+        out = _invoke(strict, timeout=600)
         if not _v2_briefing_valid(out, summary_line):
             raise RuntimeError("v2-briefing output failed validation (summary line / calibration)")
     return out
