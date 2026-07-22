@@ -18,6 +18,19 @@ class SkewPointOut(BaseModel):
     type: str
 
 
+class V2Eligibility(BaseModel):
+    """Structured Phase-B v2 eligibility surface (advisory; v1 authoritative until
+    Phase E). Canonical object the advisory UI renders. The flat ``v2_*`` fields on
+    ``TickerResult`` mirror gate_state/eligible/reasons for the MACHINE view + cached-blob
+    compatibility (the history automation reads the DB, not this object)."""
+    gate_state: str                        # NORMAL | CAUTION | DANGER
+    transient: bool = False
+    pending: Optional[str] = None          # state under 2-day confirmation, if any
+    pending_days: int = 0
+    eligible: bool = False
+    ineligibility_reasons: list[str] = []
+
+
 class TickerResult(BaseModel):
     ticker: str
     name: str
@@ -73,6 +86,9 @@ class TickerResult(BaseModel):
     v2_eligible: Optional[bool] = None
     v2_warm: Optional[bool] = None
     v2_ineligibility_reasons: list[str] = []
+    # Structured surface (Phase B) — canonical; the flat v2_* above are its transitional
+    # mirror. None until the v2 substrate runs (cached v1 blobs stay parseable).
+    eligibility: Optional[V2Eligibility] = None
 
 
 class RegimeSummary(BaseModel):
@@ -171,6 +187,9 @@ class ShadowSummaryResponse(BaseModel):
     # The G2 canary: share of index/ETF ticker-days each side gates (non-actionable).
     index_gating_rate_v1: Optional[float] = None
     index_gating_rate_v2: Optional[float] = None
+    # Single-name sleeve gating rate (B0.5 per-sleeve health metric).
+    single_gating_rate_v1: Optional[float] = None
+    single_gating_rate_v2: Optional[float] = None
     # Hysteresis payoff: mean gate-state transitions per ticker (expect v2 ≪ v1).
     oscillation_v1: Optional[float] = None
     oscillation_v2: Optional[float] = None

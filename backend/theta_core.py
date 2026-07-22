@@ -56,6 +56,7 @@ CONFIG = {
     "g2_danger_in": 1.05, "g2_danger_out": 1.02,     # [PROVISIONAL]
     "g3_in": 1.10, "g3_out": 1.05,
     "g3_concentration": 0.50,
+    "g1_earnings_gate_days": 14,          # G1 earnings window — mirrors v1's frozen scoring.ts gate (ETF-exempt)
     "g5_global_z": 2.0,                   # [PROVISIONAL]
     "confirm_days": 2,
     "transient_blackout_days": 3,
@@ -264,7 +265,9 @@ class GateState:
         self._confirm(proposed)
 
     def entry_eligible(self, fvrp_ratio: float, dead_zone: float,
-                       abs_premium_volpts: float) -> bool:
+                       abs_premium_volpts: float, earnings_clear: bool = True) -> bool:
+        if not earnings_clear:            # G1 earnings (single names; unverified = gated)
+            return False
         if fvrp_ratio < 1.0 or fvrp_ratio < dead_zone:
             return False
         if abs_premium_volpts < CONFIG["abs_premium_floor_volpts"]:

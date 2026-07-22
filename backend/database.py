@@ -1263,6 +1263,7 @@ def get_shadow_summary(window_days: int = 10) -> dict:
         return {"n_ticker_days": 0, "n_warm": 0, "dates": [],
                 "agreement_rate": None, "divergence_counts": {},
                 "index_gating_rate_v1": None, "index_gating_rate_v2": None,
+                "single_gating_rate_v1": None, "single_gating_rate_v2": None,
                 "oscillation_v1": None, "oscillation_v2": None, "warm_coverage": None}
     ph = ",".join("?" * len(dates))
     diffs = conn.execute(
@@ -1285,6 +1286,11 @@ def get_shadow_summary(window_days: int = 10) -> dict:
 
     idx_gate_v1 = (sum(1 for r in idx if _nonactionable_v1(r[3])) / len(idx)) if idx else None
     idx_gate_v2 = (sum(1 for r in idx if not r[2]) / len(idx)) if idx else None
+    # Single-name sleeve gating rate (B0.5 per-sleeve health metric — the forensics
+    # showed v2 DANGER-gates ~53% of single names vs ~2% of the index sleeve).
+    single = [r for r in diffs if not r[0]]
+    single_gate_v1 = (sum(1 for r in single if _nonactionable_v1(r[3])) / len(single)) if single else None
+    single_gate_v2 = (sum(1 for r in single if not r[2]) / len(single)) if single else None
 
     def _oscillation(col_idx):
         trans, tickers = 0, 0
@@ -1309,6 +1315,8 @@ def get_shadow_summary(window_days: int = 10) -> dict:
         "divergence_counts": dict(cls),
         "index_gating_rate_v1": idx_gate_v1,
         "index_gating_rate_v2": idx_gate_v2,
+        "single_gating_rate_v1": single_gate_v1,
+        "single_gating_rate_v2": single_gate_v2,
         "oscillation_v1": _oscillation(2),
         "oscillation_v2": _oscillation(3),
         "warm_coverage": (warm / n) if n else None,

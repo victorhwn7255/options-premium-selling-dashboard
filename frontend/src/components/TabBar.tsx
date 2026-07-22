@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-export type DashboardTab = 'naked-puts' | 'credit-put-spreads' | 'journal';
+export type DashboardTab = 'naked-puts' | 'credit-put-spreads' | 'journal' | 'shadow';
 
 interface TabDefinition {
   id: DashboardTab;
@@ -18,23 +18,29 @@ const TABS: TabDefinition[] = [
   { id: 'journal',              label: 'Journal' },
 ];
 
+// Operator-only tab (Phase B, transitional — removed at Phase E). Appended when the
+// viewer is the authenticated owner (same identity as the journal).
+const SHADOW_TAB: TabDefinition = { id: 'shadow', label: 'Shadow', suffix: 'v2' };
+
 interface TabBarProps {
   activeTab: DashboardTab;
   onChange: (tab: DashboardTab) => void;
+  showShadow?: boolean;
 }
 
 /**
  * Dashboard-level tab switcher. Sits BELOW the Market Regime Banner so the
  * regime context stays visible across all tabs (per Phase 4 layout spec).
  */
-export default function TabBar({ activeTab, onChange }: TabBarProps) {
+export default function TabBar({ activeTab, onChange, showShadow = false }: TabBarProps) {
+  const tabs = showShadow ? [...TABS, SHADOW_TAB] : TABS;
   return (
     <div
       role="tablist"
       aria-label="Strategy view"
       className="flex items-end gap-1 border-b border-border-subtle mb-5 -mx-1 px-1"
     >
-      {TABS.map(tab => {
+      {tabs.map(tab => {
         const isActive = tab.id === activeTab;
         return (
           <button

@@ -45,7 +45,7 @@ def _make_ohlc(n=320, seed=1):
 
 def test_config_identical():
     assert port.CONFIG == ref.CONFIG
-    assert len(port.CONFIG) == 44
+    assert len(port.CONFIG) == 45   # +g1_earnings_gate_days (Phase B B0.4)
 
 
 def test_daily_inputs_1e9():
@@ -132,6 +132,17 @@ def test_gate_state_sequence_agrees():
         assert gp.state == gr.state and gp.transient == gr.transient
         assert (gp.entry_eligible(1.30, 1.20, 3.0)
                 == gr.entry_eligible(1.30, 1.20, 3.0))
+
+
+def test_g1_earnings_clear_gates_otherwise_eligible_row():
+    """G1 (Phase B B0.4): earnings_clear=False vetoes a row that all other conditions pass;
+    default earnings_clear=True is the pre-B0.4 behavior. Port and reference agree."""
+    for G in (port.GateState, ref.GateState):
+        g = G()  # fresh NORMAL state, passing FVRP + premium
+        assert g.entry_eligible(1.30, 1.20, 3.0) is True                    # eligible (default clear)
+        assert g.entry_eligible(1.30, 1.20, 3.0, earnings_clear=True) is True
+        assert g.entry_eligible(1.30, 1.20, 3.0, earnings_clear=False) is False  # G1 vetoes
+    assert port.CONFIG["g1_earnings_gate_days"] == ref.CONFIG["g1_earnings_gate_days"] == 14
 
 
 def test_sizing_1e9():

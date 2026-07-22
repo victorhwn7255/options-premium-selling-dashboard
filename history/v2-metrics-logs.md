@@ -29,9 +29,10 @@ Authoritative data lives in the `shadow_diff` + `daily_iv` tables; this file is 
 
 **Reading the fields correctly:**
 - `oscillation` = mean *cumulative* gate-state transitions per ticker over the rolling 10-date summary window — **not** a daily flip rate. It rises mechanically while the window is still filling; once 10 dates accumulate, `Checked` caps at 330 and all summary counts become rolling. Use `day-flips` (true day-over-day churn) for stability claims.
-- `Earnings` = days to next earnings from the same day's live scan (`ETF` = exempt, `TBD` = unknown/today). A non-ETF at ≤ 14d is earnings-gated in the **live v1 UI** (score 0, no trade) — the `v1 Action` shown is the backend's *pre*-earnings-gate view. The Phase-A shadow omits the G1 earnings gate on both sides (deliberately, for symmetric comparison), so eligibility divergences on names inside the earnings window are shadow artifacts, not real live divergences.
+- `Earnings` = days to next earnings from the same day's live scan (`ETF` = exempt, `TBD` = unknown/today). A non-ETF at ≤ 14d is earnings-gated in the **live v1 UI** (score 0, no trade) — the `v1 Action` shown is the backend's *pre*-earnings-gate view.
+- **⚑ Series break — from 2026-07-22 (Phase B B0.4) the shadow applies G1 on both sides.** A dated non-ETF ≤ 14d (`g1_earnings_gate_days`) is now gated for **both** v1 (matching the live UI) and v2, so such rows read `AGREE` (both ineligible) rather than a false `V2_STRICTER` — the earnings common-mode is no longer a divergence. v2 additionally **hardens** the gate (D4 fallback): a single name with **no verified date** is v2-ineligible (`earnings_unverified`) while live-v1 only warns → a *genuine* `V2_STRICTER`. **Entries dated before 2026-07-22 omit G1 on both sides** — eligibility divergences on names inside the earnings window in those older entries are shadow artifacts, not real live divergences; the eligible-set and STRICTER/AGREE counts are not directly comparable across this break.
 
-**Format changes:** 2026-07-15 — added the `Earnings` column and the `day-flips` summary segment. Entries before that date have neither.
+**Format changes:** 2026-07-15 — added the `Earnings` column and the `day-flips` summary segment. Entries before that date have neither. **2026-07-22 (Phase B B0.4)** — G1 earnings gate now applied in shadow eligibility (both sides; v2 hardened with the D4 unverified→gated fallback); see the ⚑ series-break note above.
 
 ---
 

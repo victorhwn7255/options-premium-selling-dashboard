@@ -62,7 +62,7 @@ from models import (
     # ── Credit Put Spreads ──
     CreditPutSpreadsResponse, CPSRejectionSummary, RegimeOverlay,
     # ── v2 shadow API ──
-    ShadowSummaryResponse, ShadowDiffResponse,
+    ShadowSummaryResponse, ShadowDiffResponse, V2Eligibility,
 )
 from scan_quality import compute_scan_quality, suppress_actionable
 # ── Credit Put Spreads (Phase 3) ──
@@ -71,6 +71,7 @@ from regime_overlay import fetch_regime_overlay
 from spread_builder import build_candidate_outcome_for_ticker, rank_cps_candidates
 # ── v2 silent shadow substrate (Phase A) ──
 import theta_core as tc
+import gates
 import estimators as est
 import forecast as fc
 
@@ -549,9 +550,13 @@ def _v2_chain_partials(surface, contracts, spot) -> dict:
     return {"iv30_dec": iv30_dec, "iv90": iv90, "slope_1m3m": slope_1m3m}
 
 
-def _shadow_divergence(r, v2_eligible, gate_state, nodata_v2) -> tuple[str, str]:
-    """Classify the v1↔v2 disagreement for one ticker (master plan §A3)."""
-    v1_actionable = r.recommendation in ("SELL PREMIUM", "CONDITIONAL")
+def _shadow_divergence(r, v2_eligible, gate_state, nodata_v2, v1_earnings_gated=False) -> tuple[str, str]:
+    """Classify the v1↔v2 disagreement for one ticker (master plan §A3).
+
+    v1_earnings_gated mirrors live-v1's earnings SKIP (scoring.ts): a dated non-ETF
+    ≤ g1_earnings_gate_days is not actionable for v1 either, so both engines gating an
+    earnings name reads as AGREE, not a false V2_STRICTER (Phase B B0.4)."""
+    v1_actionable = (not v1_earnings_gated) and r.recommendation in ("SELL PREMIUM", "CONDITIONAL")
     v1_nodata = r.recommendation == "NO DATA"
     if v1_nodata != nodata_v2:
         return "NODATA_SKEW", ""
@@ -615,25 +620,16 @@ def _compute_v2_shadow(results: list, v2_inputs: dict) -> None:
         store_gate_state(tkr, today, gs.state, transient=gs.transient, pending=gs._pending,
                          pending_days=gs._pending_days, blackout=gs._blackout)
 
-        # Eligibility (shadow — PROVISIONAL dead zones; Phase-B quantile-match owns these).
-        dead_zone = tc.CONFIG["dead_zone_index"] if r.is_etf else tc.CONFIG["dead_zone_single"]
-        reasons = []
-        v2_elig = False
-        if fvrp_ratio is None:
-            reasons.append("no FVRP (chain/forecast unavailable)")
-        else:
-            v2_elig = gs.entry_eligible(fvrp_ratio, dead_zone, abs_prem if abs_prem is not None else 0.0)
-            if fvrp_ratio < 1.0:
-                reasons.append(f"FVRP {fvrp_ratio:.2f} < 1.0 (neg fwd-VRP)")
-            elif fvrp_ratio < dead_zone:
-                reasons.append(f"FVRP {fvrp_ratio:.2f} < {dead_zone:.2f} dead zone")
-            if abs_prem is not None and abs_prem < tc.CONFIG["abs_premium_floor_volpts"]:
-                reasons.append(f"abs premium {abs_prem:.1f} < {tc.CONFIG['abs_premium_floor_volpts']} vol pts")
-            if gs.state != "NORMAL":
-                reasons.append(f"gate {gs.state} (accel_dn {accel:.2f}"
-                               + (f", slope {slope:.2f})" if slope is not None else ")"))
-            if gs.transient or gs._blackout > 0:
-                reasons.append("transient blackout")
+        # Eligibility (shadow — advisory). The seven-condition decision + reasons live in
+        # gates.py (Phase B extraction); gs is already transitioned above and gates owns no
+        # I/O. PROVISIONAL dead zones + G1 (B0.4) resolve inside; G5 book_frozen is threaded
+        # but not yet computed (index FVRP<1.0 / global-vol z — follow-up).
+        elig = gates.evaluate_eligibility(
+            gs, is_etf=r.is_etf, fvrp_ratio=fvrp_ratio, abs_premium_volpts=abs_prem,
+            earnings_dte=r.earnings_dte, accel_dn=accel, slope_1m3m=slope)
+        v2_elig = elig.eligible
+        v1_earn_gated = elig.v1_earnings_gated
+        reasons = elig.ineligibility_reasons
         warm = bool(engine.fitted and not low_coverage
                     and len(get_fvrp_history(tkr, 252)) >= tc.CONFIG["fvrp_min_obs"])
 
@@ -648,6 +644,10 @@ def _compute_v2_shadow(results: list, v2_inputs: dict) -> None:
         r.v2_eligible = v2_elig
         r.v2_warm = warm
         r.v2_ineligibility_reasons = reasons
+        r.eligibility = V2Eligibility(
+            gate_state=elig.gate_state, transient=elig.transient, pending=elig.pending,
+            pending_days=elig.pending_days, eligible=elig.eligible,
+            ineligibility_reasons=reasons)
 
         try:
             store_daily_iv_v2(
@@ -665,7 +665,8 @@ def _compute_v2_shadow(results: list, v2_inputs: dict) -> None:
         except Exception:
             logger.debug("%s: store_daily_iv_v2 skipped", tkr)
 
-        cls, reason = _shadow_divergence(r, v2_elig, gs.state, nodata_v2=False)
+        cls, reason = _shadow_divergence(r, v2_elig, gs.state, nodata_v2=False,
+                                         v1_earnings_gated=v1_earn_gated)
         shadow_rows.append({"date": today, "ticker": tkr, "is_etf": 1 if r.is_etf else 0,
             "v1_action": r.recommendation, "v1_regime": r.regime,
             "v2_eligible": 1 if v2_elig else 0, "v2_gate_state": gs.state,
