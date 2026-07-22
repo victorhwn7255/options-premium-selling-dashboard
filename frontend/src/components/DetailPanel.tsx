@@ -4,16 +4,19 @@ import React, { useMemo, useState, useEffect } from 'react';
 import {
   AreaChart, Area, ComposedChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  ReferenceLine,
+  ReferenceLine, ReferenceArea,
 } from 'recharts';
-import type { DashboardTicker, VolHistoryPoint, TermStructurePoint2, TickerDelta } from '@/lib/types';
+import type { DashboardTicker, VolHistoryPoint, TermStructurePoint2, TickerDelta, TickerResult } from '@/lib/types';
 import { fetchTickerHistory } from '@/lib/api';
-import { ThinPremiumBadge, EarningsWarningBadge, RvAccelStatusChip } from './badges';
+import { ThinPremiumBadge, EarningsWarningBadge, RvAccelStatusChip, GateBadge } from './badges';
 import { useCssColors } from '@/hooks/useCssColors';
 
 interface DetailPanelProps {
   ticker: DashboardTicker | null;
   delta?: TickerDelta | null;
+  // Raw API ticker for this symbol — carries the v2 shadow telemetry + eligibility.
+  // Advisory; rendered only, never used to gate anything client-side (P1).
+  v2?: TickerResult | null;
 }
 
 /* -- Chart tooltip ---------------------------------------- */
@@ -92,7 +95,7 @@ function ActionChip({ action, reason }: { action: string; reason: string | null 
 
 /* -- Main component --------------------------------------- */
 
-export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
+export default function DetailPanel({ ticker, delta, v2 }: DetailPanelProps) {
   const colors = useCssColors();
 
   // Fetch vol history from API
@@ -211,6 +214,7 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
             </div>
             <div className="flex gap-2 mt-2 flex-wrap items-center">
               <ActionChip action={ticker.displayAction || ticker.action} reason={ticker.actionReason} />
+              <GateBadge eligibility={v2?.eligibility} />
               <EarningsWarningBadge warning={ticker.earningsWarningKind} label={ticker.earningsWarningLabel} detail={ticker.earningsWarningDetail} />
               <ThinPremiumBadge visible={ticker.thinPremium} />
               <RvAccelStatusChip status={ticker.rvAccelStatus} />
@@ -456,8 +460,13 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 border-t border-border-subtle">
         {/* IV/RV Chart */}
         <div className="px-5 pt-5 pb-4 md:border-r md:border-border-subtle">
-          <div className="mb-3">
+          <div className="mb-3 flex items-baseline justify-between gap-2">
             <span className="font-secondary text-sm font-medium text-txt">IV vs RV — 120 Day</span>
+            {v2?.sigma_fwd != null && (
+              <span className="font-mono text-[9px]" style={{ color: colors.secondary }}>
+                σ_fwd {(v2.sigma_fwd * 100).toFixed(1)}
+              </span>
+            )}
           </div>
           {volHistory.length > 0 ? (
             <div className="w-full h-[150px] sm:h-[180px]">
@@ -476,6 +485,24 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
                   <Area type="monotone" dataKey="iv" fill={`url(#vrpFill-${ticker.sym})`} stroke="none" />
                   <Line type="monotone" dataKey="iv" stroke={colors.primary} strokeWidth={2} dot={false} name="IV" />
                   <Line type="monotone" dataKey="rv" stroke={colors.secondary} strokeWidth={1.5} dot={false} name="RV30" strokeDasharray="4 3" />
+                  {/* v2 σ_fwd — the forward 21-session vol forecast (decimal → vol pts ×100).
+                      Advisory band vs the IV history; downside twin shades the range. */}
+                  {v2?.sigma_fwd != null && v2.sigma_fwd_dn != null && (
+                    <ReferenceArea
+                      y1={Math.min(v2.sigma_fwd, v2.sigma_fwd_dn) * 100}
+                      y2={Math.max(v2.sigma_fwd, v2.sigma_fwd_dn) * 100}
+                      ifOverflow="extendDomain"
+                      fill={colors.secondary} fillOpacity={0.08} stroke="none"
+                    />
+                  )}
+                  {v2?.sigma_fwd != null && (
+                    <ReferenceLine
+                      y={v2.sigma_fwd * 100}
+                      ifOverflow="extendDomain"
+                      stroke={colors.secondary} strokeDasharray="5 2" strokeWidth={1.5}
+                      label={{ value: 'σ_fwd', position: 'insideTopRight', fontSize: 9, fill: colors.secondary, fontFamily: "'JetBrains Mono', monospace" }}
+                    />
+                  )}
                   <ReferenceLine y={0} stroke={colors.borderStrong} strokeDasharray="3 3" />
                 </ComposedChart>
               </ResponsiveContainer>
@@ -534,6 +561,71 @@ export default function DetailPanel({ ticker, delta }: DetailPanelProps) {
           )}
         </div>
       </div>
+
+      {/* v2 Shadow — advisory (Phase B). Gate state + eligibility + exact reasons + forward
+          metrics. Gated on the nested `eligibility` (not the flat mirror) so a pre-Phase-B
+          cached blob — flat fields present, eligibility null — hides the section until the
+          first Phase-B scan rather than showing a verdict it can't source. v1 decides live (P1). */}
+      {v2?.eligibility && (
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-border-subtle">
+          <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+            <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase">
+              🔭 v2 Shadow · Advisory
+            </span>
+            <div className="flex items-center gap-2">
+              {v2.v2_warm === false && (
+                <span className="text-[9px] text-txt-tertiary italic">warming up</span>
+              )}
+              <GateBadge eligibility={v2.eligibility} />
+            </div>
+          </div>
+
+          <div className="px-4 py-3 rounded-md bg-bg-alt border border-border-subtle text-xs leading-normal">
+            {v2.eligibility?.eligible ? (
+              <p className="text-txt-secondary">
+                <strong style={{ color: colors.secondary }}>v2 would allow an entry here.</strong>{' '}
+                Gate {v2.v2_gate_state}; forward VRP clears the dead zone. Advisory only — confirm against v1.
+              </p>
+            ) : (
+              <div className="text-txt-secondary">
+                <strong className="text-txt">v2 gates this name.</strong>
+                {v2.eligibility?.ineligibility_reasons?.length ? (
+                  <ul className="mt-1.5 space-y-0.5">
+                    {v2.eligibility.ineligibility_reasons.map((r, i) => (
+                      <li key={i} className="flex gap-1.5">
+                        <span className="text-txt-tertiary">·</span>
+                        <span className="font-mono text-[11px]">{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2.5 mt-3">
+            {[
+              { label: 'σ_fwd', value: v2.sigma_fwd != null ? (v2.sigma_fwd * 100).toFixed(1) : '—', sub: 'fwd 21-sess' },
+              { label: 'σ_fwd↓', value: v2.sigma_fwd_dn != null ? (v2.sigma_fwd_dn * 100).toFixed(1) : '—', sub: 'downside' },
+              { label: 'FVRP', value: v2.fvrp_ratio != null ? v2.fvrp_ratio.toFixed(2) : '—', sub: 'IV30/σ_fwd' },
+              { label: 'FVRP z', value: v2.fvrp_z != null ? `${v2.fvrp_z > 0 ? '+' : ''}${v2.fvrp_z.toFixed(2)}` : '—', sub: '252d' },
+              { label: '1M/3M', value: v2.slope_1m3m != null ? v2.slope_1m3m.toFixed(2) : '—', sub: 'term slope' },
+              { label: 'accel↓', value: v2.accel_dn != null ? v2.accel_dn.toFixed(2) : '—', sub: 'downside RV' },
+            ].map(m => (
+              <div key={m.label} className="bg-surface rounded-md px-2.5 py-2 border border-border-subtle">
+                <div className="font-primary text-[9px] font-semibold text-txt-tertiary tracking-wider uppercase">{m.label}</div>
+                <div className="font-mono text-sm font-semibold text-txt mt-0.5">{m.value}</div>
+                <div className="font-primary text-[9px] text-txt-tertiary">{m.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-2.5 text-[10px] text-txt-tertiary italic">
+            v1 makes every live decision. The v2 engine runs in shadow — it changes nothing you act on
+            until it earns cutover with evidence.
+          </div>
+        </div>
+      )}
 
       {/* Day-over-Day Comparison — below charts */}
       {delta ? (

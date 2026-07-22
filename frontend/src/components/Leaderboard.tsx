@@ -2,8 +2,8 @@
 
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import DetailPanel from '@/components/DetailPanel';
-import { ThinPremiumBadge, EarningsWarningBadge, RvAccelStatusChip } from './badges';
-import type { DashboardTicker, TickerDelta } from '@/lib/types';
+import { ThinPremiumBadge, EarningsWarningBadge, RvAccelStatusChip, GateBadge } from './badges';
+import type { DashboardTicker, TickerDelta, TickerResult } from '@/lib/types';
 
 interface LeaderboardProps {
   data: DashboardTicker[];
@@ -11,6 +11,9 @@ interface LeaderboardProps {
   onSelect: (sym: string) => void;
   selectedData: DashboardTicker | null;
   deltaMap: Record<string, TickerDelta>;
+  // Raw API tickers keyed by symbol — carries the v2 `eligibility` surface that the
+  // frozen scoring.ts mapping doesn't project. Pure pass-through, no logic (P1).
+  rawByTicker: Record<string, TickerResult>;
 }
 
 /* ── Inline sub-components ────────────────────────── */
@@ -137,9 +140,9 @@ function DeltaChip({ value, precision = 1 }: { value: number | null | undefined;
 /* ── Mobile card (shown < sm) ────────────────────── */
 
 function MobileTickerCard({
-  row, isSelected, onSelect, selectedData, delta,
+  row, isSelected, onSelect, selectedData, delta, v2,
 }: {
-  row: DashboardTicker; isSelected: boolean; onSelect: (sym: string) => void; selectedData: DashboardTicker | null; delta?: TickerDelta | null;
+  row: DashboardTicker; isSelected: boolean; onSelect: (sym: string) => void; selectedData: DashboardTicker | null; delta?: TickerDelta | null; v2?: TickerResult | null;
 }) {
   const isSkipped = row.action === 'SKIP';
 
@@ -179,6 +182,7 @@ function MobileTickerCard({
         )}
         {/* Line 3: Action chips */}
         <div className="flex items-center justify-end gap-1.5 mt-2 flex-wrap">
+          <GateBadge eligibility={v2?.eligibility} />
           <EarningsWarningBadge warning={row.earningsWarningKind} label={row.earningsWarningLabel} detail={row.earningsWarningDetail} />
           <CautionPill reason={row.action === 'NO EDGE' ? row.cautionReason : undefined} />
           <ThinPremiumBadge visible={row.thinPremium} />
@@ -187,7 +191,7 @@ function MobileTickerCard({
         </div>
       </div>
       {/* Expandable detail */}
-      <ExpandableDetail ticker={isSelected ? selectedData : null} isOpen={isSelected} delta={isSelected ? delta : null} />
+      <ExpandableDetail ticker={isSelected ? selectedData : null} isOpen={isSelected} delta={isSelected ? delta : null} v2={isSelected ? v2 : null} />
     </div>
   );
 }
@@ -206,7 +210,7 @@ const HEADERS = [
 
 /* ── Expandable detail row ────────────────────────── */
 
-function ExpandableDetail({ ticker, isOpen, delta }: { ticker: DashboardTicker | null; isOpen: boolean; delta?: TickerDelta | null }) {
+function ExpandableDetail({ ticker, isOpen, delta, v2 }: { ticker: DashboardTicker | null; isOpen: boolean; delta?: TickerDelta | null; v2?: TickerResult | null }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
@@ -237,13 +241,13 @@ function ExpandableDetail({ ticker, isOpen, delta }: { ticker: DashboardTicker |
       }}
     >
       <div ref={contentRef} className="pt-2 pb-6">
-        {ticker && <DetailPanel ticker={ticker} delta={delta} />}
+        {ticker && <DetailPanel ticker={ticker} delta={delta} v2={v2} />}
       </div>
     </div>
   );
 }
 
-export default function Leaderboard({ data, selected, onSelect, selectedData, deltaMap }: LeaderboardProps) {
+export default function Leaderboard({ data, selected, onSelect, selectedData, deltaMap, rawByTicker }: LeaderboardProps) {
   const sellCount = data.filter(d => d.action === 'SELL').length;
   const conditionalCount = data.filter(d => d.action === 'CONDITIONAL').length;
   const [copied, setCopied] = useState(false);
@@ -335,6 +339,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData, de
             onSelect={onSelect}
             selectedData={selectedData}
             delta={deltaMap[row.sym] ?? null}
+            v2={rawByTicker[row.sym] ?? null}
           />
         ))}
       </div>
@@ -477,6 +482,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData, de
                           ? `Suppressed by degraded scan${row.preSuppressionAction ? ` (was ${row.preSuppressionAction})` : ''}`
                           : undefined}
                       >
+                        <GateBadge eligibility={rawByTicker[row.sym]?.eligibility} />
                         <EarningsWarningBadge warning={row.earningsWarningKind} label={row.earningsWarningLabel} detail={row.earningsWarningDetail} />
                         <CautionPill reason={row.action === 'NO EDGE' ? row.cautionReason : undefined} />
                         <ThinPremiumBadge visible={row.thinPremium} />
@@ -493,6 +499,7 @@ export default function Leaderboard({ data, selected, onSelect, selectedData, de
                         ticker={isSelected ? selectedData : null}
                         isOpen={isSelected}
                         delta={isSelected ? (deltaMap[row.sym] ?? null) : null}
+                        v2={isSelected ? (rawByTicker[row.sym] ?? null) : null}
                       />
                     </td>
                   </tr>

@@ -96,9 +96,12 @@ oscillation.
 ("ETF" = exempt, "TBD" = unknown/today). CRITICAL: a non-ETF at <= 14d is earnings-gated in the \
 LIVE v1 UI (score zeroed, no trade offered) — the "v1 Action" shown for it is the backend's \
 PRE-earnings-gate view, so NEVER count such a name as a live v1 ticket or part of "v1's live \
-book". Live v2 would gate it too (gate G1); the Phase-A shadow deliberately omits G1 on BOTH \
-sides, so a V2_LOOSER clear on a name inside the earnings window is a shadow artifact, not a \
-real divergence — flag it as such instead of scoring it, and exclude it from calibration anchors.
+book". SERIES BREAK — from 2026-07-22 (Phase B B0.4) the shadow applies G1 on BOTH sides: a \
+dated non-ETF <= 14d is now gated for v1 AND v2, so it reads AGREE (both ineligible), NOT a \
+V2_STRICTER/LOOSER divergence — do not score it, it is the expected common-mode. A single name \
+with NO date ("TBD"/unverified) is v2-gated but v1 only warns (the D4 hardening) → that IS a \
+genuine V2_STRICTER worth noting. For entries dated BEFORE 2026-07-22 the old rule holds (G1 \
+omitted both sides → in-window clears are shadow artifacts, exclude from calibration anchors).
 
 TODAY'S DETERMINISTIC SHADOW TABLE (already logged in v2-metrics-logs.md; do not restate it as a table):
 {shadow_table}

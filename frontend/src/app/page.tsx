@@ -8,12 +8,14 @@ import Leaderboard from '@/components/Leaderboard';
 import TabBar, { DashboardTab } from '@/components/TabBar';
 import CreditPutSpreadsTab from '@/components/CreditPutSpreadsTab';
 import JournalTab from '@/components/JournalTab';
+import ShadowPanel from '@/components/ShadowPanel';
 import MachineView from '@/components/machine/MachineView';
 import { useTheme } from '@/hooks/useTheme';
 import { useViewMode } from '@/hooks/useViewMode';
 import { buildScoredData, enrichWithEarningsWarnings } from '@/lib/scoring';
 import { fetchLatestScan, triggerScan, fetchScanStatus, fetchVerificationLatest, fetchEarningsVerificationLatest, fetchComparison, fetchVrpHistory } from '@/lib/api';
-import type { ScanResponse, VerificationResult, EarningsVerificationResult, TickerDelta, VrpHistoryPoint } from '@/lib/types';
+import { probeJournalAccess } from '@/lib/journal-api';
+import type { ScanResponse, VerificationResult, EarningsVerificationResult, TickerDelta, VrpHistoryPoint, TickerResult } from '@/lib/types';
 
 const VRP_GRID_YEAR = 2026;
 
@@ -31,12 +33,17 @@ export default function Home() {
   const [earningsVerification, setEarningsVerification] = useState<EarningsVerificationResult | null>(null);
   const [deltaMap, setDeltaMap] = useState<Record<string, TickerDelta>>({});
   const [vrpHistory, setVrpHistory] = useState<VrpHistoryPoint[]>([]);
+  // Operator-only: the v2 Shadow tab appears for the authenticated owner (same identity
+  // as the journal — the shadow endpoints themselves are public, this just keeps the
+  // transitional calibration view off the public dashboard).
+  const [showShadow, setShowShadow] = useState(false);
 
   // Fetch verification status on mount
   useEffect(() => {
     fetchVerificationLatest().then(v => setVerification(v)).catch(() => {});
     fetchEarningsVerificationLatest().then(v => setEarningsVerification(v)).catch(() => {});
     fetchVrpHistory(VRP_GRID_YEAR).then(r => setVrpHistory(r.points)).catch(() => {});
+    probeJournalAccess().then(ok => setShowShadow(ok)).catch(() => {});
   }, []);
 
   // Fetch real data on mount
@@ -87,6 +94,14 @@ export default function Home() {
     const base = buildScoredData(apiData);
     return enrichWithEarningsWarnings(base, earningsVerification?.checks);
   }, [apiData, earningsVerification]);
+
+  // Raw API tickers keyed by symbol — carries the v2 `eligibility` surface that the frozen
+  // scoring.ts mapping (DashboardTicker) doesn't project. Pure pass-through to the badges (P1).
+  const rawByTicker = useMemo(() => {
+    const m: Record<string, TickerResult> = {};
+    for (const t of apiData?.tickers ?? []) m[t.ticker] = t;
+    return m;
+  }, [apiData]);
   const currentRegime = useMemo(() => computeRegime(scoredData).regime, [scoredData]);
 
   const selectedData = useMemo(
@@ -225,15 +240,15 @@ export default function Home() {
               <RegimeBanner data={scoredData} vrpHistory={vrpHistory} vrpYear={VRP_GRID_YEAR} />
             </div>
 
-            {/* Tab navigation — Naked Puts / Credit Put Spreads / Journal */}
-            <TabBar activeTab={activeTab} onChange={setActiveTab} />
+            {/* Tab navigation — Naked Puts / Credit Put Spreads / Journal (+ Shadow for the operator) */}
+            <TabBar activeTab={activeTab} onChange={setActiveTab} showShadow={showShadow} />
 
             {/* Active tab content */}
             {activeTab === 'naked-puts' && (
               <div id="tabpanel-naked-puts" role="tabpanel" aria-labelledby="tab-naked-puts">
                 {/* Opportunity Leaderboard (detail expands inline) */}
                 <div className="mb-5">
-                  <Leaderboard data={scoredData} selected={selectedTicker} onSelect={handleSelect} selectedData={selectedData} deltaMap={deltaMap} />
+                  <Leaderboard data={scoredData} selected={selectedTicker} onSelect={handleSelect} selectedData={selectedData} deltaMap={deltaMap} rawByTicker={rawByTicker} />
                 </div>
 
                 {/* Methodology Footer */}
@@ -260,6 +275,12 @@ export default function Home() {
             {activeTab === 'journal' && (
               <div id="tabpanel-journal" role="tabpanel" aria-labelledby="tab-journal">
                 <JournalTab />
+              </div>
+            )}
+
+            {activeTab === 'shadow' && showShadow && (
+              <div id="tabpanel-shadow" role="tabpanel" aria-labelledby="tab-shadow">
+                <ShadowPanel />
               </div>
             )}
           </>

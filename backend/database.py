@@ -1263,6 +1263,7 @@ def get_shadow_summary(window_days: int = 10) -> dict:
         return {"n_ticker_days": 0, "n_warm": 0, "dates": [],
                 "agreement_rate": None, "divergence_counts": {},
                 "index_gating_rate_v1": None, "index_gating_rate_v2": None,
+                "single_gating_rate_v1": None, "single_gating_rate_v2": None,
                 "oscillation_v1": None, "oscillation_v2": None, "warm_coverage": None}
     ph = ",".join("?" * len(dates))
     diffs = conn.execute(
@@ -1283,8 +1284,22 @@ def get_shadow_summary(window_days: int = 10) -> dict:
     def _nonactionable_v1(a):
         return a not in ("SELL PREMIUM", "CONDITIONAL")
 
-    idx_gate_v1 = (sum(1 for r in idx if _nonactionable_v1(r[3])) / len(idx)) if idx else None
+    def _v1_gated(r):
+        # Match _shadow_divergence's v1 view: raw non-actionable OR earnings-gated. A dated
+        # in-window earnings name v1's backend still rates SELL/CONDITIONAL is treated as gated
+        # (both engines gate it → it reads AGREE/STATE_MISMATCH with v2 also ineligible), so this
+        # rate stays consistent with the divergence counts shown beside it. No-op for ETFs
+        # (earnings-exempt: a both-gate ETF is already raw-non-actionable).  cols: (is_etf,
+        # divergence_class, v2_eligible, v1_action, v2_warm)
+        return _nonactionable_v1(r[3]) or (r[1] in ("AGREE", "STATE_MISMATCH") and not r[2])
+
+    idx_gate_v1 = (sum(1 for r in idx if _v1_gated(r)) / len(idx)) if idx else None
     idx_gate_v2 = (sum(1 for r in idx if not r[2]) / len(idx)) if idx else None
+    # Single-name sleeve gating rate (B0.5 per-sleeve health metric — the forensics
+    # showed v2 DANGER-gates ~53% of single names vs ~2% of the index sleeve).
+    single = [r for r in diffs if not r[0]]
+    single_gate_v1 = (sum(1 for r in single if _v1_gated(r)) / len(single)) if single else None
+    single_gate_v2 = (sum(1 for r in single if not r[2]) / len(single)) if single else None
 
     def _oscillation(col_idx):
         trans, tickers = 0, 0
@@ -1309,6 +1324,8 @@ def get_shadow_summary(window_days: int = 10) -> dict:
         "divergence_counts": dict(cls),
         "index_gating_rate_v1": idx_gate_v1,
         "index_gating_rate_v2": idx_gate_v2,
+        "single_gating_rate_v1": single_gate_v1,
+        "single_gating_rate_v2": single_gate_v2,
         "oscillation_v1": _oscillation(2),
         "oscillation_v2": _oscillation(3),
         "warm_coverage": (warm / n) if n else None,

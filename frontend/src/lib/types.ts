@@ -151,6 +151,19 @@ export interface TickerResult {
   v2_eligible?: boolean | null;
   v2_warm?: boolean | null;
   v2_ineligibility_reasons?: string[] | null;
+  // Structured Phase-B surface (canonical; the flat v2_* above mirror it). The frontend
+  // only RENDERS this — gate state comes from the API, never computed client-side (P1).
+  eligibility?: V2Eligibility | null;
+}
+
+// v2 gate/eligibility surface (Phase B). Advisory — v1 authoritative until Phase E.
+export interface V2Eligibility {
+  gate_state: 'NORMAL' | 'CAUTION' | 'DANGER' | string;
+  transient: boolean;
+  pending: string | null;      // proposed state under 2-day confirmation, if any
+  pending_days: number;
+  eligible: boolean;
+  ineligibility_reasons: string[];
 }
 
 export interface RegimeSummary {
@@ -204,6 +217,8 @@ export interface ShadowSummaryResponse {
   divergence_counts: Record<string, number>;
   index_gating_rate_v1: number | null;
   index_gating_rate_v2: number | null;
+  single_gating_rate_v1: number | null;
+  single_gating_rate_v2: number | null;
   oscillation_v1: number | null;
   oscillation_v2: number | null;
   warm_coverage: number | null;
