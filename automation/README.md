@@ -1,10 +1,11 @@
 # History Auto-Updater
 
-Automatically appends the daily entries to **five** history files from the live dashboard:
+Automatically appends the daily entries to **six** history files from the live dashboard:
 `history/metrics-logs.md`, `history/credit-put-spreads.md`, `history/daily-briefings.md`, plus (since
-2026-07-06, the v2 shadow era) `history/v2-metrics-logs.md` and `history/v2-briefings.md`. Runs on
-your Mac via `launchd`, uses your Claude **Max subscription** (no API cost), and **never** touches
-git — you review and push manually.
+2026-07-06, the v2 shadow era) `history/v2-metrics-logs.md` and `history/v2-briefings.md`, plus (since
+2026-07-23) `history/portfolio-evals.md` (a daily behavioural evaluation of the OPEN journal book).
+Runs on your Mac via `launchd`, uses your Claude **Max subscription** (no API cost), and **never**
+touches git — you review and push manually.
 
 ## How it works
 Deterministic Python fetches the scan, reproduces the exact tables, and computes every number;
@@ -17,6 +18,14 @@ deterministic divergence table; `run_v2_briefing` writes the analysis ending in 
 Both are **best-effort and OFF the metrics+briefing done-gate** — a shadow-fetch or Claude failure never
 blocks the v1 history (pre-deploy the job logged `shadow fetch failed (HTTP 404) — continuing`, by design).
 They retire/merge into the v1 logs at the Phase E cutover.
+
+**The portfolio-eval log** (`portfolio-evals.md`) reads the OPEN book from the prod-DB snapshot
+(`positions` + `position_marks`, marked by the 18:30 scan — no journal token, no API). `render/
+portfolio_eval.py` assembles the deterministic header (book summary + per-position marks/flags +
+closed-today post-mortems; flags are recomputed via a faithful port of `positions_api.compute_flags`)
+and `run_portfolio_eval` writes the behavioural prose. **Advisory/read-only — touches no CONFIG/
+eligibility/scoring.** Empty book → no entry. Best-effort + off the v1 done-gate + self-healing like
+the v2 logs; the snapshot is now taken every run (not just backfill days) so the book can be read.
 
 Since 2026-07-15 the shadow table carries an **Earnings** column (DTE from the same day's NP payload —
 the v1-UI reality check: `v1_action` in `shadow_diff` is the backend's *pre*-earnings-gate view) and the
@@ -35,7 +44,8 @@ python3 -m automation.run_history_update               # full: write the real hi
 
 ## Tests
 ```bash
-for t in renderers core edges orchestrator claude; do python3 automation/tests/test_$t.py; done
+for t in renderers core edges orchestrator claude portfolio_eval; do python3 automation/tests/test_$t.py; done
+# or, from the automation/ dir:  python -m pytest -q
 ```
 
 ## Scheduling (launchd)

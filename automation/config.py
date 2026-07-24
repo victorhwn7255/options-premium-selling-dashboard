@@ -13,6 +13,10 @@ BRIEFINGS_FILE = HISTORY_DIR / "daily-briefings.md"
 # v2-shadow sister logs (additive, best-effort — never gate the v1 run).
 SHADOW_DIFFS_FILE = HISTORY_DIR / "v2-metrics-logs.md"      # deterministic (analog of metrics-logs.md)
 V2_BRIEFINGS_FILE = HISTORY_DIR / "v2-briefings.md"      # Claude-written (analog of daily-briefings.md)
+# Portfolio-eval log (additive, best-effort — never gate the v1 run). A daily behavioural
+# evaluation of the OPEN journal book, read straight from the prod-DB snapshot (positions +
+# position_marks). Advisory/read-only — touches no CONFIG/eligibility/scoring.
+PORTFOLIO_EVALS_FILE = HISTORY_DIR / "portfolio-evals.md"
 
 AUTOMATION_DIR = REPO_ROOT / "automation"
 STAGING_DIR = AUTOMATION_DIR / "staging"

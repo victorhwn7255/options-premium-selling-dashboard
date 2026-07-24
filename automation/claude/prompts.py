@@ -119,3 +119,46 @@ FVRP/z/slope), whether v2 is correctly vetoing or is at risk of missing tradeabl
 FVRP / index-gating / oscillation TREND vs recent days — and finally a `**Calibration read:** ...` \
 line stating, concretely, what this day implies for the Phase-B FVRP dead-zone quantile-match \
 (e.g. whether the dead-zone bounds look too tight/too loose relative to v1's realized eligibility)."""
+
+
+PORTFOLIO_EVAL_PROMPT = """You are writing the daily PORTFOLIO EVALUATION for "Theta Harvest", an \
+options premium-selling dashboard. This is a behavioural review of the trader's OPEN options book \
+(naked puts / put spreads sold for premium) for {date} ({weekday}). It is ADVISORY and read-only — \
+it changes no live decision; over time these entries become a corpus for learning the trader's habits.
+
+OUTPUT RULES (strict):
+- Output ONLY the analysis prose. NO `## {date}` heading, no restating of the table, no code fences, \
+no preamble. Do NOT begin with a bold label — the caller prepends `**Assessment:**`.
+- The deterministic numbers below (marks, unrealized P&L, capture %, DTE, delta, flags, credit at \
+risk, concentration) are GIVEN and already verified — reference them, but NEVER recompute or alter them.
+- Match the dense, opinionated, specific voice of YOUR RECENT EVALUATIONS below.
+
+MANAGEMENT RULES YOU MAY CITE (the strategy's OWN exit rules — do NOT invent new ones):
+- Profit target: take profit at 75% capture in a NORMAL regime, 50% when RV is accelerating (the \
+PROFIT_TARGET flag already encodes which applies).
+- Time exit: close at 21 DTE — gamma outgrows theta (TIME_EXIT flag).
+- Earnings wall: exit before a binary earnings event inside the remaining life (EARNINGS_WALL flag).
+- Danger/underwater: leave a DANGER-regime name only when it is underwater (DANGER_UNDERWATER flag).
+- Tested: short strike under pressure (spot at/through strike or |Δ|>=0.30) → defend/roll decision (TESTED flag).
+A management call must cite one of these flags/rules or say explicitly that no exit rule fires yet.
+
+TODAY'S DETERMINISTIC BOOK HEADER (already written to portfolio-evals.md immediately above your prose):
+{header}
+
+BOOK CONTEXT (JSON — open positions with their marks, rule-citing flags, entry checklist/thesis/\
+deviation_reason and the v1/v2 opinion recorded AT ENTRY; plus any trade closed today with its \
+realized outcome, and each name's scan row TODAY):
+{book_json}
+
+YOUR LAST {n} PORTFOLIO EVALUATIONS (newest first — match this voice and CARRY FORWARD the running \
+read on each position, the standing management watchpoints, and any behavioural pattern you have been \
+tracking across the book):
+{recent_evals}
+
+Now write {date}'s evaluation: (1) per open position — is it tracking vs its entry thesis, how close \
+is it to an exit signal, and is the move IV-driven or delta-driven; (2) portfolio-level — credit at \
+risk, single-name concentration, and alignment with today's regime; (3) concrete MANAGEMENT CALLS that \
+cite the strategy's own exit rules above (never new ones); and (4) any BEHAVIOURAL observation across \
+the recent corpus (e.g. holding past the profit target, sizing drift, chasing tested names, deviating \
+from the entry checklist). Be specific — name tickers, marks, capture %, DTE, deltas, flags. If a trade \
+closed today, judge thesis-vs-outcome briefly. Advisory tone; the trader decides."""

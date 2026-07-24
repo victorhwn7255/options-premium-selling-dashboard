@@ -118,3 +118,58 @@ def read_shadow_by_date(snap: Path, iso_date: str) -> dict | None:
     if not rows:
         return None
     return {"rows": rows, "summary": _day_summary(rows)}
+
+
+# --- portfolio-eval book snapshot (additive) -----------------------------------------
+def _mark_as_of(conn: sqlite3.Connection, position_id: int, iso_date: str) -> dict | None:
+    """The latest position_marks row on or before iso_date (the mark the day's scan wrote,
+    or a carried mark if that scan didn't reach the position). None if never marked."""
+    row = conn.execute(
+        "SELECT * FROM position_marks WHERE position_id = ? AND date <= ? "
+        "ORDER BY date DESC LIMIT 1", (position_id, iso_date)).fetchone()
+    if not row:
+        return None
+    cols = [c[1] for c in conn.execute("PRAGMA table_info(position_marks)")]
+    return dict(zip(cols, row))
+
+
+def read_book_by_date(snap: Path, iso_date: str) -> dict | None:
+    """Read the journal book AS OF a given ET date from the read-only snapshot.
+
+    Mirrors positions_api's open-book shape without the API/token: for every position that was
+    live on iso_date (entry_date <= date < close, or never closed), attach its latest mark
+    (on-or-before iso_date) and its parsed entry checklist. Positions CLOSED on iso_date are
+    returned separately for the closed-trade post-mortem note.
+
+    Returns {"date", "open": [...], "closed_today": [...]}, or None when the snapshot has no
+    `positions` table (a pre-journal DB). An EMPTY open book is a valid non-None result — the
+    orchestrator decides to SKIP the entry; this reader never guesses.
+    """
+    conn = _ro_conn(snap)
+    try:
+        tables = {r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'")}
+        if "positions" not in tables:
+            return None
+        pcols = [c[1] for c in conn.execute("PRAGMA table_info(positions)")]
+        prows = [dict(zip(pcols, r)) for r in conn.execute("SELECT * FROM positions")]
+
+        open_book, closed_today = [], []
+        for p in prows:
+            entry_d = p.get("entry_date")
+            close_d = p.get("close_date")
+            if entry_d and entry_d > iso_date:
+                continue  # not entered yet on this date
+            try:
+                p["checklist"] = json.loads(p.get("checklist_json") or "{}")
+            except (ValueError, TypeError):
+                p["checklist"] = {}
+            if close_d and close_d == iso_date:
+                closed_today.append(p)
+            elif close_d is None or close_d > iso_date:
+                p["mark"] = _mark_as_of(conn, p["id"], iso_date)
+                open_book.append(p)
+    finally:
+        conn.close()
+    open_book.sort(key=lambda p: p.get("ticker") or "")
+    return {"date": iso_date, "open": open_book, "closed_today": closed_today}

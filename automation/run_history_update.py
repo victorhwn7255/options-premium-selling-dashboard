@@ -21,6 +21,7 @@ from . import config
 from .history import parser, writer
 from .render.cps_snapshot import render_cps_snapshot
 from .render.np_table import render_np_table
+from .render.portfolio_eval import build_book_context, render_portfolio_header
 from .render.shadow_table import compute_day_flips, render_shadow_snapshot, shadow_summary_line
 from .render.statpack import compute_statpack
 from .sources import api_source, db_source
@@ -73,6 +74,82 @@ def _write_staging(iso: str, np_raw: dict, cps_raw: dict | None, statpack: dict)
     )
 
 
+def _portfolio_eval_pass(*, portfolio_evals_path, api_date, read_book_fn, scan_rows_fn,
+                         eval_fn, summary, dry_run, claude_on, claude_ok, verbose) -> bool:
+    """Capture + write the daily portfolio-eval entry(ies). Returns the (possibly flipped-off)
+    claude_ok. Two phases, both idempotent + best-effort:
+
+      1. CAPTURE — for every new trading day up to api_date not yet logged, read the book from
+         the snapshot; empty book -> SKIP (no entry); else write the deterministic header.
+      2. PROSE  — for every recent entry that has a header but no `**Assessment:**` (today's just-
+         captured one, or a prior day whose Claude call failed), reconstruct the inputs from the
+         snapshot and append the Claude prose. Oldest-first so append-in-place keeps order.
+
+    A snapshot miss (read_book_fn -> None) skips the day this run; it self-heals next run.
+    """
+    from .claude.runner import ClaudeAuthError
+
+    # -- phase 1: capture the deterministic header for new trading days --
+    last_eval = parser.last_logged_date(portfolio_evals_path)
+    if last_eval is None:
+        new_days = [api_date]
+    else:
+        new_days = trading_days_between(last_eval, api_date)  # (last_eval, api_date]
+    for d in new_days:
+        iso = d.isoformat()
+        if parser.has_entry(portfolio_evals_path, iso):
+            continue  # idempotent
+        book = read_book_fn(iso)
+        if book is None:
+            _log(f"portfolio-eval {iso}: no book snapshot — skipped this run (self-heals next run)",
+                 verbose=verbose)
+            continue
+        if not book.get("open"):
+            summary["portfolio_eval_skipped"].append(iso)
+            _log(f"portfolio-eval {iso}: empty book — no entry (skip)", verbose=verbose)
+            continue
+        header = render_portfolio_header(book, scan_rows_fn(iso) or {}, iso)
+        if not dry_run:
+            writer.insert_entry(portfolio_evals_path, iso, _heading(d) + "\n\n" + header)
+        summary["portfolio_eval_captured"].append(iso)
+        _log(f"{'(dry) ' if dry_run else ''}wrote portfolio-evals {iso} (header capture)",
+             verbose=verbose)
+
+    # -- phase 2: append Claude prose to any recent header-only entry --
+    if not (claude_on and claude_ok) or dry_run:
+        return claude_ok
+    try:
+        recent = re.findall(r"^##\s+(\d{4}-\d{2}-\d{2})\b",
+                            Path(portfolio_evals_path).read_text(), re.M)[:5]
+    except OSError:
+        recent = []
+    for iso in reversed(recent):  # oldest -> newest
+        et = parser.entry_text(portfolio_evals_path, iso) or ""
+        if "**Assessment:**" in et:
+            continue
+        book = read_book_fn(iso)
+        if not book or not book.get("open"):
+            continue
+        scan_by_ticker = scan_rows_fn(iso) or {}
+        header = render_portfolio_header(book, scan_by_ticker, iso)
+        book_ctx = build_book_context(book, scan_by_ticker, iso)
+        try:
+            d2 = date.fromisoformat(iso)
+            prose = eval_fn(d2, header, book_ctx,
+                            parser.latest_entries(portfolio_evals_path, 5))
+            writer.append_to_entry(portfolio_evals_path, iso, f"**Assessment:** {prose}")
+            summary["portfolio_eval_written"].append(iso)
+            _log(f"wrote portfolio-eval prose {iso}", verbose=verbose)
+        except ClaudeAuthError as e:
+            claude_ok = False
+            _log(f"⚠️ Claude re-login needed — portfolio-eval {iso} pending: {e}", verbose=verbose)
+            break
+        except Exception as e:  # noqa: BLE001 — prose failure never blocks; header already captured
+            _log(f"portfolio-eval prose {iso} failed ({e}) — header captured, prose pending",
+                 verbose=verbose)
+    return claude_ok
+
+
 # ------------------------------------------------------------------------------ core
 def run(
     *,
@@ -93,6 +170,10 @@ def run(
     shadow_latest: dict | None = None,  # {"rows": [...], "summary": {...}} for api_date, or None
     v2_briefing_fn=None,           # (d, summary_line, shadow_table, summary_json, recent) -> body
     prev_shadow_rows_fn=None,      # (iso_date) -> rows|None — prior-day rows for day-flips (best-effort)
+    portfolio_evals_path=None,     # portfolio-eval Claude sister log (additive, best-effort)
+    read_book_fn=None,             # (iso_date) -> book dict|None (open+closed_today from the DB snapshot)
+    scan_rows_fn=None,             # (iso_date) -> {ticker: scan_row} — the day's "what the system thinks now"
+    portfolio_eval_fn=None,        # (d, header, book_ctx, recent) -> prose  (injectable)
 ) -> dict:
     """Process every trading day from the most-behind file up to api_date. Returns a summary."""
     from .claude.runner import ClaudeAuthError
@@ -103,6 +184,9 @@ def run(
     if v2_briefing_fn is None:
         from .claude import runner as _r2
         v2_briefing_fn = _r2.run_v2_briefing
+    if portfolio_eval_fn is None:
+        from .claude import runner as _r3
+        portfolio_eval_fn = _r3.run_portfolio_eval
 
     last_dates = [parser.last_logged_date(p) for p in (metrics_path, cps_path, briefings_path)]
     present = [d for d in last_dates if d is not None]
@@ -120,7 +204,9 @@ def run(
     summary = {"anchor": anchor.isoformat(), "api_date": api_date.isoformat(),
                "todo": [d.isoformat() for d in todo], "metrics_written": [], "cps_written": [],
                "briefings_written": [], "notables_written": [], "briefings_pending": [],
-               "shadow_written": [], "v2_briefing_written": [], "skipped": []}
+               "shadow_written": [], "v2_briefing_written": [],
+               "portfolio_eval_captured": [], "portfolio_eval_written": [],
+               "portfolio_eval_skipped": [], "skipped": []}
     claude_on = not (no_claude or dry_run)
     claude_ok = True  # flipped off on an auth failure so we stop retrying mid-run
 
@@ -168,6 +254,22 @@ def run(
                 break
             except Exception as e:  # noqa: BLE001 — self-heal never blocks the run
                 _log(f"v2-briefing self-heal {iso} failed ({e}) — still pending", verbose=verbose)
+
+    # --- PORTFOLIO EVAL (best-effort sister log; NEVER gates v1) ---
+    # A daily behavioural review of the OPEN journal book, read from the prod-DB snapshot
+    # (positions + position_marks the 18:30 scan wrote). Runs every day (even nothing-to-do
+    # days — the book state moves daily), before the v1 todo gate. Capture-before-Claude:
+    # the deterministic header is written first, prose appended second; empty book -> no entry.
+    # Fully isolated: any failure here never touches the v1 history.
+    if portfolio_evals_path is not None and read_book_fn is not None:
+        try:
+            claude_ok = _portfolio_eval_pass(
+                portfolio_evals_path=portfolio_evals_path, api_date=api_date,
+                read_book_fn=read_book_fn, scan_rows_fn=scan_rows_fn or (lambda _iso: {}),
+                eval_fn=portfolio_eval_fn, summary=summary, dry_run=dry_run,
+                claude_on=claude_on, claude_ok=claude_ok, verbose=verbose)
+        except Exception as e:  # noqa: BLE001 — the whole pass is best-effort; v1 unaffected
+            _log(f"portfolio-eval pass failed ({e}) — v1 history unaffected", verbose=verbose)
 
     if not todo:
         _log("up to date — nothing to do", verbose=verbose)
@@ -323,18 +425,20 @@ def main(argv=None) -> int:
     if args.shadow:
         config.SHADOW_DIR.mkdir(parents=True, exist_ok=True)
         for src in (config.METRICS_FILE, config.CPS_FILE, config.BRIEFINGS_FILE,
-                    config.SHADOW_DIFFS_FILE, config.V2_BRIEFINGS_FILE):
+                    config.SHADOW_DIFFS_FILE, config.V2_BRIEFINGS_FILE, config.PORTFOLIO_EVALS_FILE):
             __import__("shutil").copy(src, config.SHADOW_DIR / src.name)  # re-seed from real each run
         metrics_file = config.SHADOW_DIR / config.METRICS_FILE.name
         cps_file = config.SHADOW_DIR / config.CPS_FILE.name
         briefings_file = config.SHADOW_DIR / config.BRIEFINGS_FILE.name
         shadow_diffs_file = config.SHADOW_DIR / config.SHADOW_DIFFS_FILE.name
         v2_briefings_file = config.SHADOW_DIR / config.V2_BRIEFINGS_FILE.name
+        portfolio_evals_file = config.SHADOW_DIR / config.PORTFOLIO_EVALS_FILE.name
         _log("SHADOW mode — writing to staging/shadow/ (real history untouched)", verbose=verbose)
     else:
         metrics_file, cps_file, briefings_file = (
             config.METRICS_FILE, config.CPS_FILE, config.BRIEFINGS_FILE)
         shadow_diffs_file, v2_briefings_file = config.SHADOW_DIFFS_FILE, config.V2_BRIEFINGS_FILE
+        portfolio_evals_file = config.PORTFOLIO_EVALS_FILE
 
     np_latest = api_source.fetch_latest_np()
     cps_latest = api_source.fetch_latest_cps()
@@ -347,24 +451,19 @@ def main(argv=None) -> int:
         shadow_latest = None
         _log(f"shadow fetch failed ({e}) — continuing without v2 shadow log", verbose=verbose)
 
-    # Snapshot the prod DB only if backfill is actually needed.
-    last_dates = [parser.last_logged_date(p) for p in (metrics_file, cps_file, briefings_file)]
-    anchor = min(d for d in last_dates if d is not None)
-    need_backfill = any(d < api_date for d in trading_days_between(anchor, api_date)
-                        if not (parser.has_entry(metrics_file, d.isoformat())
-                                and parser.has_entry(briefings_file, d.isoformat())))
-    # Guarded: by here today's NP/CPS/shadow data is already in hand — the snapshot
-    # is needed ONLY for past backfill days. An scp blip (the same wake-race the API
-    # fetches retry) must not crash the run and discard today's capture; degrade to
-    # snap=None (past days SKIP and self-heal next run). Mirrors the shadow-fetch
-    # guard above. (simplify-2026-07-22 snapshot-db-unguarded)
+    # Snapshot the prod DB. Needed for (a) past-day backfill AND (b) the portfolio-eval book,
+    # which reads positions + position_marks from the snapshot EVERY run (not just backfill days)
+    # — so the snapshot is now taken every run rather than gated on need_backfill.
+    # Guarded: by here today's NP/CPS/shadow data is already in hand — an scp blip (the same
+    # wake-race the API fetches retry) must not crash the run and discard today's capture; it
+    # degrades to snap=None (past days + the book eval SKIP and self-heal next run). Mirrors the
+    # shadow-fetch guard above. (simplify-2026-07-22 snapshot-db-unguarded)
     snap = None
-    if need_backfill:
-        try:
-            snap = db_source.snapshot_db()
-        except Exception as e:  # noqa: BLE001
-            _log(f"prod DB snapshot failed ({e}) — today's capture proceeds, past days backfill next run",
-                 verbose=verbose)
+    try:
+        snap = db_source.snapshot_db()
+    except Exception as e:  # noqa: BLE001
+        _log(f"prod DB snapshot failed ({e}) — today's capture proceeds; past-day backfill + "
+             f"portfolio-eval skip this run, self-heal next run", verbose=verbose)
 
     def load_backfill(d: date):
         if snap is None:
@@ -372,6 +471,19 @@ def main(argv=None) -> int:
         return (db_source.read_np_by_date(snap, d.isoformat()),
                 db_source.read_cps_by_date(snap, d.isoformat()),
                 db_source.read_shadow_by_date(snap, d.isoformat()))
+
+    def read_book(iso: str):
+        return db_source.read_book_by_date(snap, iso) if snap is not None else None
+
+    def scan_rows(iso: str) -> dict:
+        """{ticker: scan_row} for the eval date — today's rows come from the live API payload
+        already in hand; past days read the snapshot's stored scan."""
+        if iso == api_date.isoformat():
+            return {t.get("ticker"): t for t in (np_latest.get("tickers") or [])}
+        if snap is None:
+            return {}
+        npd = db_source.read_np_by_date(snap, iso)
+        return {t.get("ticker"): t for t in (npd.get("tickers") or [])} if npd else {}
 
     def prev_shadow_rows(iso: str):
         """Prior-day shadow rows for the day-flips segment (best-effort: API, then snapshot)."""
@@ -398,6 +510,9 @@ def main(argv=None) -> int:
         v2_briefings_path=v2_briefings_file,
         shadow_latest=shadow_latest,
         prev_shadow_rows_fn=prev_shadow_rows,
+        portfolio_evals_path=portfolio_evals_file,
+        read_book_fn=read_book,
+        scan_rows_fn=scan_rows,
     )
     _log(f"done: {json.dumps(summary)}", verbose=verbose)
     return 0

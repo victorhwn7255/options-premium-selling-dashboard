@@ -134,3 +134,34 @@ def run_v2_briefing(d: date, summary_line: str, shadow_table: str, summary_json,
         if not _v2_briefing_valid(out, summary_line):
             raise RuntimeError("v2-briefing output failed validation (summary line / calibration)")
     return out
+
+
+def _clean_eval(text: str) -> str:
+    """Strip an accidental leading `Assessment:` / `**Assessment:**` label (the caller prepends
+    its own) and any stray opening code fence, without harming the prose."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[1] if "\n" in text else ""
+        text = text.rsplit("```", 1)[0]
+    return re.sub(r"^\*{0,2}Assessment:\*{0,2}\s*", "", text.strip()).strip()
+
+
+def run_portfolio_eval(d: date, header: str, book_json, recent_evals: str, n: int = 5) -> str:
+    """Return the portfolio-evaluation prose (no `**Assessment:**` prefix — the caller adds it).
+    Raises ClaudeAuthError on auth failure, RuntimeError on other failures/empty output.
+
+    Best-effort sister log to daily-briefings: the deterministic book header is captured to
+    portfolio-evals.md BEFORE this runs, so a Claude failure never loses the day's book snapshot
+    (the orchestrator appends the prose on a later self-heal). No `--model` flag: CLI default.
+
+    600s timeout: matches the other briefing calls' latency profile (recent evals + the full book
+    JSON + checklist context is a dense prompt); nightly batch job, so wall-clock is free."""
+    bj = book_json if isinstance(book_json, str) else json.dumps(book_json, indent=2)
+    prompt = prompts.PORTFOLIO_EVAL_PROMPT.format(
+        date=d.isoformat(), weekday=d.strftime("%A"), header=header,
+        book_json=bj, recent_evals=recent_evals or "(no prior evaluations — this is the first)", n=n,
+    )
+    out = _clean_eval(_invoke(prompt, timeout=600))
+    if not out:
+        raise RuntimeError("portfolio-eval returned empty output")
+    return out
