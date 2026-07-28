@@ -22,7 +22,7 @@ sys.path.insert(0, str(REPO))
 from automation import run_history_update as orch  # noqa: E402
 from automation.history import parser, writer  # noqa: E402
 from automation.render.portfolio_eval import (  # noqa: E402
-    build_book_context, compute_flags, render_portfolio_header)
+    _mark_quality, build_book_context, compute_flags, render_portfolio_header)
 from automation.sources import db_source  # noqa: E402
 
 HIST = REPO / "history"
@@ -90,10 +90,17 @@ def _scratch_v1(td: Path):
 
 
 def _scratch_evals(td: Path, seed_dates=()) -> Path:
-    """Copy the real (empty-log) portfolio-evals.md; optionally seed completed entries (with an
-    Assessment) so descending-insert + idempotency can be exercised."""
+    """Copy the real portfolio-evals.md protocol scaffold as a CLEAN empty log — strip any dated
+    entries the live file has since accumulated so these orchestrator tests stay hermetic (they
+    assume the fixture's newest entry is older than the 2026-06-03 api_date). Optionally seed
+    completed entries (with an Assessment) so descending-insert + idempotency can be exercised."""
+    import re as _re
     p = td / "portfolio-evals.md"
     shutil.copy(HIST / "portfolio-evals.md", p)
+    text = p.read_text()
+    m = _re.search(r"^##\s+\d{4}-\d{2}-\d{2}\b", text, _re.M)  # keep the scaffold, drop real entries
+    if m:
+        p.write_text(text[: m.start()])
     for iso in seed_dates:  # oldest first so insert-at-top yields descending
         d = date.fromisoformat(iso)
         writer.insert_entry(p, iso, f"## {iso} ({d.strftime('%A')})\n\n"
@@ -147,6 +154,26 @@ def test_header_assembles_from_synthetic_db():
         _ok("book context carries thesis + at-entry checklist",
             ctx["positions"][0]["thesis"] and "entry_checklist" in ctx["positions"][0])
         _ok("book context carries the closed trade", ctx["closed_today"][0]["ticker"] == "KO")
+
+
+def test_book_context_surfaces_mark_quality():
+    """The eval context must carry the mark's two-sided bid/ask AND an honest mark_quality, so a
+    real quote is never read as 'unverified'. Regression: the GLD 2026-07 false-alarm, where the
+    context hid the bid/ask and surfaced only the alarming `quote_fallback` label."""
+    with tempfile.TemporaryDirectory() as td:
+        book = db_source.read_book_by_date(_make_snap(Path(td)), "2026-06-03")
+        ctx = build_book_context(book, _SCAN, "2026-06-03")
+        gld = next(p for p in ctx["positions"] if p["ticker"] == "GLD")
+        _ok("context carries option_bid/option_ask",
+            gld["mark"].get("option_bid") == 1.50 and gld["mark"].get("option_ask") == 1.60)
+        _ok("scan_chain two-sided mark reads as live (with the spread)",
+            "live" in gld["mark_quality"] and "1.5/1.6" in gld["mark_quality"])
+        # the helper maps every source honestly
+        qf = _mark_quality({"mark_source": "quote_fallback", "option_bid": 3.70, "option_ask": 3.95})
+        _ok("quote_fallback with a two-sided quote is LIVE, not flagged stale",
+            qf.startswith("live") and "STALE" not in qf)
+        _ok("carried is flagged STALE", "STALE" in _mark_quality({"mark_source": "carried"}))
+        _ok("empty mark -> no quality", _mark_quality({}) is None)
 
 
 def test_step_captures_header_then_appends_prose():
@@ -261,6 +288,7 @@ if __name__ == "__main__":
     print("Portfolio-eval tests:")
     test_flags_match_backend_logic()
     test_header_assembles_from_synthetic_db()
+    test_book_context_surfaces_mark_quality()
     test_step_captures_header_then_appends_prose()
     test_empty_book_writes_no_entry()
     test_descending_insert_across_days()

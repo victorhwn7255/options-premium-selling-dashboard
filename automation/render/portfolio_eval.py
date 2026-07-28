@@ -204,8 +204,42 @@ _SCAN_CTX_KEYS = ("regime", "recommendation", "signal_score", "vrp_ratio", "term
                   "rv_acceleration", "skew_25d", "iv_percentile", "earnings_dte", "is_etf",
                   "sigma_fwd", "fvrp_ratio", "fvrp_z", "slope_1m3m", "accel_dn",
                   "v2_gate_state", "v2_eligible")
-_MARK_CTX_KEYS = ("option_mid", "underlying_close", "short_delta", "unrealized_pnl",
-                  "capture_pct", "dte", "earnings_dte", "mark_source")
+_MARK_CTX_KEYS = ("option_mid", "option_bid", "option_ask", "underlying_close", "short_delta",
+                  "unrealized_pnl", "capture_pct", "dte", "earnings_dte", "mark_source")
+
+# How to read `mark_source` for the model. A fresh two-sided quote is NOT a degraded mark:
+# `quote_fallback` fires whenever a held strike/expiry sits outside the scan's ATM/skew window
+# (the normal case for an OTM position) — the marker then quotes that one contract directly, a
+# real live quote equal in quality to a `scan_chain` mark. Only `carried` (the scan could not
+# quote the contract, so the prior mark is reused) is genuinely stale. Surfacing this — with the
+# bid/ask now in the context — stops the eval reading "quote_fallback" as "unverified" when the
+# spread plainly shows a tight live market. (2026-07-28: fixes the GLD false-alarm — the marks
+# were real all along; the context had hidden the bid/ask.)
+_MARK_SOURCE_QUALITY = {
+    "scan_chain": "live — from the day's scanned option chain",
+    "quote_fallback": ("live — targeted single-contract quote (the held strike/expiry sits "
+                       "outside the scan's ATM window, so it is quoted directly)"),
+    "carried": ("STALE — carried from the prior session because the scan could not quote the "
+                "contract today; capture%/delta are unchanged-by-default, not fresh"),
+    "csv_backfill": "backfilled from the historical quotes CSV",
+}
+
+
+def _mark_quality(mark: dict) -> str | None:
+    """Honest, model-legible reading of a mark's provenance. A two-sided bid/ask on a
+    `scan_chain` or `quote_fallback` mark is a real live quote; only `carried` is stale."""
+    if not mark:
+        return None
+    src = mark.get("mark_source")
+    label = _MARK_SOURCE_QUALITY.get(src, src or "unknown")
+    bid, ask = mark.get("option_bid"), mark.get("option_ask")
+    if src in ("scan_chain", "quote_fallback"):
+        # The "real market quote" claim is conditional on the EVIDENCE: only a genuine two-sided
+        # bid/ask earns it. A one-sided/absent quote gets an honest caution instead of over-claiming.
+        if bid is not None and ask is not None:
+            return f"{label}; two-sided bid/ask {bid}/{ask} — a real market quote, not stale or model-derived"
+        return f"{label}; ONE-SIDED/absent bid-ask — treat the mid with mild caution"
+    return label
 
 
 def build_book_context(book: dict, scan_by_ticker: dict, eval_date: str) -> dict:
@@ -233,6 +267,7 @@ def build_book_context(book: dict, scan_by_ticker: dict, eval_date: str) -> dict
             "credit_at_risk": _credit_at_risk(p),
             "notional": _notional(p),
             "mark": {k: mark.get(k) for k in _MARK_CTX_KEYS if k in mark},
+            "mark_quality": _mark_quality(mark),
             "flags": compute_flags(p, p.get("mark"), trow, eval_date),
             "entry_checklist": {"deviation_reason": chk.get("deviation_reason"),
                                 "checks": chk.get("checks"), "values": chk.get("values")},

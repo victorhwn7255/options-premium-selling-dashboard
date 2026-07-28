@@ -131,6 +131,10 @@ OUTPUT RULES (strict):
 no preamble. Do NOT begin with a bold label — the caller prepends `**Assessment:**`.
 - The deterministic numbers below (marks, unrealized P&L, capture %, DTE, delta, flags, credit at \
 risk, concentration) are GIVEN and already verified — reference them, but NEVER recompute or alter them.
+- Each position carries a `mark_quality` note and the mark's `option_bid`/`option_ask`. A \
+`scan_chain` or `quote_fallback` mark with a two-sided bid/ask is a REAL, live quote — do NOT call it \
+unverified/stale/abstained/last-known. `quote_fallback` just means the held strike sits outside the \
+scan's ATM window and was quoted directly. Only a `carried` mark is genuinely stale; caveat that one.
 - Match the dense, opinionated, specific voice of YOUR RECENT EVALUATIONS below.
 
 MANAGEMENT RULES YOU MAY CITE (the strategy's OWN exit rules — do NOT invent new ones):
