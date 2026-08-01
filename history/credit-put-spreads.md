@@ -38,6 +38,47 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-07-30 (Thursday)
+
+**Scan summary:** Checked 11 / 3 actionable / 5 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 17.09 / VIX3M 19.50 / VVIX 94.7 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 6d | 59 | 14.7% | $0.44 | $3 | $2.56 | Acceptable | Thin premium |
+| 2 | SPY | WATCH | 2d | 47 | 12.7% | $0.76 | $6 | $5.24 | Good | Thin premium |
+| 3 | TLT | WATCH | 1d | 19 | 17.0% | $0.09 | $0.50 | $0.41 | Acceptable | Thin premium |
+
+---
+
+## 2026-07-29 (Wednesday)
+
+**Scan summary:** Checked 11 / 4 actionable / 5 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 20.66 / VIX3M 21.50 / VVIX 109.5 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 1d | 68 | 12.2% | $0.73 | $6 | $5.27 | Excellent | Thin premium |
+| 2 | IWM | WATCH | 5d | 60 | 14.2% | $0.42 | $3 | $2.58 | Good | Thin premium |
+| 3 | XLE | WATCH | 0d | 30 | 13.3% | $0.20 | $1.50 | $1.30 | Excellent | Thin premium |
+| 4 | TLT | WATCH | 0d | 24 | 18.0% | $0.09 | $0.50 | $0.41 | Excellent | Thin premium |
+
+---
+
+## 2026-07-28 (Tuesday)
+
+**Scan summary:** Checked 11 / 2 actionable / 6 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 18.21 / VIX3M 19.86 / VVIX 98.5 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 4d | 65 | 15.0% | $0.45 | $3 | $2.55 | Good | Thin premium |
+| 2 | SPY | WATCH | 0d | 53 | 12.2% | $0.73 | $6 | $5.27 | Excellent | Thin premium |
+
+**Notable:** The aging reaches **four** and, for the first time in the entire count, the magazine **ages and reloads in the same print**: **IWM re-prints at 4d, the deepest Days inventory the tab has ever carried**, a fourth consecutive survival on a ticket that has now held its seat through a fall (−4), two rises (+6, +14) and a shed-out on both sides of it — while **SPY debuts at 0d, the seventh name ever to touch the rail**, ending the two-session drought of fresh ammunition. And SPY's arrival is the tape's own joke landing late: this is the name 07-23 flagged as *"SPY (50) and QQQ (49), the two highest visible scores, sit nowhere near it"* — proof the screen ignores the leaders — and it arrives today **absent from the mover tape entirely, no prev, no delta, no print**, arrival-from-silence, the exact inverse of yesterday's shed-into-silence. The headline number is on the incumbent: **IWM 51 → 65 (+14) lands exactly on the 65 score gate**, the first time in the count that the score gate and the actionable screen have been satisfied by the *same ticket* — every prior clearer (AMZN, NFLX 68, SBUX 69 twice, WMT 68) cleared it from nowhere near the rail, and **WMT's death completed on schedule today, 56 → 51, a second straight fall**, fifth in five to fail the two-print survival test. **And the action column still reads WATCH.** That is the cleanest isolation of the binding constraint this tab has ever produced, because the constructions are what they are: **IWM's build is bit-for-bit identical to yesterday's — $0.45 credit, $3 width, $2.55 max loss — and the c/w still re-marks 14.8% → 15.0%**, a fourth straight positive per-ticket drift running **14.5 → 14.7 → 14.8 → 15.0 (+0.2, +0.1, +0.2)**; **SPY prints $0.73 against a $6 width for a $5.27 max loss — the widest spread, the largest risk print, and at 12.2% the thinnest readable c/w the tab has ever produced**, past 07-22's 13.9% low, and stamped **"Excellent" RV** while it does it. Against the **25% skew gate** those are shortfalls of **10.0 and 12.8 points**. So the best number on the board improves for the first time in four sessions — **gate distance 10.2 → 10.0** — and it improves by the incumbent re-marking, not by an addition, because **average c/w falls 14.8% → 13.6% purely by *addition*, the first time in the count the average has been dragged down by a name arriving rather than a name being shed**. New signature, same disease: the screen has never once discarded a thin name, and it has now never once added a fat one. The trap loosened a notch: **VIX 18.67 → 18.21 (−0.46), VIX3M 20.20 → 19.86 (−0.34, a fourth straight fall and the first sub-20 long end in four sessions), VVIX 100.9 → 98.5 (−2.4, out of triple digits after three), contango 1.53 → 1.65 (+0.12)** — the first widening since the record-narrow print, **front-led expansion, the mirror of yesterday's first-ever back-led compression**, so the four-session runway to inversion is deferred rather than cancelled, with **overlay clean a twelfth straight session (0 blocks)**. And the geometry finally resolves: the curve widened and the *average* skew thinned (−1.2), which reads like the old wider-curve/thinner-skew rule holding — except **the only ticket present in both prints fattened +0.2 against the widening**. The rule lives entirely in roster churn. Yesterday it stopped paying; today it stops meaning anything. Beneath it the ladder held its floor and gave back its bench: **base_gate flat at 6, a second straight session at the emptiest stack of the count**, **construction 4 → 3** off the record bench, **actionable 1 → 2, the column lit a sixth straight session**. Carry printed its best board of the record: **avg VRP −0.85 → +0.34, a +1.19 swing, the largest single-session move of the whipsaw and the highest positive print ever (past 07-23's +0.15)**, the sign's eighth reversal; **neg-VRP 48% → 32%, the lowest of the recent record and the biggest one-session easing**, on a pool back up **21 → 22**; **term slope 0.917 → 1.016, the first print at or above 1.0 in the entire record**, off the second-flattest read ever in a single session; **rv-accel 0.9 → 0.917, a thirteenth straight sub-1.0** — implied rebuilding into a still-decelerating tape, the textbook put-seller configuration, and the surface answered it with **12.2%**. The distress axis blew out to meet it: **danger 0 → 3 (0.0% → 13.6%), relit after exactly one dark session and at the highest count and percentage of the count** (prior max 2 / 9.1%), and **stress 4 → 9 (19.0% → 40.9%), more than doubling to the widest read ever**, past 07-23's 8 / 34.8% — so **the best carry column of the record shares a board with the worst distress reads of the record**. The rail rotated the same one-print cadence: **0S / 3C + 3W → 1S / 3C + 1W**, **the outright-sell column relighting after exactly one dark session**, watchlist draining 3 → 1, conditionals parked at 3. The label flips a **tenth time in eleven sessions, THE PLAYOFFS → REGULAR SEASON**, stepping *down* on relit-record danger and record stress one session after stepping *up* on snuffed danger and cooling stress — both signs, both directions, same input; the key is not merely unreadable, it is now falsified. The tape ran **six up, sixteen down, the most negative breadth of the record**: **both of 07-24's triple-wipe victims resurrected — CAT 0 → 44 and MCD 0 → 32 — while XOM stayed erased and absent**; **XLB 28 → 0, the increment-rebuilder erased a second time**, completing 0 → 20 → 37 → 21 → 27 → 28 → 0; **XLI +15 (45 → 60) is the highest visible score on the board, five points from the gate**, a name that has run 0 → 36 → 45 → 60 in four sessions since its own erasure and has still never reached the screen; **XLF +17 (21 → 38)** recovered most of yesterday's −22; **TLT resurfaced on the tape at 26** after being shed into silence, still off the rail; and **NVDA −10, NKE −10, HD −7, JNJ −6** led the wide side. **Still zero SELL_CPS at 49 sessions** — and the shape of the failure is now perfectly clean. Days: met at a record 4d. Score: met at exactly 65. Base gate, RV, overlay: passed, twelve straight. Carry: positive, with the first steepening term slope of the record. **Every gate the tab measures is not merely passed but maximally passed, and the trade still doesn't fire, because skew is 10.0 points short and always has been.** What triggers the first SELL is unchanged in name and only cosmetically better in arithmetic: **IWM must add 10.0 points of c/w against a demonstrated drift of +0.2, +0.1, +0.2 — roughly sixty more prints at pace** — or **a fat ticket must reach the screen and survive one print**, which no name above 21.5% has ever done, and today the screen demonstrated its actual preference by reaching for a 12.2% and a $5.27 max loss instead. The runway bought a session; the one number that has to move moved two-tenths.
+
+---
+
 ## 2026-07-27 (Monday)
 
 **Scan summary:** Checked 11 / 1 actionable / 6 base_gate / 4 construction / 0 execution / 0 overlay / 0 confirmation
