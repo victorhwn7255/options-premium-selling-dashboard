@@ -63,9 +63,13 @@ def run_briefing(d: date, statpack: dict, np_table: str, cps_block: str,
     """Return the daily-briefings entry body (regime line → narrative → Position line).
     Raises ClaudeAuthError on auth failure, RuntimeError if the output can't be validated.
 
-    600s timeout: this is by far the largest prompt (7 recent briefings + both tables +
-    statpack) and twice overran the 300s default (2026-07-09, 2026-07-15) — the run is a
-    nightly batch job, so trading wall-clock for fewer briefing-pending days is free."""
+    900s timeout: this is by far the largest prompt (7 recent briefings + both tables +
+    statpack) and twice overran the 300s default (2026-07-09, 2026-07-15); after the CLI
+    default model moved to Fable 5 @ xhigh effort (2026-07-29, inherited by headless
+    `claude -p` — no --model flag by design) latency roughly doubled to 7-8 min, so 600s
+    left almost no headroom. The run is a nightly batch job — trading wall-clock for
+    fewer pending days is free. ALL FOUR prose calls share this timeout (2026-07-22
+    lesson: audit siblings — the CPS Notable was left at 300s and orphaned 3 days)."""
     prompt = prompts.BRIEFING_PROMPT.format(
         date=d.isoformat(), weekday=d.strftime("%A"),
         regime_label=statpack["regime_label"], tradeable_str=statpack["tradeable_str"],
@@ -73,7 +77,7 @@ def run_briefing(d: date, statpack: dict, np_table: str, cps_block: str,
         np_table=np_table, cps_block=cps_block or "(no CPS data today)",
         recent_briefings=recent_briefings, n=n,
     )
-    out = _invoke(prompt, timeout=600)
+    out = _invoke(prompt, timeout=900)
     if not _briefing_valid(out, statpack):
         # One stricter retry — most failures are a stray preamble or a tweaked number.
         strict = prompt + (
@@ -82,7 +86,7 @@ def run_briefing(d: date, statpack: dict, np_table: str, cps_block: str,
             f"(<qualifier>) | **Tradeable:** {statpack['tradeable_str']} | "
             f"**Avg VRP:** {statpack['avg_vrp_str']}\nand contain a **Position:** line. Nothing else."
         )
-        out = _invoke(strict, timeout=600)
+        out = _invoke(strict, timeout=900)
         if not _briefing_valid(out, statpack):
             raise RuntimeError("briefing output failed validation (numbers/format)")
     return out
@@ -101,7 +105,7 @@ def run_cps_notable(d: date, statpack: dict, cps_block: str, recent_cps: str, n:
         cps_block=cps_block, statpack_json=json.dumps(statpack, indent=2),
         recent_cps=recent_cps, n=n,
     )
-    return _clean_notable(_invoke(prompt))
+    return _clean_notable(_invoke(prompt, timeout=900))
 
 
 def _v2_briefing_valid(text: str, summary_line: str) -> bool:
@@ -114,7 +118,7 @@ def run_v2_briefing(d: date, summary_line: str, shadow_table: str, summary_json,
     `**Calibration read:**` line). Raises ClaudeAuthError on auth failure, RuntimeError if the
     output can't be validated. Mirrors run_briefing (verbatim-header validation + one retry).
 
-    600s timeout: the v2 prompt has grown dense (5 recent entries + corrigenda + the full
+    900s timeout (sibling parity): the v2 prompt has grown dense (5 recent entries + corrigenda + the full
     divergence table) and overran the 300s default on 2026-07-21 — same latency profile as
     the v1 briefing, so same headroom. Nightly batch job; wall-clock is free."""
     sj = summary_json if isinstance(summary_json, str) else json.dumps(summary_json, indent=2)
@@ -122,7 +126,7 @@ def run_v2_briefing(d: date, summary_line: str, shadow_table: str, summary_json,
         date=d.isoformat(), weekday=d.strftime("%A"), summary_line=summary_line,
         shadow_table=shadow_table, summary_json=sj, recent_v2_briefings=recent_v2_briefings, n=n,
     )
-    out = _invoke(prompt, timeout=600)
+    out = _invoke(prompt, timeout=900)
     if not _v2_briefing_valid(out, summary_line):
         # One stricter retry — most failures are a stray preamble or a tweaked number.
         strict = prompt + (
@@ -130,7 +134,7 @@ def run_v2_briefing(d: date, summary_line: str, shadow_table: str, summary_json,
             "calibration line). Your output must START with exactly this line, character-for-"
             f"character:\n{summary_line}\nand contain a `**Calibration read:**` line. Nothing else."
         )
-        out = _invoke(strict, timeout=600)
+        out = _invoke(strict, timeout=900)
         if not _v2_briefing_valid(out, summary_line):
             raise RuntimeError("v2-briefing output failed validation (summary line / calibration)")
     return out
@@ -154,14 +158,14 @@ def run_portfolio_eval(d: date, header: str, book_json, recent_evals: str, n: in
     portfolio-evals.md BEFORE this runs, so a Claude failure never loses the day's book snapshot
     (the orchestrator appends the prose on a later self-heal). No `--model` flag: CLI default.
 
-    600s timeout: matches the other briefing calls' latency profile (recent evals + the full book
+    900s timeout (sibling parity): matches the other briefing calls' latency profile (recent evals + the full book
     JSON + checklist context is a dense prompt); nightly batch job, so wall-clock is free."""
     bj = book_json if isinstance(book_json, str) else json.dumps(book_json, indent=2)
     prompt = prompts.PORTFOLIO_EVAL_PROMPT.format(
         date=d.isoformat(), weekday=d.strftime("%A"), header=header,
         book_json=bj, recent_evals=recent_evals or "(no prior evaluations — this is the first)", n=n,
     )
-    out = _clean_eval(_invoke(prompt, timeout=600))
+    out = _clean_eval(_invoke(prompt, timeout=900))
     if not out:
         raise RuntimeError("portfolio-eval returned empty output")
     return out

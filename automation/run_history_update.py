@@ -255,6 +255,40 @@ def run(
             except Exception as e:  # noqa: BLE001 — self-heal never blocks the run
                 _log(f"v2-briefing self-heal {iso} failed ({e}) — still pending", verbose=verbose)
 
+    # --- CPS-NOTABLE SELF-HEAL (best-effort; runs even on nothing-to-do days) ---
+    # Same orphaning gap the v2 briefing had (2026-07-22 lesson: best-effort steps need
+    # their own retry path): the Notable is OFF the done-gate, so a timed-out `claude -p`
+    # left the day's CPS entry without its prose forever — which happened 3 runs straight
+    # (2026-07-29..31) once headless latency doubled and the Notable was still on the 300s
+    # default. Any recent CPS entry missing "**Notable:**" is regenerated here from the
+    # logged entry itself (statpack unavailable → placeholder, like the v2 self-heal).
+    if claude_on and claude_ok and cps_path is not None:
+        try:
+            cps_dates = re.findall(r"^##\s+(\d{4}-\d{2}-\d{2})\b",
+                                   Path(cps_path).read_text(), re.M)[:5]
+        except OSError:
+            cps_dates = []
+        for iso in reversed(cps_dates):  # oldest -> newest
+            et = parser.entry_text(cps_path, iso) or ""
+            if not et or "**Notable:**" in et:
+                continue
+            try:
+                body = et.split("\n", 1)[1].strip() if "\n" in et else ""
+                d2 = date.fromisoformat(iso)
+                notable = notable_fn(
+                    d2, {"note": "unavailable — self-healed from the logged CPS table"},
+                    body, parser.latest_entries(cps_path, 5))
+                writer.append_to_entry(cps_path, iso, f"**Notable:** {notable}")
+                summary["notables_written"].append(iso)
+                _log(f"wrote CPS Notable {iso} (self-heal)", verbose=verbose)
+            except ClaudeAuthError as e:
+                claude_ok = False
+                _log(f"⚠️ Claude re-login needed — CPS Notable self-heal {iso} pending: {e}",
+                     verbose=verbose)
+                break
+            except Exception as e:  # noqa: BLE001 — self-heal never blocks the run
+                _log(f"CPS Notable self-heal {iso} failed ({e}) — still pending", verbose=verbose)
+
     # --- PORTFOLIO EVAL (best-effort sister log; NEVER gates v1) ---
     # A daily behavioural review of the OPEN journal book, read from the prod-DB snapshot
     # (positions + position_marks the 18:30 scan wrote). Runs every day (even nothing-to-do

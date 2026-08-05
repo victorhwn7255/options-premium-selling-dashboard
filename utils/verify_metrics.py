@@ -604,6 +604,17 @@ def verify_ticker(ticker_data: dict, yahoo_df) -> TickerReport:
     score = ticker_data["signal_score"]
     atr14 = ticker_data.get("atr14")
 
+    # NO DATA row (intermittent per-ticker feed gap — e.g. XLB 2026-07-30 / 2026-08-04):
+    # the scanner nulls its metrics, so every numeric check below would crash on None
+    # arithmetic — and one bad row must not kill the whole verification run. (2026-08-03/04:
+    # the report was never stored AND the Yahoo earnings fill died with it, leaving
+    # FMP-missing names earnings-blind.) Skip the row, keep the run.
+    if price is None or iv_current is None:
+        report.checks.append(CheckResult(
+            "Data", Status.SKIP,
+            note="NO DATA row — scanner reported no metrics; checks skipped"))
+        return report
+
     # External checks (Yahoo Finance)
     if yahoo_df is not None and len(yahoo_df) >= 15:
         closes = yahoo_df["Close"].values.astype(float)
@@ -767,7 +778,7 @@ def verify_all(
         yahoo_df = yahoo_data.get(ticker)
         ticker_report = verify_ticker(td, yahoo_df)
 
-        if ticker == "SPY" and vix_close is not None:
+        if ticker == "SPY" and vix_close is not None and td.get("iv_current") is not None:
             ticker_report.checks.append(check_spy_vix(td["iv_current"], vix_close))
 
         report.ticker_reports.append(ticker_report)
@@ -832,7 +843,7 @@ def run_all(api_url: str, ticker_filter: Optional[list[str]], verbose: bool) -> 
         ticker_report = verify_ticker(td, yahoo_df)
 
         # Add SPY-specific VIX check
-        if ticker == "SPY" and vix_close is not None:
+        if ticker == "SPY" and vix_close is not None and td.get("iv_current") is not None:
             ticker_report.checks.append(check_spy_vix(td["iv_current"], vix_close))
 
         report.ticker_reports.append(ticker_report)

@@ -115,6 +115,10 @@ def _run(td: Path, evals_path, read_book_fn, *, eval_fn=None, no_claude=False):
         metrics_path=m, cps_path=c, briefings_path=b, api_date=date(2026, 6, 3),
         np_latest={"tickers": []}, cps_latest=None,
         load_backfill=lambda d: (None, None, None), no_claude=no_claude, verbose=False,
+        # hermetic: the Notable self-heal must never reach real Claude — the scratch cps is a
+        # live copy and may carry orphaned (Notable-less) entries at any time
+        notable_fn=lambda *a, **k: "note",
+        briefing_fn=lambda *a, **k: "stub",
         portfolio_evals_path=evals_path, read_book_fn=read_book_fn,
         scan_rows_fn=lambda iso: _SCAN,
         portfolio_eval_fn=eval_fn or (lambda d, header, ctx, recent: "Eval prose body."))
