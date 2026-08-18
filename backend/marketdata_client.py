@@ -334,6 +334,7 @@ class MarketDataClient:
         return {
             "bid": bid, "ask": ask, "mid": mid, "last": _first("last"),
             "delta": _first("delta"), "underlying_price": _first("underlyingPrice"),
+            "iv": _first("iv"),  # per-contract IV (Phase C: position_marks.mark_iv)
         }
 
     # ── Earnings endpoint ────────────────────────────────

@@ -15,7 +15,7 @@ interface TabDefinition {
 const TABS: TabDefinition[] = [
   { id: 'naked-puts',           label: 'Naked Puts' },
   { id: 'credit-put-spreads',   label: 'Credit Put Spreads' },
-  { id: 'journal',              label: 'Journal' },
+  { id: 'journal',              label: 'Portfolio / Risk' },
 ];
 
 // Operator-only tab (Phase B, transitional — removed at Phase E). Appended when the

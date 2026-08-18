@@ -4,6 +4,7 @@ import React from 'react';
 import type { CreditPutSpreadCandidate, CreditPutSpreadLeg } from '@/lib/types';
 import CreditPutSpreadActionBadge from './CreditPutSpreadActionBadge';
 import CreditPutSpreadEconomicsCard from './CreditPutSpreadEconomicsCard';
+import SizingCard from './SizingCard';
 
 interface CreditPutSpreadDetailPanelProps {
   candidate: CreditPutSpreadCandidate;
@@ -235,6 +236,19 @@ export default function CreditPutSpreadDetailPanel({
           </ul>
         </div>
       )}
+
+      {/* Phase C3 — advisory sizing of the SHORT leg (owner-only; null for visitors).
+          Naked-basis margin/stress: conservative for a defined-risk spread. */}
+      <div className="px-4 sm:px-6 py-3">
+        <SizingCard
+          ticker={candidate.ticker}
+          defaultStrike={candidate.shortPut.strike}
+          defaultPremium={candidate.shortPut.mid}
+          defaultDte={candidate.dte}
+          autoCompute
+          note="Sizes the short-put leg on naked-basis margin — conservative for this defined-risk spread."
+        />
+      </div>
 
       {/* Rejection reasons (rare for actionable candidates, but surface when present) */}
       {candidate.rejectionReasons.length > 0 && (
