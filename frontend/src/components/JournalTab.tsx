@@ -9,6 +9,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
+import StressPanel from './StressPanel';
 import {
   EXIT_REASONS, JournalApiError, JournalSettings, Position, PositionCloseBody,
   PositionCreateBody, closePosition, createPosition, fetchJournal,
@@ -51,6 +52,24 @@ function FlagChips({ position }: { position: Position }) {
 }
 
 // ── locked (public) state ───────────────────────────────────────────────────
+/** Phase C "size followed?" audit: entered contracts vs the sizing card's
+    recommendation recorded at entry. Pre-Phase-C rows (no snapshot) show a dash. */
+function SizedCell({ position }: { position: Position }) {
+  if (position.rec_contracts == null) return <span className="text-txt-tertiary">—</span>;
+  const followed = position.contracts === position.rec_contracts;
+  return (
+    <span
+      className={followed ? 'text-secondary' : 'text-warning'}
+      title={`entered ${position.contracts} vs recommended ${position.rec_contracts}`
+        + (position.binding_cap && position.binding_cap !== 'none'
+           ? ` (${position.binding_cap} bound)` : '')}
+    >
+      {position.contracts}/{position.rec_contracts}{followed ? ' ✓' : ' ✗'}
+    </span>
+  );
+}
+
+
 function LockedCard() {
   return (
     <div className="bg-surface rounded-lg border border-border overflow-hidden">
@@ -371,6 +390,19 @@ export default function JournalTab() {
 
   return (
     <div className="space-y-5">
+      {/* Stale-equity banner — NAV feeds every sizing number (plan §C1 integrity) */}
+      {settings?.nav != null && settings.equity_stale && (
+        <div className="px-4 py-2.5 rounded-lg border border-warning-30 bg-warning-subtle text-xs text-txt">
+          <strong>Equity is stale.</strong> NAV last updated{' '}
+          {settings.equity_updated_at ?? 'unknown'}
+          {settings.equity_stale_sessions != null && ` (${settings.equity_stale_sessions} sessions ago)`}
+          {' '}— sizing recommendations assume it is current. Update it in Settings.
+        </div>
+      )}
+
+      {/* Book risk (Phase C stress panel) */}
+      <StressPanel />
+
       {/* Open book */}
       <div className="bg-surface rounded-lg border border-border overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b border-border-subtle flex items-center justify-between gap-3 flex-wrap">
@@ -400,7 +432,7 @@ export default function JournalTab() {
                 <tr>
                   <th className={th}>Ticker</th><th className={th}>Structure</th>
                   <th className={th}>Strikes</th><th className={th}>Expiry (DTE)</th>
-                  <th className={th}>Qty</th><th className={th}>Credit</th>
+                  <th className={th}>Qty</th><th className={th}>Sized</th><th className={th}>Credit</th>
                   <th className={th}>Mark</th><th className={th}>Unrl P&L</th>
                   <th className={th}>Capture</th><th className={th}>Flags</th><th className={th}></th>
                 </tr>
@@ -419,6 +451,7 @@ export default function JournalTab() {
                         {p.expiry} {m?.dte != null && <span className="text-txt-tertiary">({m.dte}d)</span>}
                       </td>
                       <td className={`${td} text-txt-secondary`}>{p.contracts}</td>
+                      <td className={td}><SizedCell position={p} /></td>
                       <td className={`${td} text-txt-secondary`}>{p.entry_credit?.toFixed(2)}</td>
                       <td className={`${td} text-txt-secondary`}>
                         {m?.option_mid != null ? m.option_mid.toFixed(2) : '—'}
@@ -461,6 +494,7 @@ export default function JournalTab() {
                 <tr>
                   <th className={th}>Ticker</th><th className={th}>Structure</th>
                   <th className={th}>Entry → Close</th><th className={th}>Credit → Debit</th>
+                  <th className={th}>Sized</th>
                   <th className={th}>Realized P&L</th><th className={th}>Exit</th>
                   <th className={th}>Plan</th>
                 </tr>
@@ -476,6 +510,7 @@ export default function JournalTab() {
                     <td className={`${td} text-txt-secondary`}>
                       {p.entry_credit?.toFixed(2)} → {p.close_debit?.toFixed(2)}
                     </td>
+                    <td className={td}><SizedCell position={p} /></td>
                     <td className={`${td} font-semibold ${pnlClass(p.realized_pnl)}`}>{fmtMoney(p.realized_pnl, 2)}</td>
                     <td className={`${td} text-txt-secondary`}>{p.exit_reason?.replace(/_/g, ' ') ?? '—'}</td>
                     <td className={td}>

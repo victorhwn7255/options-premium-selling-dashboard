@@ -142,8 +142,11 @@ MANAGEMENT RULES YOU MAY CITE (the strategy's OWN exit rules — do NOT invent n
 PROFIT_TARGET flag already encodes which applies).
 - Time exit: close at 21 DTE — gamma outgrows theta (TIME_EXIT flag).
 - Earnings wall: exit before a binary earnings event inside the remaining life (EARNINGS_WALL flag).
-- Danger/underwater: leave a DANGER-regime name only when it is underwater (DANGER_UNDERWATER flag).
+- Danger/underwater: leave a DANGER-regime name only when it is underwater — mark >= 1.25x the \
+entry credit, not merely negative P&L (DANGER_UNDERWATER flag).
 - Tested: short strike under pressure (spot at/through strike or |Δ|>=0.30) → defend/roll decision (TESTED flag).
+- Spread-aware decay: remaining premium under 2x the quoted spread on a far-OTM (>1.5 sigma_fwd*sqrt-t) \
+strike with no active gate → let it decay to ~7 DTE rather than pay the spread to close (SPREAD_AWARE_DECAY flag).
 A management call must cite one of these flags/rules or say explicitly that no exit rule fires yet.
 
 TODAY'S DETERMINISTIC BOOK HEADER (already written to portfolio-evals.md immediately above your prose):

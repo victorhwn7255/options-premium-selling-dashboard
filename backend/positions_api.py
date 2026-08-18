@@ -19,7 +19,7 @@ import csv
 import json
 import logging
 import math
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -65,6 +65,16 @@ class PositionCreate(BaseModel):
     exit_dte_plan: Optional[int] = None
     max_loss_plan: Optional[float] = None
     deviation_reason: Optional[str] = None        # required when the entry checklist fails
+    # Phase C sizing snapshot (optional — populated when the entry flows from the
+    # sizing card): what v2 RECOMMENDED, recorded verbatim beside what was entered.
+    # Feeds the "size followed?" audit. Advisory only — never validated against
+    # `contracts`; a divergence is a fact to record, not an error to reject.
+    rec_contracts: Optional[int] = None
+    f_star: Optional[float] = None
+    dial_R: Optional[float] = None
+    dial_O: Optional[float] = None
+    margin_per_contract: Optional[float] = None
+    binding_cap: Optional[str] = None
 
 
 class PositionPatch(BaseModel):
@@ -196,11 +206,37 @@ def compute_flags(pos: dict, mark: Optional[dict], trow: Optional[dict],
         flags.append({"code": "EARNINGS_WALL",
                       "detail": f"earnings in {mark['earnings_dte']}d, inside remaining {mark['dte']}d",
                       "rule": "earnings gate: binary gap risk no premium pays for"})
+    # "Underwater" per spec §5.4 / plan §C2: mark >= danger_underwater_mult (1.25x) the
+    # entry credit — a deeper bar than merely negative P&L (a profitable DANGER flip
+    # only tightens monitoring). Threshold from CONFIG (P3), read lazily to keep this
+    # module importable without the scientific stack at collection time.
     if ((trow or {}).get("regime") == "DANGER"
-            and mark.get("unrealized_pnl") is not None and mark["unrealized_pnl"] < 0):
-        flags.append({"code": "DANGER_UNDERWATER",
-                      "detail": f"regime DANGER with unrealized {mark['unrealized_pnl']:+.0f}",
-                      "rule": "ADR-refined exit: leave DANGER names only when underwater"})
+            and mark.get("option_mid") is not None and pos.get("entry_credit")):
+        from theta_core import CONFIG as _TC
+        mult = _TC["danger_underwater_mult"]
+        if mark["option_mid"] >= mult * pos["entry_credit"]:
+            flags.append({"code": "DANGER_UNDERWATER",
+                          "detail": (f"regime DANGER with mark {mark['option_mid']:.2f} ≥ "
+                                     f"{mult:.2f}× credit {pos['entry_credit']:.2f}"),
+                          "rule": "spec §5.4: leave a DANGER name only when underwater "
+                                  f"(mark ≥ {mult:.2f}× credit)"})
+    # SPREAD_AWARE_DECAY (plan §C2, the 21-DTE exception): remaining premium < 2× the
+    # current spread AND strike > 1.5 σ_fwd·√t OTM AND no active v2 gate → let it decay
+    # to 7 DTE rather than pay the spread to close.
+    if (mark.get("option_mid") is not None
+            and mark.get("option_bid") is not None and mark.get("option_ask") is not None
+            and mark.get("underlying_close") and pos.get("short_strike")
+            and mark.get("dte") and (trow or {}).get("sigma_fwd")
+            and (trow or {}).get("v2_gate_state") in (None, "NORMAL")):
+        spread = mark["option_ask"] - mark["option_bid"]
+        otm_frac = (mark["underlying_close"] - pos["short_strike"]) / mark["underlying_close"]
+        sigma_t = trow["sigma_fwd"] * math.sqrt(mark["dte"] / 252.0)
+        if spread > 0 and mark["option_mid"] < 2.0 * spread and otm_frac > 1.5 * sigma_t:
+            flags.append({"code": "SPREAD_AWARE_DECAY",
+                          "detail": (f"premium {mark['option_mid']:.2f} < 2× spread "
+                                     f"{spread:.2f}, {otm_frac:.1%} OTM > 1.5σ_fwd·√t "
+                                     f"({1.5 * sigma_t:.1%}), no gate"),
+                          "rule": "plan §C2: let it decay to 7 DTE rather than pay to close"})
     tested = False
     if mark.get("underlying_close") is not None and pos.get("short_strike") is not None:
         tested = mark["underlying_close"] <= pos["short_strike"]
@@ -302,6 +338,13 @@ async def open_position(body: PositionCreate):
         "entry_iv": (trow or {}).get("iv_current"),
         "entry_sigma_fwd": (trow or {}).get("sigma_fwd"),
         "entry_fvrp": (trow or {}).get("fvrp_ratio"),
+        # Sizing snapshot (Phase C) — recorded verbatim when supplied by the card.
+        "rec_contracts": body.rec_contracts,
+        "f_star": body.f_star,
+        "dial_R": body.dial_R,
+        "dial_O": body.dial_O,
+        "margin_per_contract": body.margin_per_contract,
+        "binding_cap": body.binding_cap,
     }
     pos_id = create_position(fields)
     return get_position(pos_id)
@@ -501,11 +544,39 @@ async def journal_analytics():
     }
 
 
+# Stale-equity banner threshold (plan §C1 "manual-journaling integrity" — equity
+# feeds every sizing number, so a stale NAV silently mis-sizes everything).
+# App-hygiene constant, not a strategy threshold — lives here like the journal
+# defaults above, per the DEFAULT_* precedent (P3 governs CONFIG constants).
+STALE_EQUITY_SESSIONS = 5
+
+
+def _sessions_between(d0: date, d1: date) -> int:
+    """Weekday count between two dates (staleness in sessions, holiday-blind)."""
+    n, d = 0, d0
+    while d < d1:
+        d += timedelta(days=1)
+        if d.weekday() < 5:
+            n += 1
+    return n
+
+
 @router.get("/settings")
 async def read_settings():
     s = get_all_settings()
+    upd = s.get("equity_updated_at")
+    stale_sessions = None
+    if upd:
+        try:
+            stale_sessions = _sessions_between(date.fromisoformat(upd), date.today())
+        except ValueError:
+            stale_sessions = None
     return {
         "nav": float(s["nav"]) if s.get("nav") else None,
+        "equity_updated_at": upd,
+        "equity_stale_sessions": stale_sessions,
+        "equity_stale": (stale_sessions is None or stale_sessions > STALE_EQUITY_SESSIONS)
+                        if s.get("nav") else None,
         "default_target_capture": float(s.get("default_target_capture", DEFAULT_TARGET_CAPTURE)),
         "default_exit_dte": int(s.get("default_exit_dte", DEFAULT_EXIT_DTE)),
         "default_commission_per_contract": (float(s["default_commission_per_contract"])
@@ -518,7 +589,31 @@ async def write_settings(body: SettingsBody):
     for key, val in body.model_dump().items():
         if val is not None:
             set_setting(key, str(val))
+    if body.nav is not None:  # equity freshness clock (stale-equity banner input)
+        set_setting("equity_updated_at", date.today().isoformat())
     return await read_settings()
+
+
+# ── Phase C3: advisory sizing + portfolio stress (owner-gated like the journal;
+#    computed 100% server-side — the frontend renders, never computes: P1 pattern) ──
+@router.get("/sizing/{ticker}")
+async def sizing_card(ticker: str, strike: float, premium: float, dte: int):
+    """Advisory sizing chain for one candidate short put. 409 when NAV/context missing."""
+    import sizing
+    try:
+        return sizing.size_candidate(ticker, strike, premium, dte)
+    except sizing.SizingUnavailable as e:
+        raise HTTPException(409, str(e))
+
+
+@router.get("/portfolio/stress")
+async def portfolio_stress():
+    """Book stress panel: both scenarios + all five caps with headroom."""
+    import sizing
+    try:
+        return sizing.book_stress()
+    except sizing.SizingUnavailable as e:
+        raise HTTPException(409, str(e))
 
 
 # ── Scan-time mark step (called from main.run_full_scan post-loop) ──────────
@@ -557,6 +652,7 @@ async def mark_open_positions_from_scan(chain_inputs: dict, earnings_by_ticker: 
         short_delta = short_c.delta if short_c else None
         bid = short_c.bid if short_c else None
         ask = short_c.ask if short_c else None
+        mark_iv = short_c.implied_volatility if short_c else None
         source = "scan_chain"
 
         net = net_close_debit(short_mid, long_mid, p["structure"])
@@ -571,6 +667,7 @@ async def mark_open_positions_from_scan(chain_inputs: dict, earnings_by_ticker: 
                 if q and q.get("mid") is not None:
                     short_mid, bid, ask = q["mid"], q.get("bid"), q.get("ask")
                     short_delta = q.get("delta")
+                    mark_iv = q.get("iv")
                     spot = spot or q.get("underlying_price")
                     long_mid = lq.get("mid") if lq else None
                     net = net_close_debit(short_mid, long_mid, p["structure"])
@@ -588,7 +685,8 @@ async def mark_open_positions_from_scan(chain_inputs: dict, earnings_by_ticker: 
                 option_mid=prev.get("option_mid"), short_delta=prev.get("short_delta"),
                 unrealized_pnl=prev.get("unrealized_pnl"),
                 capture_pct=prev.get("capture_pct"),
-                dte=dte, earnings_dte=earn, mark_source="carried")
+                dte=dte, earnings_dte=earn, mark_source="carried",
+                mark_iv=prev.get("mark_iv"))
             marked += 1
             continue
 
@@ -597,7 +695,7 @@ async def mark_open_positions_from_scan(chain_inputs: dict, earnings_by_ticker: 
             option_mid=net, short_delta=short_delta,
             unrealized_pnl=position_pnl(p["entry_credit"], net, p["contracts"]),
             capture_pct=capture_pct(p["entry_credit"], net),
-            dte=dte, earnings_dte=earn, mark_source=source)
+            dte=dte, earnings_dte=earn, mark_source=source, mark_iv=mark_iv)
         marked += 1
 
     # Partial portfolio_daily row (nav from settings; PSR/stress stay NULL → Phase C).

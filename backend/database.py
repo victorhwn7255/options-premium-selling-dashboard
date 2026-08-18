@@ -333,6 +333,12 @@ def init_db():
         if col not in pos_existing:
             conn.execute(f"ALTER TABLE positions ADD COLUMN {col} {typ}")
 
+    # Phase C (S3): per-contract IV on each mark — feeds the stress reprice of held
+    # positions (fallback when absent: ticker ATM IV from daily_iv). Additive.
+    marks_existing = {row[1] for row in conn.execute("PRAGMA table_info(position_marks)")}
+    if marks_existing and "mark_iv" not in marks_existing:
+        conn.execute("ALTER TABLE position_marks ADD COLUMN mark_iv REAL")
+
     conn.executescript("""
         /* Daily EOD state per open position, written by the scan's mark step.
            mark_source: scan_chain | quote_fallback | carried | csv_backfill.
@@ -351,6 +357,7 @@ def init_db():
             dte INTEGER,
             earnings_dte INTEGER,
             mark_source TEXT NOT NULL,
+            mark_iv REAL,              -- per-contract IV (Phase C S3; stress reprice input)
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (position_id, date)
         );
@@ -1342,6 +1349,9 @@ _POSITION_WRITABLE = {
     "contracts", "entry_date", "entry_credit", "entry_fills", "entry_commissions",
     "close_date", "close_debit", "close_fills", "close_commissions", "realized_pnl",
     "entry_spot", "entry_iv", "entry_sigma_fwd", "entry_fvrp",
+    # Phase C sizing snapshot — what v2 RECOMMENDED at entry (vs `contracts` = what
+    # the human entered); the "size followed?" audit reads this pair. Advisory only.
+    "rec_contracts", "f_star", "dial_R", "dial_O", "margin_per_contract", "binding_cap",
     "scan_ref", "thesis", "target_capture", "exit_dte_plan", "max_loss_plan",
     "checklist_json", "exit_reason", "followed_plan", "roll_group_id",
 }
@@ -1412,23 +1422,27 @@ def update_position(position_id: int, fields: dict) -> bool:
 def store_position_mark(position_id: int, mark_date: str, *, underlying_close=None,
                         option_bid=None, option_ask=None, option_mid=None,
                         short_delta=None, unrealized_pnl=None, capture_pct=None,
-                        dte=None, earnings_dte=None, mark_source: str = "scan_chain"):
+                        dte=None, earnings_dte=None, mark_source: str = "scan_chain",
+                        mark_iv=None):
     """Idempotent per (position, date): the scan retry path may mark twice."""
     conn = get_connection()
     try:
         conn.execute(
             """INSERT INTO position_marks
                (position_id, date, underlying_close, option_bid, option_ask, option_mid,
-                short_delta, unrealized_pnl, capture_pct, dte, earnings_dte, mark_source)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                short_delta, unrealized_pnl, capture_pct, dte, earnings_dte, mark_source,
+                mark_iv)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(position_id, date) DO UPDATE SET
                  underlying_close=excluded.underlying_close, option_bid=excluded.option_bid,
                  option_ask=excluded.option_ask, option_mid=excluded.option_mid,
                  short_delta=excluded.short_delta, unrealized_pnl=excluded.unrealized_pnl,
                  capture_pct=excluded.capture_pct, dte=excluded.dte,
-                 earnings_dte=excluded.earnings_dte, mark_source=excluded.mark_source""",
+                 earnings_dte=excluded.earnings_dte, mark_source=excluded.mark_source,
+                 mark_iv=excluded.mark_iv""",
             (position_id, mark_date, underlying_close, option_bid, option_ask, option_mid,
-             short_delta, unrealized_pnl, capture_pct, dte, earnings_dte, mark_source))
+             short_delta, unrealized_pnl, capture_pct, dte, earnings_dte, mark_source,
+             mark_iv))
         conn.commit()
     finally:
         conn.close()

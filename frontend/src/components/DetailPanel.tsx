@@ -9,6 +9,7 @@ import {
 import type { DashboardTicker, VolHistoryPoint, TermStructurePoint2, TickerDelta, TickerResult } from '@/lib/types';
 import { fetchTickerHistory } from '@/lib/api';
 import { ThinPremiumBadge, EarningsWarningBadge, RvAccelStatusChip, GateBadge } from './badges';
+import SizingCard from './SizingCard';
 import { useCssColors } from '@/hooks/useCssColors';
 
 interface DetailPanelProps {
@@ -628,6 +629,17 @@ export default function DetailPanel({ ticker, delta, v2 }: DetailPanelProps) {
       )}
 
       {/* Day-over-Day Comparison — below charts */}
+      {/* Phase C3 — advisory entry sizing (owner-only; renders null for visitors).
+          Prefill: ~7% OTM strike, 35 DTE; premium comes from the trader's quote. */}
+      <div className="px-4 sm:px-6 py-4 border-t border-border-subtle">
+        <SizingCard
+          ticker={ticker.sym}
+          defaultStrike={Math.round(ticker.price * 0.93)}
+          defaultDte={35}
+          note="Prefilled ~7% OTM — set the strike/premium from your broker quote, then size it."
+        />
+      </div>
+
       {delta ? (
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-border-subtle">
           <span className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase block mb-3">

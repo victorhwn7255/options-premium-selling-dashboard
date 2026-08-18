@@ -216,19 +216,66 @@ def test_flags_edges():
     today = date.today()
     pos = {"expiry": (today + timedelta(days=10)).isoformat(), "short_strike": 210,
            "target_capture": 0.75, "exit_dte_plan": 21, "entry_credit": 2.0}
-    mark = {"capture_pct": 0.55, "dte": 10, "earnings_dte": 5,
+    # S3: "underwater" = mark >= 1.25x credit (spec §5.4), so option_mid drives the flag
+    mark = {"capture_pct": 0.55, "dte": 10, "earnings_dte": 5, "option_mid": 2.60,
             "underlying_close": 205.0, "short_delta": -0.42, "unrealized_pnl": -100}
     trow = {"regime": "DANGER", "rv_acceleration": 1.2}
     codes = {f["code"] for f in papi.compute_flags(pos, mark, trow)}
     _ok("50% target variant fires under hot accel", "PROFIT_TARGET" in codes)
     _ok("TIME_EXIT at 10 dte", "TIME_EXIT" in codes)
     _ok("EARNINGS_WALL inside hold", "EARNINGS_WALL" in codes)
-    _ok("DANGER_UNDERWATER", "DANGER_UNDERWATER" in codes)
+    _ok("DANGER_UNDERWATER at mark 2.60 >= 1.25x credit 2.0", "DANGER_UNDERWATER" in codes)
     _ok("TESTED via spot<=strike", "TESTED" in codes)
 
     expired = {"expiry": (today - timedelta(days=1)).isoformat(), "short_strike": 210}
     codes = {f["code"] for f in papi.compute_flags(expired, None, None)}
     _ok("PENDING_SETTLEMENT after expiry", codes == {"PENDING_SETTLEMENT"})
+
+
+def test_flags_s3_boundaries():
+    """S3 flags: danger_underwater_mult boundary + SPREAD_AWARE_DECAY conditions."""
+    today = date.today()
+    pos = {"expiry": (today + timedelta(days=40)).isoformat(), "short_strike": 345,
+           "target_capture": 0.75, "exit_dte_plan": 21, "entry_credit": 2.0}
+    # DANGER + losing but ABOVE-water by the 1.25x bar (mark 2.4 < 2.5) -> no flag
+    shallow = {"option_mid": 2.40, "capture_pct": -0.20, "dte": 40,
+               "underlying_close": 380.0, "unrealized_pnl": -120}
+    codes = {f["code"] for f in papi.compute_flags(pos, shallow, {"regime": "DANGER"})}
+    _ok("mark 2.40 < 1.25x credit -> DANGER_UNDERWATER does NOT fire (negative P&L alone "
+        "is not underwater)", "DANGER_UNDERWATER" not in codes)
+    deep = dict(shallow, option_mid=2.50)
+    codes = {f["code"] for f in papi.compute_flags(pos, deep, {"regime": "DANGER"})}
+    _ok("mark 2.50 == 1.25x credit boundary fires", "DANGER_UNDERWATER" in codes)
+
+    # SPREAD_AWARE_DECAY: premium 0.06 < 2x spread 0.04*2=0.08; strike 15% OTM vs
+    # 1.5*sigma_fwd*sqrt(40/252) = 1.5*0.20*0.398 = 11.9%; gate NORMAL -> fires
+    decayed = {"option_mid": 0.06, "option_bid": 0.04, "option_ask": 0.08,
+               "capture_pct": 0.97, "dte": 40, "underlying_close": 406.0,
+               "unrealized_pnl": 580}
+    trow = {"regime": "NORMAL", "sigma_fwd": 0.20, "v2_gate_state": "NORMAL"}
+    codes = {f["code"] for f in papi.compute_flags(pos, decayed, trow)}
+    _ok("SPREAD_AWARE_DECAY fires on decayed far-OTM no-gate", "SPREAD_AWARE_DECAY" in codes)
+    gated = dict(trow, v2_gate_state="DANGER")
+    codes = {f["code"] for f in papi.compute_flags(pos, decayed, gated)}
+    _ok("active gate suppresses SPREAD_AWARE_DECAY", "SPREAD_AWARE_DECAY" not in codes)
+    rich = dict(decayed, option_mid=0.30)
+    codes = {f["code"] for f in papi.compute_flags(pos, rich, trow)}
+    _ok("premium >= 2x spread suppresses it", "SPREAD_AWARE_DECAY" not in codes)
+    near = dict(decayed, underlying_close=362.0)  # ~4.7% OTM < 11.9% needed
+    codes = {f["code"] for f in papi.compute_flags(pos, near, trow)}
+    _ok("not far enough OTM suppresses it", "SPREAD_AWARE_DECAY" not in codes)
+
+    # parity: the automation port agrees on every S3 case
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from automation.render.portfolio_eval import compute_flags as auto_flags
+    for label, m, tr in (("shallow", shallow, {"regime": "DANGER"}),
+                         ("deep", deep, {"regime": "DANGER"}),
+                         ("decayed", decayed, trow), ("gated", decayed, gated)):
+        b = {f["code"] for f in papi.compute_flags(pos, m, tr)}
+        a = {f["code"] for f in auto_flags(pos, m, tr, today.isoformat())}
+        _ok(f"automation port parity ({label})", a == b)
 
 
 if __name__ == "__main__":
@@ -240,4 +287,5 @@ if __name__ == "__main__":
     test_checklist_gate()
     test_roll_failed_replacement_leaves_old_leg_open()
     test_flags_edges()
+    test_flags_s3_boundaries()
     print("All journal tests passed.")

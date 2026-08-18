@@ -15,11 +15,16 @@ prose evaluation paragraph is written separately by Claude (see portfolio-evals.
 """
 from __future__ import annotations
 
+import math
+
 from ._fmt import fixed
 
 # Journal management-rule defaults (mirror backend/positions_api.py DEFAULT_* constants).
 DEFAULT_TARGET_CAPTURE = 0.75
 DEFAULT_EXIT_DTE = 21
+# Mirrors theta_core.CONFIG["danger_underwater_mult"] — the automation stays stdlib-only,
+# so the value is mirrored literally; if CONFIG moves, update BOTH (S3 2026-08-18).
+DANGER_UNDERWATER_MULT = 1.25
 
 BOOK_HEADER = ("| # | Ticker | Structure | Strikes | Expiry | Qty | Credit | Mark | uPnL | "
                "Capture | DTE | Δ | Regime | v1 Action | v2 Gate | FVRP | Flags |")
@@ -60,11 +65,32 @@ def compute_flags(pos: dict, mark: dict | None, trow: dict | None,
         flags.append({"code": "EARNINGS_WALL",
                       "detail": f"earnings in {mark['earnings_dte']}d, inside remaining {mark['dte']}d",
                       "rule": "earnings gate: binary gap risk no premium pays for"})
+    # "Underwater" per spec §5.4: mark >= DANGER_UNDERWATER_MULT x entry credit —
+    # a deeper bar than merely negative P&L (faithful port of the S3 backend change).
     if ((trow or {}).get("regime") == "DANGER"
-            and mark.get("unrealized_pnl") is not None and mark["unrealized_pnl"] < 0):
-        flags.append({"code": "DANGER_UNDERWATER",
-                      "detail": f"regime DANGER with unrealized {mark['unrealized_pnl']:+.0f}",
-                      "rule": "ADR-refined exit: leave DANGER names only when underwater"})
+            and mark.get("option_mid") is not None and pos.get("entry_credit")):
+        if mark["option_mid"] >= DANGER_UNDERWATER_MULT * pos["entry_credit"]:
+            flags.append({"code": "DANGER_UNDERWATER",
+                          "detail": (f"regime DANGER with mark {mark['option_mid']:.2f} >= "
+                                     f"{DANGER_UNDERWATER_MULT:.2f}x credit {pos['entry_credit']:.2f}"),
+                          "rule": "spec §5.4: leave a DANGER name only when underwater "
+                                  f"(mark >= {DANGER_UNDERWATER_MULT:.2f}x credit)"})
+    # SPREAD_AWARE_DECAY (plan §C2): remaining premium < 2x current spread AND strike
+    # > 1.5 sigma_fwd*sqrt(t) OTM AND no active v2 gate -> decay to 7 DTE, don't pay to close.
+    if (mark.get("option_mid") is not None
+            and mark.get("option_bid") is not None and mark.get("option_ask") is not None
+            and mark.get("underlying_close") and pos.get("short_strike")
+            and mark.get("dte") and (trow or {}).get("sigma_fwd")
+            and (trow or {}).get("v2_gate_state") in (None, "NORMAL")):
+        spread = mark["option_ask"] - mark["option_bid"]
+        otm_frac = (mark["underlying_close"] - pos["short_strike"]) / mark["underlying_close"]
+        sigma_t = trow["sigma_fwd"] * math.sqrt(mark["dte"] / 252.0)
+        if spread > 0 and mark["option_mid"] < 2.0 * spread and otm_frac > 1.5 * sigma_t:
+            flags.append({"code": "SPREAD_AWARE_DECAY",
+                          "detail": (f"premium {mark['option_mid']:.2f} < 2x spread "
+                                     f"{spread:.2f}, {otm_frac:.1%} OTM > 1.5 sigma_fwd*sqrt(t) "
+                                     f"({1.5 * sigma_t:.1%}), no gate"),
+                          "rule": "plan §C2: let it decay to 7 DTE rather than pay to close"})
     tested = False
     if mark.get("underlying_close") is not None and pos.get("short_strike") is not None:
         tested = mark["underlying_close"] <= pos["short_strike"]
