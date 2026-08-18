@@ -100,7 +100,7 @@ def test_sizing_arithmetic_hand_calc():
         _daily_iv_row()  # single row: median sigma_dn == now -> R = 1; fvrp_z 0 -> O = 1
         client = _client()
         _set_nav(client, 1_000_000)
-        r = client.get("/api/sizing/SPY", params={"strike": 460, "premium": 5.0, "dte": 35})
+        r = client.get("/api/positions/sizing/SPY", params={"strike": 460, "premium": 5.0, "dte": 35})
         assert r.status_code == 200, r.text
         d = r.json()
         M = tc.margin_short_put(5.0, 500.0, 460.0)   # hand: 100*max(5+0.2*500-40, 5+46)
@@ -141,7 +141,7 @@ def test_book_stress_hand_calc():
                                      option_ask=2.2, option_mid=2.1, short_delta=-0.15,
                                      unrealized_pnl=219.0, capture_pct=0.258, dte=60,
                                      earnings_dte=None, mark_source="scan_chain")
-        r = client.get("/api/portfolio/stress")
+        r = client.get("/api/positions/book/stress")
         assert r.status_code == 200, r.text
         d = r.json()
         # independent reprice: iv from daily_iv (0.22), spot from the mark (380)
@@ -179,7 +179,7 @@ def test_caps_reject_not_trim():
         # bigger: f=0.8 -> floor(100000*0.25*0.8/M). Choose strike 490 (otm 10):
         # M = 100*max(5+100-10, 5+49) = 9500 -> raw = 2. name_margin cap 8% = 8000 -> even
         # n=1 (9500) breaches name_margin_cap -> largest compliant 0, cap named.
-        r = client.get("/api/sizing/SPY", params={"strike": 490, "premium": 5.0, "dte": 35})
+        r = client.get("/api/positions/sizing/SPY", params={"strike": 490, "premium": 5.0, "dte": 35})
         d = r.json()
         _ok("raw recommendation computed before caps", d["rec_contracts_raw"] >= 1)
         _ok("cap rejected to the largest compliant size (0 here), cap NAMED",
@@ -189,7 +189,7 @@ def test_caps_reject_not_trim():
         # the name-STRESS cap (2.5% of 1M = $25k) binds first: a 490-strike put stressed
         # {-20%, IVx2, +5d} loses ~$8.16k/contract -> 3 pass ($24.5k), 4 breach.
         _set_nav(client, 1_000_000)
-        d = client.get("/api/sizing/SPY",
+        d = client.get("/api/positions/sizing/SPY",
                        params={"strike": 490, "premium": 5.0, "dte": 35}).json()
         _ok("walks down to largest compliant (3), not silent 0 / not raw 21",
             d["rec_contracts_raw"] == 21 and d["rec_contracts"] == 3
@@ -204,7 +204,7 @@ def test_f_star_zero_pathway():
         _daily_iv_row()
         client = _client()
         _set_nav(client, 100_000)
-        d = client.get("/api/sizing/SPY",
+        d = client.get("/api/positions/sizing/SPY",
                        params={"strike": 460, "premium": 5.0, "dte": 35}).json()
         _ok("f*=0 -> rec 0 with explicit flag",
             d["rec_contracts"] == 0 and d["f_star_zero"] is True)
@@ -219,7 +219,7 @@ def test_snapshot_and_equity_freshness():
         client = _client()
         # sizing before NAV -> 409, not a silent default
         _daily_iv_row()
-        r = client.get("/api/sizing/SPY", params={"strike": 460, "premium": 5, "dte": 35})
+        r = client.get("/api/positions/sizing/SPY", params={"strike": 460, "premium": 5, "dte": 35})
         _ok("sizing without NAV -> 409", r.status_code == 409)
         _set_nav(client, 250_000)
         s = client.get("/api/settings").json()

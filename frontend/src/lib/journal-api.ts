@@ -221,9 +221,9 @@ export interface StressReport {
 
 export const fetchSizing = (ticker: string, strike: number, premium: number, dte: number) =>
   jfetch<SizingResult>(
-    `/api/sizing/${encodeURIComponent(ticker)}?strike=${strike}&premium=${premium}&dte=${dte}`);
+    `/api/positions/sizing/${encodeURIComponent(ticker)}?strike=${strike}&premium=${premium}&dte=${dte}`);
 
-export const fetchPortfolioStress = () => jfetch<StressReport>('/api/portfolio/stress');
+export const fetchPortfolioStress = () => jfetch<StressReport>('/api/positions/book/stress');
 
 /* Cached owner probe for surfaces OUTSIDE the journal tab (the sizing card on
    candidate rows): probe once per page load, share the promise. */

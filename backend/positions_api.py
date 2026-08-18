@@ -595,8 +595,13 @@ async def write_settings(body: SettingsBody):
 
 
 # ── Phase C3: advisory sizing + portfolio stress (owner-gated like the journal;
-#    computed 100% server-side — the frontend renders, never computes: P1 pattern) ──
-@router.get("/sizing/{ticker}")
+#    computed 100% server-side — the frontend renders, never computes: P1 pattern).
+#    Paths live under /api/positions/* because the Cloudflare Access app covers exactly
+#    /api/positions*, /api/journal*, /api/settings* (deployment.md §Access) — a path
+#    outside that list gets no CF JWT injected and fail-closes 403 in the browser
+#    (found live 2026-08-18: Book Risk panel 403'd while the book table loaded).
+#    Two path segments, so they can never collide with /positions/{position_id}.
+@router.get("/positions/sizing/{ticker}")
 async def sizing_card(ticker: str, strike: float, premium: float, dte: int):
     """Advisory sizing chain for one candidate short put. 409 when NAV/context missing."""
     import sizing
@@ -606,7 +611,7 @@ async def sizing_card(ticker: str, strike: float, premium: float, dte: int):
         raise HTTPException(409, str(e))
 
 
-@router.get("/portfolio/stress")
+@router.get("/positions/book/stress")
 async def portfolio_stress():
     """Book stress panel: both scenarios + all five caps with headroom."""
     import sizing
