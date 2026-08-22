@@ -161,6 +161,20 @@ Size is computed at entry and **never resized daily** (churn is pure friction).
   reprice at {spot −20%, IV ×2, +5 sessions}. The stress gate runs before every
   entry and every cycle.
 
+> **Implementation status (Phase C, 2026-08-18).** This section is live as an
+> ADVISORY surface (`sizing.py` + the Portfolio/Risk tab; the human enters every
+> trade). Notes: (1) **Kelly seed**: until the live log holds ≥ `kelly_min_trades`
+> closed trades through a vol event, `f*` comes from a distilled 2026-07 backtest
+> seed (1,063 SELL+COND trades; `backend/kelly_seed.json`); switching to the live
+> log is a deliberate Phase-D operator act. (2) **The seed's verdict is `f* = 0`**
+> — with disaster injection the backtest cohort has no positive-growth size — so
+> the card ships showing the f*=0 banner and recommends 0 contracts; per the rule
+> above this is respected, not floored. Recalibration (e.g. the disaster
+> parameters) belongs to Phase-F trials. (3) The UI additionally renders a
+> **display-only mild scenario** {−10%, IV ×1.5, +5d} beside the binding severe
+> one, and a **stale-equity banner** when NAV is older than 5 sessions (app
+> hygiene constants, not strategy thresholds).
+
 ## 7. Portfolio management and health
 
 - **Trailing realized-VRP health monitor** (rolling 90-day mean of entry-IV² minus

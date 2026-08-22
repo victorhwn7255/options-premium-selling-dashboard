@@ -136,7 +136,7 @@ def _portfolio_eval_pass(*, portfolio_evals_path, api_date, read_book_fn, scan_r
         try:
             d2 = date.fromisoformat(iso)
             prose = eval_fn(d2, header, book_ctx,
-                            parser.latest_entries(portfolio_evals_path, 5))
+                            parser.latest_entries(portfolio_evals_path, 3))
             writer.append_to_entry(portfolio_evals_path, iso, f"**Assessment:** {prose}")
             summary["portfolio_eval_written"].append(iso)
             _log(f"wrote portfolio-eval prose {iso}", verbose=verbose)
@@ -242,7 +242,7 @@ def run(
                 d2 = date.fromisoformat(iso)
                 out = v2_briefing_fn(d2, line, body,
                                      "(unavailable — self-healed from the logged shadow table)",
-                                     parser.latest_entries(v2_briefings_path, 5))
+                                     parser.latest_entries(v2_briefings_path, 3))
                 writer.insert_entry(v2_briefings_path, iso, _heading(d2) + "\n\n" + out)
                 summary["v2_briefing_written"].append(iso)
                 v2_top = d2
@@ -277,7 +277,7 @@ def run(
                 d2 = date.fromisoformat(iso)
                 notable = notable_fn(
                     d2, {"note": "unavailable — self-healed from the logged CPS table"},
-                    body, parser.latest_entries(cps_path, 5))
+                    body, parser.latest_entries(cps_path, 3))
                 writer.append_to_entry(cps_path, iso, f"**Notable:** {notable}")
                 summary["notables_written"].append(iso)
                 _log(f"wrote CPS Notable {iso} (self-heal)", verbose=verbose)
@@ -389,7 +389,7 @@ def run(
             if claude_on and claude_ok:
                 try:
                     body = briefing_fn(d, statpack, np_table_md, cps_block_md or "",
-                                       parser.latest_entries(briefings_path, 7))
+                                       parser.latest_entries(briefings_path, 4))
                     writer.insert_entry(briefings_path, iso, _heading(d) + "\n\n" + body)
                     summary["briefings_written"].append(iso)
                     _log(f"wrote daily-briefings {iso}", verbose=verbose)
@@ -412,7 +412,7 @@ def run(
             et = parser.entry_text(cps_path, iso) or ""
             if "**Notable:**" not in et:
                 try:
-                    notable = notable_fn(d, statpack, cps_block_md, parser.latest_entries(cps_path, 5))
+                    notable = notable_fn(d, statpack, cps_block_md, parser.latest_entries(cps_path, 3))
                     writer.append_to_entry(cps_path, iso, f"**Notable:** {notable}")
                     summary["notables_written"].append(iso)
                     _log(f"wrote CPS Notable {iso}", verbose=verbose)
@@ -431,7 +431,7 @@ def run(
                 summary_line = shadow_summary_line(shadow_raw.get("summary"), shadow_flips)
                 body = v2_briefing_fn(d, summary_line, shadow_block_md,
                                       shadow_raw.get("summary") or {},
-                                      parser.latest_entries(v2_briefings_path, 5))
+                                      parser.latest_entries(v2_briefings_path, 3))
                 writer.insert_entry(v2_briefings_path, iso, _heading(d) + "\n\n" + body)
                 summary["v2_briefing_written"].append(iso)
                 _log(f"wrote v2-briefings {iso}", verbose=verbose)

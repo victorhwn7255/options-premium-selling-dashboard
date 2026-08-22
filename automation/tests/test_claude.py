@@ -52,9 +52,61 @@ def test_auth_pattern_detection():
     _ok("normal prose not flagged", not runner._AUTH_PATTERNS.search("QQQ is the cleanest SELL"))
 
 
+def test_safety_flag_fallback():
+    """A safety-filter flag on the default model triggers ONE retry with --model sonnet;
+    other errors propagate; auth errors never fall back. (2026-08-19: the v1 briefing
+    corpus tripped Fable 5's AUP filter and deadlocked the log for two runs.)"""
+    calls = []
+
+    class R:
+        def __init__(self, rc, out="", err=""):
+            self.returncode, self.stdout, self.stderr = rc, out, err
+
+    def fake_run(cmd, **kw):
+        calls.append(cmd)
+        if "--model" in cmd:
+            return R(0, out="prose from fallback")
+        return R(1, err="API Error: Fable 5's safeguards flagged this message (aup)")
+
+    real = runner.subprocess.run
+    runner.subprocess.run = fake_run
+    try:
+        out = runner._invoke_fb("prompt text")
+        _ok("fallback returned the prose", out == "prose from fallback")
+        _ok("two invocations made", len(calls) == 2)
+        _ok("first call had no --model (CLI default)", "--model" not in calls[0])
+        i = calls[1].index("--model")
+        _ok("second call pinned the fallback model", calls[1][i + 1] == runner.FALLBACK_MODEL)
+
+        calls.clear()
+        def fake_other(cmd, **kw):
+            calls.append(cmd)
+            return R(1, err="claude -p failed: some other error")
+        runner.subprocess.run = fake_other
+        try:
+            runner._invoke_fb("prompt")
+            raise AssertionError("expected RuntimeError")
+        except RuntimeError:
+            _ok("non-safety errors propagate without fallback", len(calls) == 1)
+
+        calls.clear()
+        def fake_auth(cmd, **kw):
+            calls.append(cmd)
+            return R(1, err="please run /login")
+        runner.subprocess.run = fake_auth
+        try:
+            runner._invoke_fb("prompt")
+            raise AssertionError("expected ClaudeAuthError")
+        except runner.ClaudeAuthError:
+            _ok("auth errors propagate without fallback", len(calls) == 1)
+    finally:
+        runner.subprocess.run = real
+
+
 if __name__ == "__main__":
     print("Claude runner unit tests:")
     test_clean_notable()
     test_briefing_valid()
     test_auth_pattern_detection()
+    test_safety_flag_fallback()
     print("All claude runner tests passed.")

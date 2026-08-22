@@ -32,16 +32,32 @@ def has_entry(path: str | Path, iso_date: str) -> bool:
     return bool(pat.search(Path(path).read_text()))
 
 
-def latest_entries(path: str | Path, n: int = 7) -> str:
-    """Raw text of the top-N dated entries (from the 1st heading up to just before the (n+1)th)."""
+def latest_entries(path: str | Path, n: int = 7,
+                   max_chars_per_entry: int = 6000) -> str:
+    """Raw text of the top-N dated entries, each capped at max_chars_per_entry.
+
+    The cap truncates the MIDDLE of an oversized entry (head + tail kept) so the
+    few-shot examples still show both the opening format line AND the closing
+    line — truncating the tail would teach the model to omit endings. Token
+    control (2026-08-19): entry lengths tripled May→Aug via the voice feedback
+    loop (each generation matches the length of its examples), pushing one run's
+    corpora alone past ~60k tokens and into the Max session limit."""
     text = Path(path).read_text()
     lines = text.splitlines()
     hs = _headings(text)
     if not hs:
         return ""
-    start = hs[0][0]
-    end = hs[n][0] if len(hs) > n else len(lines)
-    return "\n".join(lines[start:end]).rstrip("\n")
+    out = []
+    for i in range(min(n, len(hs))):
+        start = hs[i][0]
+        end = hs[i + 1][0] if i + 1 < len(hs) else len(lines)
+        e = "\n".join(lines[start:end]).rstrip("\n")
+        if max_chars_per_entry and len(e) > max_chars_per_entry:
+            head = e[: int(max_chars_per_entry * 0.65)]
+            tail = e[-int(max_chars_per_entry * 0.30):]
+            e = head + "\n… [middle truncated for length] …\n" + tail
+        out.append(e)
+    return "\n".join(out).rstrip("\n")
 
 
 def _num(cell: str):

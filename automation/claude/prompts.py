@@ -33,7 +33,9 @@ theses, active positions, and watchpoints; reference what changed since yesterda
 
 Now write {date}'s entry body: a regime headline line, 1 dense analysis paragraph naming specific \
 tickers/scores/deltas and signal changes, and a final `**Position:** ...` line with concrete calls \
-(sizing is the trader's decision — frame it as guidance, not orders). Be specific and decisive."""
+(sizing is the trader's decision — frame it as guidance, not orders). Be specific and decisive. \
+HARD LENGTH CAP: keep the whole entry under 4,000 characters — density beats length; do not \
+mirror the inflated length of recent entries."""
 
 
 CPS_NOTABLE_PROMPT = """You are writing the "Notable" analysis paragraph for the Credit Put Spreads \
@@ -55,7 +57,9 @@ and the standing "what triggers the first SELL_CPS" thesis):
 {recent_cps}
 
 Now write {date}'s Notable paragraph — specific about Days streaks, credit/width levels, VIX/VVIX, \
-base-gate passes, and what it all means for whether/when a SELL_CPS can fire."""
+base-gate passes, and what it all means for whether/when a SELL_CPS can fire. \
+HARD LENGTH CAP: one paragraph under 2,500 characters — do not mirror the inflated length of \
+recent notables."""
 
 
 V2_BRIEFING_PROMPT = """You are writing the daily v2-shadow briefing for "Theta Harvest", an \
@@ -118,7 +122,8 @@ the divergence — which specific V2_STRICTER / V2_LOOSER tickers matter and why
 FVRP/z/slope), whether v2 is correctly vetoing or is at risk of missing tradeable premium, and the \
 FVRP / index-gating / oscillation TREND vs recent days — and finally a `**Calibration read:** ...` \
 line stating, concretely, what this day implies for the Phase-B FVRP dead-zone quantile-match \
-(e.g. whether the dead-zone bounds look too tight/too loose relative to v1's realized eligibility)."""
+(e.g. whether the dead-zone bounds look too tight/too loose relative to v1's realized eligibility). \
+HARD LENGTH CAP: keep the whole entry under 3,500 characters."""
 
 
 PORTFOLIO_EVAL_PROMPT = """You are writing the daily PORTFOLIO EVALUATION for "Theta Harvest", an \
