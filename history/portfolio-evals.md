@@ -47,6 +47,16 @@ observations across the corpus]
 
 ---
 
+## 2026-08-21 (Friday)
+
+**Book summary:** 1 open · credit at risk $849 · notional $103,500 · top concentration GLD 100%
+
+| # | Ticker | Structure | Strikes | Expiry | Qty | Credit | Mark | uPnL | Capture | DTE | Δ | Regime | v1 Action | v2 Gate | FVRP | Flags |
+|---|--------|-----------|---------|--------|-----|--------|------|------|---------|-----|---|--------|-----------|---------|------|-------|
+| 1 | GLD | naked_put | 345P | 2026-09-18 | 3 | $2.83 | $0.26 | +$772 | 91% | 28 | — | NORMAL | NO EDGE | CAUTION | 1.18 | PROFIT_TARGET |
+
+---
+
 ## 2026-08-20 (Thursday)
 
 **Book summary:** 1 open · credit at risk $849 · notional $103,500 · top concentration GLD 100%
