@@ -1,6 +1,6 @@
 ---
-last_verified: 2026-07-15
-verified_against: human-machine-toggle (v2 Phase A live on prod, shadow review in progress)
+last_verified: 2026-08-24
+verified_against: operate-and-maintain posture (Phases A+B-build+C complete; D/E deferred 2026-08-24 — see tasks/todo.md top)
 rot_risk: medium
 rot_triggers:
   - context/ (any file added or removed)
@@ -28,9 +28,10 @@ audience: both
    - [`history/daily-briefings.md`](../history/daily-briefings.md) latest 5-7 entries — current regime, active positions
    - [`history/credit-put-spreads.md`](../history/credit-put-spreads.md) latest 3-5 entries — CPS confirmation streaks, c/w patterns
    - [`history/v2-metrics-logs.md`](../history/v2-metrics-logs.md) + [`history/v2-briefings.md`](../history/v2-briefings.md) latest 3-5 entries — the v1↔v2 shadow divergence state (the Phase-A→B evidence)
-4. **Current-state check** (facts rot daily — read them from the authoritative spots, never assume): the top rows of `references/change-logs.md` (what changed last), the `status:` line of [`tasks/v2-build/phase-a-deploy-runbook.md`](../tasks/v2-build/phase-a-deploy-runbook.md) (where the arc stands), and the newest `history/v2-briefings.md` entry (shadow-review progress).
+   - [`history/portfolio-evals.md`](../history/portfolio-evals.md) latest 2-3 entries — **the OPEN journal book** (real positions + marks + exit-flag state) and the behavioural corpus; the fastest way to know what the user actually holds
+4. **Current-state check** (facts rot daily — read them from the authoritative spots, never assume): the **STANDING DECISION at the top of [`tasks/todo.md`](../tasks/todo.md)** (as of 2026-08-24: Phases D/E deferred, app in operate-and-maintain posture — arc state lives there), the top rows of `references/change-logs.md` (what changed last), and the newest `history/portfolio-evals.md` entry (the live book).
 5. **Rot check**: if any context file's `last_verified` predates the newest change-log entry by more than a month, flag it to the user as possibly stale rather than trusting it silently.
-6. **After reading everything**, respond to the user with a structured summary of your understanding — cover: what the project does, the architecture, the scoring engine (Naked Puts + Credit Put Spreads), the regime system, **the v2 arc — current phase, shadow-review status, and the P1–P4 prohibitions** (v2 is advisory until Phase E; v1 decides), current market regime and active positions **with the date of the last scan you saw evidence for**, the **history auto-updater** (`automation/`), key fragile areas, and important design decisions.
+6. **After reading everything**, respond to the user with a structured summary of your understanding — cover: what the project does, the architecture, the scoring engine (Naked Puts + Credit Put Spreads), the regime system, **the v2 arc state — A/B-build/C complete, D/E deferred (2026-08-24), P1–P4 still binding** (v2 is advisory; v1 decides live; the app is in operate-and-maintain posture), the **Phase-C risk console** (Portfolio/Risk tab: sizing caps + stress; advisory-only), current market regime and active positions **with the date of the last scan you saw evidence for**, the **history auto-updater** (`automation/`), key fragile areas, and important design decisions.
 7. **Wait for the user to confirm** your understanding is correct before starting any task.
 
 ### Reading Order
@@ -52,7 +53,7 @@ Read in this exact sequence:
 | 11 | [`references/metrics_v1.md`](../references/metrics_v1.md) | v1 metric formulas and computation details (primary source) |
 | 12 | [`references/credit-put-spreads.md`](../references/credit-put-spreads.md) | CPS canonical spec — defined-risk strategy, gates, position rules (the build plan was archived at the v2 kickoff; this spec is canonical) |
 | 13 | [`prompts/theta-harvest-v2-build-plan.md`](../prompts/theta-harvest-v2-build-plan.md) | **The v2 master plan** — the staged arc (silent A → advisory B → position-aware C → self-measuring D → live E → self-improving F), why the prohibitions exist, the cutover design |
-| 14 | [`tasks/v2-build/00-index.md`](../tasks/v2-build/00-index.md) + the current phase file | Where the arc stands — per-phase tasks, exit criteria, stop-reviews. Phase A deployed 2026-07; check [`phase-a-deploy-runbook.md`](../tasks/v2-build/phase-a-deploy-runbook.md)'s `status:` line for current state |
+| 14 | [`tasks/v2-build/00-index.md`](../tasks/v2-build/00-index.md) + [`tasks/todo.md`](../tasks/todo.md) **top section** | Where the arc stands: **A ✅ · B built (advisory) · C ✅ (2026-08-18, sizing/stress console live) · D/E DEFERRED (2026-08-24 standing decision) — operate-and-maintain**. Completed-phase records: `phase-c-positions-sizing.md` (fully ticked) |
 | 15 | [`references/strategy_v2.md`](../references/strategy_v2.md) | v2 strategy primary source — forward-VRP (σ_fwd/FVRP), hysteretic gates G1–G5, Kelly sizing. Skim [`theta-harvest-v2-spec.md`](../references/theta-harvest-v2-spec.md) + [`metrics_v2.md`](../references/metrics_v2.md) for depth; `theta_harvest_core.py` is the frozen 1e-9 golden master (ported verbatim to `backend/theta_core.py` — never edit either side casually) |
 | 16 | [`tasks/lessons.md`](../tasks/lessons.md) | Mistakes and patterns from previous agents — avoid repeating them |
 | 17 | [`references/change-logs.md`](../references/change-logs.md) (top ~10 rows) | Recent project changes — know what was last touched and why |
@@ -60,7 +61,8 @@ Read in this exact sequence:
 | 19 | [`history/daily-briefings.md`](../history/daily-briefings.md) (latest 5-7 entries) | Recent trading analysis — regime context, active positions, market state |
 | 20 | [`history/credit-put-spreads.md`](../history/credit-put-spreads.md) (latest 3-5 entries) | Recent CPS scan snapshots — confirmation streaks, c/w patterns |
 | 21 | [`history/v2-metrics-logs.md`](../history/v2-metrics-logs.md) + [`history/v2-briefings.md`](../history/v2-briefings.md) (latest 3-5 entries) | **The v1↔v2 shadow divergence log** — deterministic table + Claude analysis per day; this is the Phase-A exit evidence and Phase-B calibration input |
-| 22 | [`automation/README.md`](../automation/README.md) | **History auto-updater** — the daily pipeline that writes the 5 `history/` files automatically (deterministic tables + Claude-written briefings on the Max plan, launchd-scheduled, capture-before-Claude). Read so you don't duplicate or fight it. |
+| 22 | [`history/portfolio-evals.md`](../history/portfolio-evals.md) (latest 2-3 entries) | **The live journal book** — open positions with marks/flags + the daily behavioural evaluation corpus (what the user holds and how they trade) |
+| 23 | [`automation/README.md`](../automation/README.md) | **History auto-updater** — the daily pipeline that writes the 5 `history/` files automatically (deterministic tables + Claude-written briefings on the Max plan, launchd-scheduled, capture-before-Claude). Read so you don't duplicate or fight it. |
 
 ---
 
@@ -86,11 +88,11 @@ The full onboarding list above is the default and the most thorough — but it i
 
 | Focus | Path (in order) | For |
 |---|---|---|
-| `v2` | v2 master plan → `tasks/v2-build/00-index.md` + current phase file → `references/strategy_v2.md` → `backend/theta_core.py` header comment → change-logs top rows → `history/v2-metrics-logs.md` + `v2-briefings.md` latest entries → `phase-a-deploy-runbook.md` | v2 build work (the usual case) |
+| `v2` | v2 master plan → `tasks/v2-build/00-index.md` + current phase file → `references/strategy_v2.md` → `backend/theta_core.py` header comment → change-logs top rows → `history/v2-metrics-logs.md` + `v2-briefings.md` latest entries → **`tasks/todo.md` top (standing decision: D/E deferred)** | v2 arc work (NOTE: arc paused 2026-08-24 — don't start D/E unprompted) |
 | `frontend` | `2-system/architecture.md` → `1-domain/scoring-and-strategy.md` → `3-guardrails/fragile-seams.md` → change-logs top rows. **Hard rules:** `scoring.ts` freezes at Phase B (P1); no gate/eligibility logic client-side; the MACHINE view renders API fields verbatim only | UI work |
-| `ops` | `2-system/deployment.md` → `automation/README.md` → `3-guardrails/fragile-seams.md` → `tasks/v2-build/phase-a-deploy-runbook.md` | Deploys, automation, prod issues |
+| `ops` | `2-system/deployment.md` → `automation/README.md` → `3-guardrails/fragile-seams.md` → change-logs top rows (recent ops fixes: CF-Access paths, token caps, safety fallback) | Deploys, automation, prod issues |
 | `analysis` | `1-domain/glossary.md` → `references/strategy_v1.md` → latest 5-7 `daily-briefings.md` + latest `v2-briefings.md` entries → invoke the `daily-briefing` skill for the actual workflow | Daily scan analysis |
-| `quick` | change-logs top rows → newest `daily-briefings.md` + `v2-briefings.md` entries → `phase-a-deploy-runbook.md` status line | Tiny tasks; situational awareness only — say explicitly that onboarding was minimal |
+| `quick` | change-logs top rows → newest `daily-briefings.md` + `portfolio-evals.md` entries → `tasks/todo.md` top (standing decision) | Tiny tasks; situational awareness only — say explicitly that onboarding was minimal |
 
 ---
 
@@ -127,6 +129,7 @@ The full onboarding list above is the default and the most thorough — but it i
 | [`daily-briefings.md`](../history/daily-briefings.md) | What was the analysis? Regime assessment, day-over-day deltas, trade recommendations, position calls. |
 | [`credit-put-spreads.md`](../history/credit-put-spreads.md) | What were the CPS scan candidates? Scan summary + overlay + candidates table per day; confirmation streaks and c/w patterns. |
 | [`v2-metrics-logs.md`](../history/v2-metrics-logs.md) | Where did v1 and v2 disagree? Deterministic daily shadow-divergence table (per-ticker v1 action vs v2 eligibility/gate, FVRP/z/slope/accel) + summary line. Since 2026-07-06. |
+| [`portfolio-evals.md`](../history/portfolio-evals.md) | How is the user's real book doing, and what habits recur? Daily deterministic book header (marks/flags) + Claude-written behavioural assessment. Live since 2026-07-22. |
 | [`v2-briefings.md`](../history/v2-briefings.md) | What does the divergence *mean*? Claude-written daily analysis closing on a **Calibration read** for the Phase-B dead-zone quantile-match. Both v2 logs retire/merge into the v1 logs at Phase E cutover. |
 
 These files are maintained two ways: **(1) manually** through the **Daily Scan Workflow** (see `CLAUDE.md`) when the user pastes metrics (the `daily-briefing` skill analyses, recommends, and logs), and **(2) automatically** by the **history auto-updater** in [`automation/`](../automation/README.md) — a launchd-scheduled daily job that does the same thing unattended for all five files (deterministic tables + Claude-written briefings on the Max plan; the two v2 logs are best-effort and never block the v1 history). Both write the identical format; don't hand-log a day the automation already covered.
