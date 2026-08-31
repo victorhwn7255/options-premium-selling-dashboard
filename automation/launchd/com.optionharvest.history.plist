@@ -25,11 +25,12 @@
 
   <key>EnvironmentVariables</key>
   <dict>
-    <!-- node (for claude) on PATH; CLAUDE_BIN absolute; ANTHROPIC_API_KEY deliberately absent -> Max plan -->
+    <!-- claude = native install (~/.local/bin symlink, since 2026-08-22; no node needed);
+         CLAUDE_BIN absolute; ANTHROPIC_API_KEY deliberately absent -> Max plan -->
     <key>PATH</key>
-    <string>/Users/victor_he/.nvm/versions/node/v22.22.0/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <string>/Users/victor_he/.local/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>CLAUDE_BIN</key>
-    <string>/Users/victor_he/.nvm/versions/node/v22.22.0/bin/claude</string>
+    <string>/Users/victor_he/.local/bin/claude</string>
   </dict>
 
   <!-- 09:00 Mac-local (SGT) daily; runs once on next wake if the Mac was asleep at 09:00. -->

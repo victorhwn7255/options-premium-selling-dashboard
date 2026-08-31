@@ -38,6 +38,74 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-08-28 (Friday)
+
+**Scan summary:** Checked 11 / 1 actionable / 8 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 14.43 / VIX3M 17.48 / VVIX 86.6 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 9d | 41 | 11.8% | $0.59 | $5 | $4.41 | Excellent | Thin premium |
+
+**Notable:** The board holds at one and the survivor is the only name that has ever really been on it: **IWM stamps 9d — a ninth consecutive session, another record, one past yesterday's 8d — and the ledger finally stops falling, score flat at 41 after three straight sessions of giving points back, but the construction keeps eroding underneath it: credit $0.65 → $0.59 on the same $5 width, and skew 13.1% → 11.8%, an eleventh consecutive print inside a narrowing band and a fresh run low for the fourth session running.** RV status stays Excellent, which remains the indictment rather than the compliment — realized vol is collapsing and that is exactly why there is nothing to sell. "Thin premium" stays welded to the line. XLF dies again after a single session, its fourth appearance and fourth exit in six prints, so the tab's former record-skew name is once more absent and IWM is alone with sub-12% c/w. The funnel goes **checked 11 / actionable 1 / base_gate 8 / construction 2 / execution 0** — execution empty for the seventy-first straight print, construction widening to two while actionable halves. The surface eases another notch: **VIX 14.51 → 14.43, a new run low, VIX3M 17.48, slope 0.831; VVIX 82.9 → 86.6, the one tick up on the tape; contango intact, NORMAL.** Regime re-labels **THE PLAYOFFS at 0S / 0C + 1W, avg VRP −5.8 (worse than yesterday's −4.9), 69% of 32 eligible negative, danger 0, stress 8 (25%)**, RV accel 0.89. Day-over-day is mildly constructive in the middle — **EEM +11 (45, top of board), NKE +9, PLTR +8, XOM +7, XLE +6** — against **XLB −20 to zero, MCD −14, XLF −11, NVDA −9, JNJ −8** — but the ceiling is **EEM at 45**, twenty-two under the gate, and IWM's 41 is second on a board with no top. **Still zero SELL_CPS at 71 sessions.** Both clauses of the old thesis are now formally dead: no ticket carries the skew, and the survival clause has become a nine-session demonstration that duration produces decay, not convergence — credit down again, skew at a run low, VRP more negative. With VIX at its lowest of the run and base gate culling eight of eleven, a first SELL_CPS needs a genuine vol repricing, not another day of waiting.
+
+---
+
+## 2026-08-27 (Thursday)
+
+**Scan summary:** Checked 11 / 2 actionable / 8 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 14.51 / VIX3M 17.56 / VVIX 82.9 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 8d | 41 | 13.1% | $0.65 | $5 | $4.35 | Excellent | Thin premium |
+| 2 | XLF | WATCH | 0d | 38 | 17.0% | $0.08 | $0.50 | $0.42 | Acceptable | Thin premium |
+
+**Notable:** The board returns to two and the pair is the same one the tab has been recycling all week, but the survivor's ledger keeps bleeding: **IWM stamps 8d — an eighth consecutive session, another record, one past yesterday's 7d — and the score ticks back up 42 → 41... down again, a third straight point given back, while the construction jumps $3 → $5 width for $0.65 credit and skew slides 13.5% → 13.1%, a tenth consecutive print inside the same one-point band and a fresh run low for the third session running.** RV status upgrades Good → Excellent, which is precisely the problem — realized vol collapsing is why the premium isn't there. "Thin premium" stays welded to the line. XLF resurrects for the third time in five sessions at **0d, score 38 (+3), but c/w craters 31.0% → 17.0% on $0.08 over $0.50** — the tab's record-skew name now prints half its own record, so the skew clause that XLF has owned for two weeks has quietly disowned it, and both live tickets are flagged thin premium for the first time in the run. The funnel goes **checked 11 / actionable 2 / base_gate 8 / construction 1 / execution 0** — execution empty for the seventieth straight print. The surface eases yet again: **VIX 15.21 → 14.51, the lowest of the run, VIX3M 17.56, slope 0.826; VVIX 85.2 → 82.9, another weekly low; contango intact, NORMAL.** Regime downshifts to **REGULAR SEASON at 0S / 0C, avg VRP −4.9, 61% of 33 eligible negative, danger 1, stress 9 (27.3%)**, term slope 0.881, RV accel 0.852. Day-over-day is genuinely two-sided — **XLI +16 (20 → 36), NVDA +23 off zero, XLE +9, NKE +5, HOOD +5** against **XOM −12, EEM −10, JNJ −8, KO −7, PLTR −7** — but the board tops at **QQQ/XLF/JPM at 38**, twenty-nine under the gate, and IWM's 41 is the high water mark of a board that has no high water mark. **Still zero SELL_CPS at 70 sessions.** The two-clause thesis is now dead on both ends: the skew clause has no carrier at all after XLF halved, and the survival clause is an eight-session decay curve. With VIX at run lows and base gate culling eight of eleven, the first SELL_CPS — one ticket at 25%+ skew with a score near 67 — is further away than on any print of this run.
+
+---
+
+## 2026-08-26 (Wednesday)
+
+**Scan summary:** Checked 11 / 1 actionable / 9 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.21 / VIX3M 17.99 / VVIX 85.2 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 7d | 42 | 13.5% | $0.40 | $3 | $2.60 | Good | Thin premium |
+
+**Notable:** The board halves to one and the survivor is the name that has never left: **IWM stamps 7d — a seventh consecutive session, another record, one past yesterday's 6d — and the ledger keeps sliding: 43 → 42 (−1), a second straight point given back, credit $0.44 → $0.40 on the same $3 width, and skew 14.7% → 13.5%, a ninth consecutive print inside the same one-point band and now the lowest of the entire run.** "Thin premium" stays welded to the line. XLF dies again after exactly two sessions — the record 31.0% c/w it printed yesterday bought it nothing, and the tab's highest-skew name in history is gone from the board twice in four sessions, which is the whole argument about first-day artifacts settled by the tape rather than by inference. The funnel goes **checked 11 / actionable 1 / base_gate 9 / construction 1 / execution 0** — base gate tightens 7 → 9, actionable back to one, construction singular, execution empty for the sixty-ninth straight print. The surface keeps easing: **VIX 15.45 → 15.21, VIX3M 17.99, slope 0.846; VVIX 85.7 → 85.2, a fresh low for the week; contango intact, NORMAL.** Regime holds **THE PLAYOFFS at 0S / 0C, avg VRP −5.4, 66% of 32 eligible negative (up from 62%), danger 0, stress 6 (18.8%)**, term slope 0.869 and RV accel 0.856 — the vol surface is calm and the premium simply isn't there. The day-over-day tape does turn, though: **EEM +8, JNJ +8, CAT +9, SBUX +12, GLD +5, NFLX +4** against **XLI −10 (20 now, from 71 four sessions ago), XLE −8, TLT −6, AAPL −3** — a genuine bid returning to the middle of the board, but the top of it is **EEM/JNJ at 44**, twenty-three under the gate, and IWM's 42 is fifth. **Still zero SELL_CPS at 69 sessions.** Today collapses the two-clause split from the wrong end: the skew clause left the board entirely with XLF, and the survival clause is now a record-length streak whose score has fallen three sessions running while its credit and skew both hit run lows. Seven prints of IWM say duration alone produces decay, not convergence — the name gets cheaper the longer it sits. The first SELL_CPS still needs a single ticket carrying 25%+ skew and a score inside striking distance of 67, and with the board topping at 44, base gate culling nine of eleven, and VVIX grinding to weekly lows, nothing on this tape is building toward it.
+
+---
+
+## 2026-08-25 (Tuesday)
+
+**Scan summary:** Checked 11 / 2 actionable / 7 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.45 / VIX3M 18.21 / VVIX 85.7 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 6d | 43 | 14.7% | $0.44 | $3 | $2.56 | Good | Thin premium |
+| 2 | XLF | WATCH | 1d | 37 | 31.0% | $0.15 | $0.50 | $0.35 | Acceptable | — |
+
+**Notable:** The board holds at two and both seats are the same pair, but each one moves the wrong way. **IWM stamps 6d — a sixth consecutive session, another record, one past yesterday's 5d — and gives back what it just took: 44 → 43 (−1), $0.41 over $3 down to $0.44 over $3 in credit terms is a four-cent gain, but skew prints 14.7%, an eighth straight read inside the same one-point band and nowhere near the gate.** "Thin premium" stays welded to it. XLF survives its second birth into **1d — the first time the name has ever seen a second session — but the record skew is already gone: 29.0% → 31.0% on the same $0.15 over $0.50 reads as an improvement, yet the score collapses 50 → 37, a −13 day-over-day and the single largest drag on a live ticket in the run.** The funnel goes **checked 11 / actionable 2 / base_gate 7 / construction 2 / execution 0** — base gate loosens from 8 to 7, construction back to plural, execution still empty. The surface eases again: **VIX 15.85 → 15.45, VIX3M 18.21, slope 0.848; VVIX 88.6 → 85.7, −2.9, the lowest print of the week; contango intact, NORMAL.** Regime stays THE PLAYOFFS and thins further — **0S / 0C / 0W, the watchlist now gone too, avg VRP −5.3, 62% of 32 eligible negative, danger 0, stress 6 (18.8%).** The day-over-day tape is near-universal bleed: **17 of 19 names lower, XLI −41 (71 to 30 in three sessions), XLV −20, EEM −15, CAT −12, XLF −13**, with only XLE +5, NFLX +4 and XOM +3 bid; board top is 43 — IWM itself — twenty-four under the gate. **Still zero SELL_CPS at 69 sessions.** Yesterday's lesson repeats with the sign flipped: XLF cleared 25% for a second straight print and the tab still did not fire, because the score gate is the only wall that matters and XLF walked *away* from it by thirteen points while holding 31% skew. The two clauses remain split — IWM owns survival at a record 6d with a flat ledger and dead skew, XLF owns skew at record levels with a decaying score and one day of life. The first SELL_CPS needs one ticket to carry both, and six prints of IWM and two lifetimes of XLF say the tab does not produce that ticket.
+
+---
+
+## 2026-08-24 (Monday)
+
+**Scan summary:** Checked 11 / 2 actionable / 8 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.85 / VIX3M 18.56 / VVIX 88.6 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | XLF | WATCH | 0d | 50 | 29.0% | $0.14 | $0.50 | $0.35 | Good | — |
+| 2 | IWM | WATCH | 5d | 44 | 13.7% | $0.41 | $3 | $2.59 | Good | Thin premium |
+
+**Notable:** The board comes back to two, and both live tickets are the same two names that have been trading the seat all month. **IWM stamps 5d — a fifth consecutive session, one past the record 4d it set Friday, and it reprices upward off the bottom: 43 → 44 (+1), $0.29 over $2 back out to $0.41 over $3, credit up 41% — but skew goes 14.5% → 13.7%, a seventh print inside the same one-point band and now the lowest of the run.** "Thin premium" stays welded to the line. XLF returns from the dead one session after being culled, born again at **0d, 29.0% c/w on $0.14 over $0.50 — the highest credit/width the tab has ever printed, past the 23.0% it set Thursday, and 4.0 points *through* the 25% gate** — yet it scores 50, seventeen under the score gate, and carries a single day of life. The funnel goes **checked 11 / actionable 2 / base_gate 8 / construction 1 / execution 0** — base gate frozen at 8 a second print, construction back to singular, and again nothing reaches execution. The surface firms a touch without changing character: **VIX 15.13 → 15.85, VIX3M 18.56, slope 0.854; VVIX 86.3 → 88.6, +2.3; contango intact, NORMAL.** Totals are $0.55 of credit against $2.94 of cliff on $3.50 of width, average c/w 21.4% on the two lines, both Good realized — a step down from Thursday's all-Excellent board. **Still zero SELL_CPS at 68 sessions.** What today proves is that the skew clause was never the binding one. XLF has now cleared 25% outright and the tab did not fire, because score is the wall: 50 on the name with record skew, 44 on the name with record survival, and the gate sits at 67 with no name having closed within 15 of it in the entire run. The two clauses are still split across two tickets and moving in opposite directions — IWM finally repriced up but paid for it in skew, XLF's skew is a first-day artifact of a fourteen-cent credit on a half-point width that history says gets extinguished by tomorrow. The first SELL_CPS needs XLF to survive into 2d *holding* 25%+ while its score climbs seventeen points, or IWM to run a sixth print with the ledger moving up two sessions running. Nothing in five prints of IWM paper or two lifetimes of XLF suggests either.
+
+---
+
 ## 2026-08-21 (Friday)
 
 **Scan summary:** Checked 11 / 1 actionable / 8 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation

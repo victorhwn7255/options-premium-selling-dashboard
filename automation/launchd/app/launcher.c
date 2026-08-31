@@ -11,18 +11,20 @@
  * Forwarded args (e.g. --shadow --quiet) come from the plist's ProgramArguments and are
  * passed straight through. To go live, remove --shadow from the plist — not from here.
  *
- * NOTE: if node or python is upgraded, update the paths below, then `zsh build_app.sh`.
+ * NOTE: if claude or python is upgraded/relocated, update the paths below, then `zsh build_app.sh`.
+ * claude is the NATIVE install (since 2026-08-22): ~/.local/bin/claude is the installer's
+ * auto-updating symlink — self-contained binary, no node dependency.
  */
 #include <stdlib.h>
 #include <unistd.h>
 
-#define NODE_BIN "/Users/victor_he/.nvm/versions/node/v22.22.0/bin"
-#define CLAUDE   NODE_BIN "/claude"
+#define LOCAL_BIN "/Users/victor_he/.local/bin"
+#define CLAUDE   LOCAL_BIN "/claude"
 #define PYTHON   "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3"
 #define REPO     "/Users/victor_he/Projects/option-harvest"
 
 int main(int argc, char *argv[]) {
-    setenv("PATH", NODE_BIN ":/usr/local/bin:/usr/bin:/bin", 1);
+    setenv("PATH", LOCAL_BIN ":/usr/local/bin:/usr/bin:/bin", 1);
     setenv("CLAUDE_BIN", CLAUDE, 1);
     unsetenv("ANTHROPIC_API_KEY");   /* force Max-subscription auth (zero API cost) */
 

@@ -75,10 +75,14 @@ The original rollout ran ~2 weeks in `--shadow`, comparing `staging/shadow/*.md`
 entries each morning, then flipped live. The mode remains available for validating future pipeline changes.
 
 ## Gotchas
-- **Paths are hardcoded** in `launchd/run.sh` AND `launchd/app/launcher.c` (nvm node + framework
-  python). If node or python is upgraded, update the paths in both, then `zsh build_app.sh` (it
-  recompiles `launcher.c` — the app's main executable must be a Mach-O binary, not a script, or
-  Login Items shows it as a loose script instead of the "Theta Harvest" app).
+- **Paths are hardcoded** in `launchd/run.sh`, `launchd/app/launcher.c`, AND the plist
+  (claude + framework python). Since 2026-08-25 they point at the **native** Claude install
+  (`~/.local/bin/claude`, the installer's auto-updating symlink — survives claude version
+  updates; no node dependency). If claude or python is relocated, update all three, then
+  `zsh launchd/install.sh` (rebuilds the app — its main executable must be a Mach-O binary,
+  not a script, or Login Items shows it as a loose script — and reloads the plist). Symptom
+  of a stale path: data tables keep landing but every prose call fails "No such file or
+  directory: …/claude" (seen 2026-08-22→24 after the npm→native migration).
 - **Full Disk Access is not required** — the repo lives under `~/Projects`, which is not a TCC-protected
   folder. (Historically, when the repo sat under `~/Downloads`, FDA had to be granted to
   `launchd/ThetaHarvest.app` and re-confirmed after every rebuild; moving to `~/Projects` removed that.)
