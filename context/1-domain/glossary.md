@@ -1,6 +1,6 @@
 ---
-last_verified: 2026-04-16
-verified_against: dc030c3
+last_verified: 2026-09-02
+verified_against: 3cdb763 (2026-07 scoring update folded in — ADR-012 standalone RV-accel CAUTION, ADR-013 cap 54, WATCHLIST label)
 rot_risk: low
 rot_triggers:
   - backend/scorer.py
@@ -71,7 +71,7 @@ Computed in `scorer.py`. Drives recommendation overrides but does **not** modify
 | Regime | Trigger | Effect |
 |--------|---------|--------|
 | **DANGER** | Term slope > 1.15 | Recommendation → AVOID regardless of score |
-| **CAUTION** | Term slope > 1.05, OR (IV Rank > 90 AND RV accel > 1.1) | Score ≥ 55 → REDUCE SIZE, else → NO EDGE |
+| **CAUTION** | Term slope > 1.05, OR RV accel > 1.10 on its own (ADR-012, 2026-07), OR (IV Rank > 90 AND RV accel > 1.1) | Score ≥ 55 → REDUCE SIZE, else → NO EDGE |
 | **NORMAL** | Default | Score determines recommendation |
 
 ---
@@ -95,6 +95,7 @@ Computed in `RegimeBanner.tsx` from per-ticker regime data. Independent of backe
 |---------------|------------------|---------|
 | SELL PREMIUM | SELL | Score ≥ 65, NORMAL regime — strong edge |
 | CONDITIONAL | CONDITIONAL | Score 45–64, NORMAL — decent edge, trade with discipline |
+| WATCHLIST | WATCHLIST | SELL/CONDITIONAL outcome demoted because VRP ratio < 1.15 — structure clean, premium too thin; score preserved, no position construction |
 | REDUCE SIZE | AVOID | CAUTION regime + score ≥ 55 — edge exists but conditions risky |
 | AVOID | AVOID | DANGER regime — do not sell premium |
 | NO EDGE | NO EDGE | Score < 45 (NORMAL) or < 55 (CAUTION) — insufficient edge |
@@ -125,7 +126,7 @@ Computed in `RegimeBanner.tsx` from per-ticker regime data. Independent of backe
 | IV Percentile floor | 30th | `scorer.py` | Below this, IV Pct scores 0 |
 | SELL threshold | Score ≥ 65 | `scorer.py` | Recommendation: SELL PREMIUM |
 | CONDITIONAL threshold | Score ≥ 45 | `scorer.py` | Recommendation: CONDITIONAL |
-| Negative VRP cap | Score ≤ 44 | `scorer.py` | Below CONDITIONAL threshold |
+| Negative VRP cap | Score ≤ 54 | `scorer.py` | One below the REDUCE-SIZE bar (55) — ADR-013, supersedes the old 44 cap |
 | DANGER trigger | Slope > 1.15 | `scorer.py` | Per-ticker regime |
 | CAUTION trigger | Slope > 1.05 | `scorer.py` | Per-ticker regime |
 | Earnings gate | DTE ≤ 14 | `scoring.ts` (frontend) | Forces score to 0 |

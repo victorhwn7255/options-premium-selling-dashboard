@@ -38,6 +38,33 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-09-01 (Tuesday)
+
+**Scan summary:** Checked 11 / 2 actionable / 9 base_gate / 0 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 16.34 / VIX3M 18.33 / VVIX 91.3 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 0d | 39 | 14.2% | $0.42 | $3 | $2.58 | Good | Thin premium |
+| 2 | XLF | WATCH | 1d | 34 | 14.0% | $0.07 | $0.50 | $0.43 | Acceptable | Thin premium |
+
+**Notable:** IWM is back after a single session out — but the nine-session streak is gone for good, and it returns at **0d, score 39 (down from 41), on $0.42 credit over a $3 width for $2.58 max loss**, a narrower structure than the $5 it carried through the streak; RV status slips **Excellent → Good**, and "Thin premium" is still welded to the line. The genuinely new fact is XLF: **1d, its first survival into a second session in six appearances after four straight one-and-outs**, score 30 → 34 (+4), RV recovering **Caution → Acceptable**. But yesterday's headline dies instantly — **XLF's record 34.0% c/w collapses to 14.0% in one print**, and the two names now sit two-tenths of a point apart at **14.2% and 14.0%**, the tab's tightest convergence of the run. That kills the skew clause a second time: record skew lasted exactly one session and left no ticket behind. Funnel is **checked 11 / actionable 2 / base_gate 9 / construction 0 / execution 0** — base gate culls nine of eleven for the second straight day, construction empties entirely, and execution is blank for the **seventy-third consecutive print**. The surface finally moves: **VIX 14.92 → 16.34, the largest single-session jump of the run and a decisive break off the 14.43 low; VIX3M 17.53 → 18.33, slope steepening 0.771 → 0.821; VVIX 86.3 → 91.3**, unpinned at last — contango intact, NORMAL. Internals improve in sympathy but from a bad base: **avg VRP −5.6 → −5.2, negative share 73% → 58% of 33 eligible, stress 12 → 9 (27.3%), danger 0**, RV accel 0.925. Day-over-day is mixed and low: **MCD +7, NFLX +7, XLI +5, GS +4, XLF +4, EEM +3 to 44 (top of board, twenty-three under the gate)** against **XOM −19 off yesterday's high, HD −8, HOOD −7, AAPL −6, XLE −5**. Regime holds **REGULAR SEASON at 0S / 0C with no watchlist. Still zero SELL_CPS at 73 sessions.** The read: this is the first day the surface has cooperated — VIX, VVIX, term slope and VRP all move the seller's way at once — and the board still produces two thin WATCHes with sub-15% skew and forty-two and seven cents of credit. That gap is the whole story. One day of vol repricing lifts scores four points, not thirty-three; a first SELL_CPS needs this to persist long enough for base gate to stop culling nine of eleven, and today only establishes the direction, not the level.
+
+---
+
+## 2026-08-31 (Monday)
+
+**Scan summary:** Checked 11 / 1 actionable / 9 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 14.92 / VIX3M 17.53 / VVIX 86.3 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | XLF | WATCH | 0d | 30 | 34.0% | $0.17 | $0.50 | $0.33 | Caution | — |
+
+**Notable:** The nine-session IWM streak is over: the tab's only durable name fails base gate outright and the board is a single line again, but the survivor is the other recycled name — **XLF at 0d, its fifth appearance and fifth zero-day print, score 30 (+3), on $0.17 credit over $0.50 width for $0.33 max loss.** The one genuinely new number is the skew: **c/w 34.0%, a run record for the tab and a full three points past XLF's own prior high of 31.0%, up from 17.0% four sessions ago** — so the skew clause of the old thesis suddenly has a carrier again, and for the first time in the run a ticket clears the 25% bar. Everything else fails it. **Score 30 is thirty-seven under the gate**, the credit is seventeen cents of absolute premium, RV status downgrades to **Caution** — the first non-Good/Excellent RV print of the run — and the funnel goes **checked 11 / actionable 1 / base_gate 9 / construction 1 / execution 0**, base gate now culling nine of eleven and execution empty for the **seventy-second straight print**. The surface ticks up without changing character: **VIX 14.43 → 14.92 off its run low, VIX3M 17.53, slope 0.771 — the flattest of the run; VVIX 86.6 → 86.3, essentially pinned**; contango intact, NORMAL. Regime re-labels back to **REGULAR SEASON at 0S / 0C with no watchlist at all**, and the internals deteriorate on both axes that matter: **avg VRP −5.6, 73% of 33 eligible negative (up from 69%), stress 12 (36.4%) versus 8 yesterday, danger 0**, RV accel 0.936 — stress broadening while VRP stays negative is the worst pairing for a premium seller. Day-over-day is broad but low-altitude: **XLB +20 off zero, SBUX +14, HD +13, TLT +9, XOM +8** against **XLV −14, XLI −13, NFLX −12, GS −6**, and the board tops at **XOM 42**, twenty-five under the gate, with XLF's 30 tenth on that list. **Still zero SELL_CPS at 72 sessions.** The read is cleaner than it has been in weeks: XLF proves rich skew alone doesn't produce a ticket, since 34% on a fifty-cent width is a rounding error of premium with a Caution RV flag attached. A first SELL_CPS needs the two halves to arrive together — record skew on a name that also passes base gate with real width — and with nine of eleven culled and VRP negative across three-quarters of the universe, that still requires a vol repricing, not a better day.
+
+---
+
 ## 2026-08-28 (Friday)
 
 **Scan summary:** Checked 11 / 1 actionable / 8 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation
