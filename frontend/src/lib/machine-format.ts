@@ -78,7 +78,7 @@ const V1_META_KEYS = [
 ];
 
 const V2_SHADOW_KEYS = [
-  'ticker', 'sigma_fwd', 'sigma_fwd_dn', 'fvrp_ratio', 'fvrp_z', 'slope_1m3m',
+  'ticker', 'sigma_fwd', 'sigma_fwd_dn', 'fvrp_ratio', 'fvrp_ratio_trail', 'fvrp_z', 'slope_1m3m',
   'accel_dn', 'v2_gate_state', 'v2_eligible', 'v2_warm', 'v2_ineligibility_reasons',
 ];
 

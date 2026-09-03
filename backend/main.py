@@ -50,6 +50,8 @@ from database import (
     store_daily_bars, store_daily_iv_v2, get_fvrp_history, get_last_good_global_factor,
     store_gate_state, get_latest_gate_state,
     store_shadow_diff, get_shadow_diffs, get_shadow_summary,
+    # ── Signal-Quality Program WS2a (forward realized capture) / WS4 (veto denominator) ──
+    get_capture_summary, get_veto_summary,
     # ── Trade Journal (J1) ──
     get_positions,
 )
@@ -74,6 +76,7 @@ import theta_core as tc
 import gates
 import estimators as est
 import forecast as fc
+from capture import fill_resolved
 
 
 def _apply_scan_quality(tickers: list) -> tuple[str, Optional[str]]:
@@ -604,10 +607,18 @@ def _compute_v2_shadow(results: list, v2_inputs: dict) -> None:
 
         iv30_dec = chain.get("iv30_dec")
         slope = chain.get("slope_1m3m")
-        fvrp_ratio = fvrp_z = abs_prem = None
+        fvrp_ratio = fvrp_z = abs_prem = fvrp_trail = veto_disagree = None
         if iv30_dec and sf > 0:
             fv = tc.fvrp(iv30_dec, sf, log_hist=get_fvrp_history(tkr, 252))
             fvrp_ratio, fvrp_z, abs_prem = fv["ratio"], fv["z"], fv["abs_premium_volpts"]
+            # WS4: the conservative veto ratio on max(sigma_fwd, v1's trailing RV30) — computed and
+            # persisted every night so T1's disagreement population accrues; it only GATES when
+            # CONFIG["veto_denominator"] == "max" (default "sigma_fwd" = unchanged behaviour).
+            rv_trail = (r.rv30 / 100.0) if r.rv30 else None
+            fvrp_trail = tc.fvrp_veto_ratio(iv30_dec, sf, rv_trail)
+            dz = tc.CONFIG["dead_zone_index"] if r.is_etf else tc.CONFIG["dead_zone_single"]
+            veto_disagree = int(((fvrp_ratio >= dz) != (fvrp_trail >= dz))
+                                or ((fvrp_ratio >= 1.0) != (fvrp_trail >= 1.0)))
 
         # Gate state (shadow): seed from the prior persisted state, one transition today.
         gs = tc.GateState()
@@ -626,7 +637,8 @@ def _compute_v2_shadow(results: list, v2_inputs: dict) -> None:
         # but not yet computed (index FVRP<1.0 / global-vol z — follow-up).
         elig = gates.evaluate_eligibility(
             gs, is_etf=r.is_etf, fvrp_ratio=fvrp_ratio, abs_premium_volpts=abs_prem,
-            earnings_dte=r.earnings_dte, accel_dn=accel, slope_1m3m=slope)
+            earnings_dte=r.earnings_dte, accel_dn=accel, slope_1m3m=slope,
+            fvrp_ratio_trail=fvrp_trail)
         v2_elig = elig.eligible
         v1_earn_gated = elig.v1_earnings_gated
         reasons = elig.ineligibility_reasons
@@ -637,6 +649,7 @@ def _compute_v2_shadow(results: list, v2_inputs: dict) -> None:
         r.sigma_fwd = round(sf, 4)
         r.sigma_fwd_dn = round(sfd, 4)
         r.fvrp_ratio = round(fvrp_ratio, 4) if fvrp_ratio is not None else None
+        r.fvrp_ratio_trail = round(fvrp_trail, 4) if fvrp_trail is not None else None
         r.fvrp_z = round(fvrp_z, 3) if fvrp_z is not None else None
         r.slope_1m3m = round(slope, 4) if slope is not None else None
         r.accel_dn = round(accel, 4)
@@ -652,6 +665,7 @@ def _compute_v2_shadow(results: list, v2_inputs: dict) -> None:
         try:
             store_daily_iv_v2(
                 tkr, sigma_fwd=sf, sigma_fwd_dn=sfd, fvrp_ratio=fvrp_ratio, fvrp_z=fvrp_z,
+                fvrp_ratio_trail=fvrp_trail, veto_disagree=veto_disagree,
                 slope_1m3m=slope, accel_dn=accel, global_factor=g, vbar=snap["vbar"],
                 v_gk=snap["v"], s_neg=snap["s_neg"],
                 ewma_v_1=snap["e_v"][1], ewma_v_5=snap["e_v"][5], ewma_v_25=snap["e_v"][25],
@@ -872,6 +886,13 @@ async def run_full_scan() -> ScanResponse:
     except Exception:
         logger.exception("v2 shadow compute failed — v1 scan unaffected")
 
+    # ── Forward realized capture (WS2a, spec E3) — lag-21 fill of capture_30d on the
+    # ticker-days that resolved today. Advisory metric; same isolation as the shadow step.
+    try:
+        logger.info("capture fill: %s", fill_resolved(as_of=date.today()))
+    except Exception:
+        logger.exception("capture fill failed — v1 scan unaffected")
+
     # Historical data for charts
     historical = {}
     for ticker in ["SPY", "QQQ"]:
@@ -1084,11 +1105,22 @@ async def get_latest_cached_scan():
 
 
 @app.get("/api/shadow/summary", response_model=ShadowSummaryResponse)
-async def get_shadow_summary_endpoint(window: int = Query(10, ge=1, le=120)):
+async def get_shadow_summary_endpoint(window: int = Query(10, ge=1, le=120),
+                                      capture_window: int = Query(60, ge=1, le=500)):
     """v2-vs-v1 shadow aggregates over the last `window` scan dates. Operator/dev
     surface — v1 still drives live decisions (Phase A is advisory-only). This is
-    a transitional validation instrument, removed at the Phase E cutover."""
-    return ShadowSummaryResponse(**get_shadow_summary(window))
+    a transitional validation instrument, removed at the Phase E cutover.
+
+    Also carries (additively) the WS2a forward-capture aggregates over the last
+    `capture_window` RESOLVED dates; if that query fails the shadow summary is
+    still served with those fields None."""
+    s = get_shadow_summary(window)
+    try:
+        s.update(get_capture_summary(capture_window))
+        s.update(get_veto_summary(window))
+    except Exception:
+        logger.exception("capture/veto summary failed — shadow summary served without it")
+    return ShadowSummaryResponse(**s)
 
 
 @app.get("/api/shadow/diff", response_model=ShadowDiffResponse)

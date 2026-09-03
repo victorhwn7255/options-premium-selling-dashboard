@@ -105,19 +105,98 @@ def _day_summary(rows: list[dict]) -> dict:
     }
 
 
+_CAPTURE_PREFILTER_DAYS = 29   # mirrors backend/capture.py — rows dated <= D-29 are resolved by D
+
+
+def _capture_summary_by_date(conn, iso_date: str, window: int = 60) -> dict:
+    """Backfill counterpart of backend/database.py:get_capture_summary for a past date D: the
+    last `window` resolved dates <= D-29 (a deterministic as-of rule — the columns are filled
+    later, so `capture_resolved_at` cannot be used). Returns {} when the snapshot predates WS2a
+    (no capture_30d column) or nothing is resolved, so the summary segment is simply omitted."""
+    import math
+    from datetime import date as _date, timedelta as _td
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(daily_iv)")}
+    if "capture_30d" not in cols:
+        return {}
+    cutoff = (_date.fromisoformat(iso_date) - _td(days=_CAPTURE_PREFILTER_DAYS)).isoformat()
+    dates = [r[0] for r in conn.execute(
+        "SELECT DISTINCT date FROM daily_iv WHERE capture_30d IS NOT NULL AND date <= ? "
+        "ORDER BY date DESC LIMIT ?", (cutoff, int(window)))]
+    if not dates:
+        return {}
+    ph = ",".join("?" * len(dates))
+    names = ("cap", "rvcc", "rvgk", "sf", "rv30", "rec", "elig", "warm")
+    rows = [dict(zip(names, r)) for r in conn.execute(
+        f"SELECT capture_30d, rv_fwd_21_cc, rv_fwd_21, sigma_fwd, rv30, legacy_recommendation, "
+        f"v2_eligible, v2_warm FROM daily_iv WHERE date IN ({ph}) AND capture_30d IS NOT NULL", dates)]
+
+    def mean(xs):
+        xs = [x for x in xs if x is not None]
+        return (sum(xs) / len(xs)) if xs else None
+
+    def neg_rate(xs):
+        xs = [x for x in xs if x is not None]
+        return (sum(1 for x in xs if x < 0) / len(xs)) if xs else None
+
+    def log_mae(pairs):
+        v = [abs(math.log(a / b)) for a, b in pairs if a and b and a > 0 and b > 0]
+        return (sum(v) / len(v)) if v else None
+
+    actionable = ("SELL PREMIUM", "CONDITIONAL")
+    v1 = [r for r in rows if r["rec"] is not None]
+    v2 = [r for r in rows if r["elig"] is not None]
+    v2w = [r for r in v2 if r["warm"]]
+    return {
+        "capture_n_resolved": len(rows), "capture_window_resolved": int(window),
+        "capture_window_dates": dates,
+        "capture_mean_all": mean(r["cap"] for r in rows),
+        "capture_mean_v1_actionable": mean(r["cap"] for r in v1 if r["rec"] in actionable),
+        "capture_mean_v2_eligible": mean(r["cap"] for r in v2 if r["elig"]),
+        "capture_mean_v2_eligible_warm": mean(r["cap"] for r in v2w if r["elig"]),
+        "capture_neg_rate_v1_gated": neg_rate(r["cap"] for r in v1 if r["rec"] not in actionable),
+        "capture_neg_rate_v1_cleared": neg_rate(r["cap"] for r in v1 if r["rec"] in actionable),
+        "capture_neg_rate_v2_vetoed": neg_rate(r["cap"] for r in v2 if not r["elig"]),
+        "capture_neg_rate_v2_cleared": neg_rate(r["cap"] for r in v2 if r["elig"]),
+        "capture_neg_rate_v2_vetoed_warm": neg_rate(r["cap"] for r in v2w if not r["elig"]),
+        "capture_neg_rate_v2_cleared_warm": neg_rate(r["cap"] for r in v2w if r["elig"]),
+        "sigma_fwd_log_mae": log_mae((r["sf"], r["rvcc"]) for r in rows),
+        "rv30_log_mae": log_mae(((r["rv30"] / 100.0) if r["rv30"] else None, r["rvcc"]) for r in rows),
+        "sigma_fwd_log_mae_gk": log_mae((r["sf"], r["rvgk"]) for r in rows),
+    }
+
+
 def read_shadow_by_date(snap: Path, iso_date: str) -> dict | None:
     """Return {"rows": [...], "summary": {...per-day counts...}} for the given ET date, or None.
 
     Mirrors the API's /api/shadow/diff join against the read-only snapshot; the summary is the
-    day's own counts (not a rolling window) so the shadow-diffs backfill entry is self-contained."""
+    day's own counts (not a rolling window) so the shadow-diffs backfill entry is self-contained.
+    Since WS2a it also carries the forward-capture aggregates as of that date (additive)."""
     conn = _ro_conn(snap)
     try:
         rows = [dict(zip(_SHADOW_COLS, r)) for r in conn.execute(_SHADOW_QUERY, (iso_date,))]
+        capture = _capture_summary_by_date(conn, iso_date) if rows else {}
+        veto = _veto_summary_by_date(conn, iso_date) if rows else {}
     finally:
         conn.close()
     if not rows:
         return None
-    return {"rows": rows, "summary": _day_summary(rows)}
+    summary = _day_summary(rows)
+    summary.update(capture)
+    summary.update(veto)
+    return {"rows": rows, "summary": summary}
+
+
+def _veto_summary_by_date(conn, iso_date: str) -> dict:
+    """WS4 backfill counterpart of backend/database.py:get_veto_summary for one date (the day's
+    own rows, like _day_summary). {} when the snapshot predates WS4 or nothing is populated."""
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(daily_iv)")}
+    if "veto_disagree" not in cols:
+        return {}
+    n, k = conn.execute("SELECT COUNT(veto_disagree), COALESCE(SUM(veto_disagree), 0) FROM daily_iv "
+                        "WHERE date = ? AND veto_disagree IS NOT NULL", (iso_date,)).fetchone()
+    if not n:
+        return {}
+    return {"veto_disagree_rate": k / n, "veto_disagree_n": int(n)}
 
 
 # --- portfolio-eval book snapshot (additive) -----------------------------------------

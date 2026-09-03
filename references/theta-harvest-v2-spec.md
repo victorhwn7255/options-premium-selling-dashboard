@@ -119,6 +119,13 @@ Dead zones (ineligible below): index/ETF sleeve **1.20**, single names **1.15**
 Absolute-premium floor: `IV30 - sigma_fwd >= 2.0 vol points` [PROVISIONAL] — a ratio
 on a 10-vol name is not a fundable edge after frictions.
 
+*(WS4, 2026-09-03 — instrumentation, not a change.)* `FVRP_ratio_trail = IV30 / max(sigma_fwd,
+RV30_trailing)` is computed and persisted beside `FVRP_ratio` every session, with
+`veto_disagree = 1` where the two straddle 1.0 or the dead zone (Test T1's population).
+`CONFIG["veto_denominator"]` selects which ratio the G4/dead-zone checks use — `"sigma_fwd"`
+(this spec, unchanged) or `"max"`; only T1's registered result may flip it (ADR-015). The
+z-score, the opportunity dial and sizing always use `sigma_fwd`.
+
 The composite 0–100 score is retained for **gating and telemetry only**. No
 cross-sectional allocation by rank. IV percentile (25 pts) is demoted from
 tradeability input to capital-efficiency context.
@@ -347,7 +354,7 @@ stress_pnl_10_15x, psr0, psr05, mintrl, monitor_e4, skew60, kurt60`
 
 ## Calibration ownership
 
-[PROVISIONAL] constants in this spec: ridge lambda, seed betas, dead zones (1.20/1.15),
+[PROVISIONAL] constants in this spec: ridge lambda, seed betas, dead zones (1.20/1.15), `veto_denominator` (WS4, 2026-09-03 — "sigma_fwd" today; T1 owns the flip, ADR-015),
 absolute-premium floor (2.0 pts), G2 slope thresholds, G5 z-trigger, disaster-injection
 probability, phi = 0.25, kappa = 0.25, per-name caps, stress limits, capture fraction
 0.65. Each is a literature-motivated starting point. They are calibrated by the

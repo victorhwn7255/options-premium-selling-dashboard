@@ -222,6 +222,27 @@ export interface ShadowSummaryResponse {
   oscillation_v1: number | null;
   oscillation_v2: number | null;
   warm_coverage: number | null;
+  // WS2a forward realized capture (spec E3) — resolves with a 21-session lag; all optional.
+  capture_n_resolved?: number | null;
+  capture_window_resolved?: number | null;
+  capture_window_dates?: string[] | null;
+  capture_mean_all?: number | null;
+  capture_mean_v1_actionable?: number | null;
+  capture_mean_v2_eligible?: number | null;
+  capture_mean_v2_eligible_warm?: number | null;
+  capture_neg_rate_v1_gated?: number | null;
+  capture_neg_rate_v1_cleared?: number | null;
+  capture_neg_rate_v2_vetoed?: number | null;
+  capture_neg_rate_v2_cleared?: number | null;
+  capture_neg_rate_v2_vetoed_warm?: number | null;
+  capture_neg_rate_v2_cleared_warm?: number | null;
+  sigma_fwd_log_mae?: number | null;
+  rv30_log_mae?: number | null;
+  sigma_fwd_log_mae_gk?: number | null;
+  // WS4 veto-denominator instrumentation
+  veto_denominator?: string | null;
+  veto_disagree_rate?: number | null;
+  veto_disagree_n?: number | null;
 }
 
 export interface ShadowDiffRow {
