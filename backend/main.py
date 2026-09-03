@@ -1400,6 +1400,14 @@ async def get_universe():
     }
 
 
+@app.get("/api/thresholds")
+async def get_thresholds():
+    """Display thresholds for the "How to use" guide — read-only, additive, sourced from the
+    owning modules (see backend/thresholds.py). No decision logic reads this."""
+    from thresholds import build_thresholds
+    return build_thresholds()
+
+
 _EARNINGS_REFRESH_LIMIT = 1
 _earnings_refresh_tracker: dict = {"date": None, "count": 0}
 

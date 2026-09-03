@@ -262,13 +262,17 @@ forecast    → theta_core, estimators, database
 
 ```
 page.tsx  ── mode ternary: HUMAN (below) | MACHINE (machine/MachineView)
-  ├── Navbar → ThemeToggle, ViewModeToggle, ExplainMetricsModal
+  ├── Navbar → ThemeToggle, ViewModeToggle            ("How to use" / "Glossary" buttons → page-level guide state)
   ├── RegimeBanner (exports computeRegime) → VrpActivityGrid
-  ├── TabBar → Leaderboard → DetailPanel | CreditPutSpreadsTab | JournalComingSoon
-  ├── RegimeGuideModal → RegimeSection
+  ├── TabBar → Leaderboard → DetailPanel | CreditPutSpreadsTab | JournalTab (Portfolio / Risk)
+  ├── HowToGuideModal (2026-09-03; replaced RegimeGuideModal + ExplainMetricsModal)
+  │     tabs: Playbook (4 decision cards, lib/guide-content.ts) · Regimes (lib/regime-content.ts → RegimeSection)
+  │           · Glossary (lib/metrics-content.ts → MetricCard). Every threshold is rendered from
+  │           GET /api/thresholds (lib/thresholds-fallback.ts when offline) — display-only, P1.
   └── machine/MachineView → MachineSectionView   (self-fetches health + shadow + CPS raw)
 
 Hooks: useTheme (localStorage + DOM), useViewMode ('oh-view' + ?view=), useCssColors (getComputedStyle + MutationObserver)
-Lib:   api.ts (fetch wrappers), scoring.ts (transform — FROZEN at Phase B, P1), types.ts,
-       metrics-content.ts (explainer cards incl. the v2 · shadow section), machine-format.ts (MACHINE descriptors + serializer)
+Lib:   api.ts (fetch wrappers incl. fetchThresholds), scoring.ts (transform — FROZEN at Phase B, P1), types.ts,
+       guide-content.ts / regime-content.ts / metrics-content.ts (guide content; pills are functions of the
+       thresholds payload), thresholds-fallback.ts (generated), machine-format.ts (MACHINE descriptors + serializer)
 ```

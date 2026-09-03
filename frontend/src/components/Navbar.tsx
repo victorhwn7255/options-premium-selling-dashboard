@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import ThemeToggle from './ThemeToggle';
 import ViewModeToggle from './ViewModeToggle';
-import ExplainMetricsModal from './ExplainMetricsModal';
+import type { GuideTab } from './HowToGuideModal';
 import type { Theme } from '@/hooks/useTheme';
 import type { ViewMode } from '@/hooks/useViewMode';
 import type { VerificationResult, EarningsVerificationResult } from '@/lib/types';
@@ -20,11 +20,10 @@ interface NavbarProps {
   scannedAt: string | null;
   verification: VerificationResult | null;
   earningsVerification: EarningsVerificationResult | null;
-  onOpenRegimeGuide: () => void;
+  onOpenGuide: (tab: GuideTab) => void;
 }
 
-export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, scanProgress, viewMode, onViewModeChange, scannedAt, verification, earningsVerification, onOpenRegimeGuide }: NavbarProps) {
-  const [metricsModalOpen, setMetricsModalOpen] = useState(false);
+export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, scanProgress, viewMode, onViewModeChange, scannedAt, verification, earningsVerification, onOpenGuide }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const today = new Date().toLocaleDateString('en-US', {
@@ -147,16 +146,16 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
         {/* Left: Explain buttons (desktop only) */}
         <div className="hidden sm:flex items-center gap-2 ml-44 2xl:ml-0">
           <button
-            onClick={onOpenRegimeGuide}
+            onClick={() => onOpenGuide('playbook')}
             className="font-primary text-sm font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-1.5 rounded-md transition-colors duration-fast"
           >
-            Explain Market Regime
+            How to use
           </button>
           <button
-            onClick={() => setMetricsModalOpen(true)}
+            onClick={() => onOpenGuide('glossary')}
             className="font-primary text-sm font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-1.5 rounded-md transition-colors duration-fast"
           >
-            Explain Metrics
+            Glossary
           </button>
         </div>
 
@@ -333,16 +332,16 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
           {/* Row 1: Text buttons */}
           <div className="flex gap-2">
             <button
-              onClick={() => { onOpenRegimeGuide(); setMenuOpen(false); }}
+              onClick={() => { onOpenGuide('playbook'); setMenuOpen(false); }}
               className="font-primary text-xs font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-2 rounded-md transition-colors duration-fast"
             >
-              Explain Market Regime
+              How to use
             </button>
             <button
-              onClick={() => { setMetricsModalOpen(true); setMenuOpen(false); }}
+              onClick={() => { onOpenGuide('glossary'); setMenuOpen(false); }}
               className="font-primary text-xs font-medium text-txt-tertiary hover:text-txt bg-surface-alt hover:bg-surface-raised px-3 py-2 rounded-md transition-colors duration-fast"
             >
-              Explain Metrics
+              Glossary
             </button>
           </div>
           {/* Row 2: Status + actions */}
@@ -416,7 +415,6 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
         </div>
       )}
 
-      <ExplainMetricsModal open={metricsModalOpen} onClose={() => setMetricsModalOpen(false)} />
     </header>
   );
 }

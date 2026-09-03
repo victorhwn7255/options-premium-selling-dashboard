@@ -1,7 +1,7 @@
 import type {
   ScanResponse, HealthResponse, VerificationResult, EarningsVerificationResult,
   ComparisonResponse, VrpHistoryResponse, CreditPutSpreadsResponse,
-  ShadowSummaryResponse, ShadowDiffResponse,
+  ShadowSummaryResponse, ShadowDiffResponse, Thresholds,
 } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
@@ -60,6 +60,17 @@ export async function fetchUniverse() {
   const res = await fetch(`${API_BASE}/api/universe`);
   if (!res.ok) throw new Error(`Universe fetch failed: ${res.status}`);
   return res.json();
+}
+
+/** Display thresholds for the "How to use" guide (backend-owned; see backend/thresholds.py). */
+export async function fetchThresholds(): Promise<Thresholds | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/thresholds`);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchVerificationLatest(): Promise<VerificationResult | null> {

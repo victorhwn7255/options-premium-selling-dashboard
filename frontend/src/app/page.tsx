@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import RegimeBanner, { computeRegime } from '@/components/RegimeBanner';
-import RegimeGuideModal from '@/components/RegimeGuideModal';
+import HowToGuideModal, { type GuideTab } from '@/components/HowToGuideModal';
 import Leaderboard from '@/components/Leaderboard';
 import TabBar, { DashboardTab } from '@/components/TabBar';
 import CreditPutSpreadsTab from '@/components/CreditPutSpreadsTab';
@@ -28,7 +28,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [scanProgress, setScanProgress] = useState<string | null>(null);
-  const [regimeGuideOpen, setRegimeGuideOpen] = useState(false);
+  const [guideTab, setGuideTab] = useState<GuideTab | null>(null);
   const [verification, setVerification] = useState<VerificationResult | null>(null);
   const [earningsVerification, setEarningsVerification] = useState<EarningsVerificationResult | null>(null);
   const [deltaMap, setDeltaMap] = useState<Record<string, TickerDelta>>({});
@@ -174,7 +174,7 @@ export default function Home() {
         scannedAt={apiData?.scanned_at ?? null}
         verification={verification}
         earningsVerification={earningsVerification}
-        onOpenRegimeGuide={() => setRegimeGuideOpen(true)}
+        onOpenGuide={(tab) => setGuideTab(tab)}
       />
 
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 py-5 pb-16">
@@ -287,9 +287,13 @@ export default function Home() {
         )}
       </main>
 
-      {regimeGuideOpen && (
-        <RegimeGuideModal currentRegime={currentRegime} onClose={() => setRegimeGuideOpen(false)} />
-      )}
+      <HowToGuideModal
+        open={guideTab !== null}
+        initialTab={guideTab ?? 'playbook'}
+        currentRegime={currentRegime}
+        onClose={() => setGuideTab(null)}
+      />
+
     </div>
   );
 }

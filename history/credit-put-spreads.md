@@ -38,6 +38,19 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-09-02 (Wednesday)
+
+**Scan summary:** Checked 11 / 1 actionable / 9 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.20 / VIX3M 17.73 / VVIX 86.3 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 1d | 44 | 14.3% | $0.43 | $3 | $2.57 | Good | Thin premium |
+
+**Notable:** IWM survives the return: **1d, its first back-to-back print since the nine-session streak died, score 39 → 44 (+5)**, on **$0.43 credit over a $3 width for $2.57 max loss** — a penny more premium and a tenth of a point more skew at **14.3%** than yesterday, RV holding **Good**, and "Thin premium" still welded to the line. XLF is the casualty: after finally clearing a second session, it fails base gate and drops off entirely, so the board is a single line again and the tab is back to its default shape — one recycled name, forty-three cents, no partner. Funnel is **checked 11 / actionable 1 / base_gate 9 / construction 1 / execution 0** — base gate culls nine of eleven for the third straight day, and execution is blank for the **seventy-fourth consecutive print**. The surface gives back yesterday's break: **VIX 16.34 → 15.20, VIX3M 18.33 → 17.73, slope flattening 0.821 → 0.847 in level but VVIX 91.3 → 86.3, pinned right back on the same 86.3 it printed twice last week** — contango intact, NORMAL. So the "first day the surface cooperated" lasted exactly one session, the same fate as XLF's record skew. Internals are the day's real news and they cut the other way: regime re-labels to **THE PLAYOFFS at 0S / 1C**, **stress falls 9 → 7 (21.2%) of 33 eligible, danger 0**, RV accel 0.894 — but **avg VRP deteriorates −5.2 → −4.7 in name only while the negative share worsens 58% → 61%**. Day-over-day is broad and green at the bottom of the range: **NKE +20 to 62 (top of board, five under the gate), XLI +13, XOM +8, JNJ +7, JPM +6, IWM/KO/XLF +5** against **SBUX −23, GS −9, PLTR −8, EEM −6, XLE −6**. NKE at 62 is the closest any name has come to the gate in the run and worth watching tomorrow — but it is a conditional, not a ticket, and a single earnings-adjacent score spike is exactly the kind of number that mean-reverts by Thursday. **Still zero SELL_CPS at 74 sessions.** The read: two consecutive one-session wonders — record skew Monday, vol repricing Tuesday — both erased by the next print, which is the clearest evidence yet that this board needs persistence, not spikes. IWM's +5 on a penny of extra credit is the honest measure of what a good day buys here. A first SELL_CPS still requires VIX to hold above 16 for multiple sessions with VRP turning positive across a majority of the universe; today moved one name to 62 and gave the surface back.
+
+---
+
 ## 2026-09-01 (Tuesday)
 
 **Scan summary:** Checked 11 / 2 actionable / 9 base_gate / 0 construction / 0 execution / 0 overlay / 0 confirmation

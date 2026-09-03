@@ -478,3 +478,53 @@ export interface SpreadExitDecision {
   notes: string[];
 }
 
+
+// ── "How to use" guide — display thresholds (GET /api/thresholds; backend/thresholds.py) ──
+export interface RvAccelTier { max: number | null; label: string; meaning: string }
+export interface PositionHint { condition: string; delta: string; structure: string; dte: string; notional: string }
+export interface Thresholds {
+  provenance: Record<string, string>;
+  v1_scorer: {
+    vrp_ratio_dead_zone: number; vrp_ratio_cap: number; vrp_points: number;
+    iv_pct_floor: number; iv_pct_points: number;
+    term_hinges: number[]; term_points: number[];
+    accel_hinges: number[]; accel_points: number[];
+    skew_nodes: number[]; skew_points: number;
+    sell: number; conditional: number; reduce_size: number; negative_vrp_cap: number;
+  };
+  regime_per_ticker: { danger_slope: number; caution_slope: number; caution_accel: number; caution_ivr: number; caution_ivr_accel: number };
+  dashboard_regime: { off_season_danger_pct: number; regular_season_stress_pct: number; finals_avg_vrp: number; finals_avg_slope: number; finals_ever_triggered: boolean };
+  earnings_gate_days: number;
+  rv_accel_status: RvAccelTier[];
+  position_hints: PositionHint[];
+  cps: {
+    universe: string[]; target_dte: number; min_dte: number; max_dte: number;
+    target_short_delta: number; min_short_delta: number; max_short_delta: number;
+    sell_credit_to_width: number; watch_credit_to_width: number; thin_premium_threshold: number;
+    high_credit_to_width_warning: number; max_bid_ask_ratio: number; min_open_interest: number;
+    min_volume: number; confirmation_days: number; vvix_caution: number; vvix_danger: number;
+    vrp_zscore_60d_min: number; time_exit_dte: number; profit_target_frac: number;
+    defensive_mark_multiple: number; event_risk_dte: number; pin_risk_dte: number;
+    inherited_gates: { earnings_dte: number; danger_slope: number; min_vrp_ratio: number; rv_accel_wait: number; extreme_skew: number };
+  };
+  exits: {
+    profit_target: number; profit_target_rv_rising: number; rv_rising_accel: number; time_exit_dte: number;
+    tested_delta: number; spread_aware_premium_mult: number; spread_aware_sigma_mult: number;
+    spread_aware_decay_to_dte: number; stop_loss: null; danger_underwater_mult: number;
+  };
+  sizing: {
+    kelly_fraction: number; kelly_min_trades: number; f_star_seed: number | null;
+    dial_R_bounds: number[]; dial_O_bounds: number[];
+    cap_notional_frac: number; cap_margin_frac: number; cap_name_margin_frac: number;
+    cap_name_stress_frac: number; cap_book_stress_frac: number;
+    stress_spot_mult: number; stress_iv_mult: number; stress_days_elapsed: number; margin_alpha: number;
+  };
+  v2: {
+    dead_zone_index: number; dead_zone_single: number; abs_premium_floor_volpts: number;
+    g1_earnings_gate_days: number; g2_caution_in: number; g2_caution_out: number;
+    g2_danger_in: number; g2_danger_out: number; g3_in: number; g3_out: number; g3_concentration: number;
+    confirm_days: number; transient_blackout_days: number; veto_denominator: string;
+    max_spread_over_mid: number; max_rtc_over_capture: number;
+  };
+  data_quality: { min_atm_contracts: number; max_spread_ratio: number; max_iv: number };
+}
