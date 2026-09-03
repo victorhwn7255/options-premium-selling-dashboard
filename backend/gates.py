@@ -51,7 +51,8 @@ def resolve_earnings_gate(is_etf: bool, earnings_dte: int | None) -> tuple[bool,
 def evaluate_eligibility(gs: "tc.GateState", *, is_etf: bool,
                          fvrp_ratio: float | None, abs_premium_volpts: float | None,
                          earnings_dte: int | None, accel_dn: float,
-                         slope_1m3m: float | None, book_frozen: bool = False) -> Eligibility:
+                         slope_1m3m: float | None, book_frozen: bool = False,
+                         fvrp_ratio_trail: float | None = None) -> Eligibility:
     """Seven-condition entry eligibility (strategy §3) + reasons for one ticker-day.
 
     ``gs`` is a POST-update ``theta_core.GateState`` — the caller applies the transition
@@ -61,9 +62,17 @@ def evaluate_eligibility(gs: "tc.GateState", *, is_etf: bool,
     of the seven conditions) but the caller currently passes ``False``; its computation
     (index FVRP < 1.0, or global-vol-factor 20-session z > 2 — spec §4 G5) is wired in a
     follow-up. The default keeps behavior identical to the pre-extraction inline path.
+
+    ``fvrp_ratio_trail`` (WS4) is ``theta_core.fvrp_veto_ratio`` — FVRP on
+    max(sigma_fwd, trailing RV). It replaces ``fvrp_ratio`` in the G4 / dead-zone checks
+    ONLY when ``CONFIG["veto_denominator"] == "max"`` (the switch Test T1 owns); the
+    default leaves the decision exactly as before. The z-score / O-dial never use it.
     """
     dead_zone = tc.CONFIG["dead_zone_index"] if is_etf else tc.CONFIG["dead_zone_single"]
     v1_gated, v2_gated, unverified = resolve_earnings_gate(is_etf, earnings_dte)
+    use_max = tc.CONFIG["veto_denominator"] == "max" and fvrp_ratio_trail is not None
+    veto_ratio = fvrp_ratio_trail if use_max else fvrp_ratio
+    tag = "FVRP(max)" if use_max else "FVRP"
 
     reasons: list[str] = []
     if book_frozen:
@@ -74,17 +83,17 @@ def evaluate_eligibility(gs: "tc.GateState", *, is_etf: bool,
         reasons.append(f"gate G1 earnings (in {earnings_dte}d)")
 
     eligible = False
-    if fvrp_ratio is None:
+    if veto_ratio is None:
         reasons.append("no FVRP (chain/forecast unavailable)")
     else:
         eligible = (not book_frozen) and gs.entry_eligible(
-            fvrp_ratio, dead_zone,
+            veto_ratio, dead_zone,
             abs_premium_volpts if abs_premium_volpts is not None else 0.0,
             earnings_clear=not v2_gated)
-        if fvrp_ratio < 1.0:
-            reasons.append(f"FVRP {fvrp_ratio:.2f} < 1.0 (neg fwd-VRP)")
-        elif fvrp_ratio < dead_zone:
-            reasons.append(f"FVRP {fvrp_ratio:.2f} < {dead_zone:.2f} dead zone")
+        if veto_ratio < 1.0:
+            reasons.append(f"{tag} {veto_ratio:.2f} < 1.0 (neg fwd-VRP)")
+        elif veto_ratio < dead_zone:
+            reasons.append(f"{tag} {veto_ratio:.2f} < {dead_zone:.2f} dead zone")
         if abs_premium_volpts is not None and abs_premium_volpts < tc.CONFIG["abs_premium_floor_volpts"]:
             reasons.append(f"abs premium {abs_premium_volpts:.1f} < {tc.CONFIG['abs_premium_floor_volpts']} vol pts")
         if gs.state != "NORMAL":

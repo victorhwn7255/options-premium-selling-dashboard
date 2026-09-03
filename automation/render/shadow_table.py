@@ -99,6 +99,21 @@ def shadow_summary_line(s: dict | None, flips: dict | None = None) -> str:
     )
     if flips:
         line += (f" | day-flips v1 {_flips_str(flips['v1'])} vs v2 {_flips_str(flips['v2'])}")
+    # WS2a (2026-09-03): forward realized capture over the last N RESOLVED dates (21-session lag).
+    # Guarded exactly like day-flips — absent fields omit the whole segment, so pre-WS2a
+    # summaries (and the golden fixtures) render byte-identically.
+    n_cap = s.get("capture_n_resolved")
+    if n_cap:
+        w = s.get("capture_window_resolved")
+        line += (f" | capture{w if w else ''} n={n_cap} mean {_signed(s.get('capture_mean_all'), 0)}"
+                 f" / v2-veto-neg {_pct(s.get('capture_neg_rate_v2_vetoed'))}"
+                 f" / v2-clear-neg {_pct(s.get('capture_neg_rate_v2_cleared'))}"
+                 f" / σfwd-vs-rv30 MAE {_osc(s.get('sigma_fwd_log_mae'))} vs {_osc(s.get('rv30_log_mae'))}")
+    # WS4: share of ticker-days where the forecast and trailing FVRP disagree on eligibility
+    # (T1's live population). Guarded the same way; absent → omitted.
+    vd = s.get("veto_disagree_rate")
+    if vd is not None:
+        line += f" | veto-disagree {_pct(vd)}"
     return line
 
 

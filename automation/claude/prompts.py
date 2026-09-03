@@ -106,6 +106,25 @@ V2_STRICTER/LOOSER divergence — do not score it, it is the expected common-mod
 with NO date ("TBD"/unverified) is v2-gated but v1 only warns (the D4 hardening) → that IS a \
 genuine V2_STRICTER worth noting. For entries dated BEFORE 2026-07-22 the old rule holds (G1 \
 omitted both sides → in-window clears are shadow artifacts, exclude from calibration anchors).
+- "capture" segment (when present at the end of the summary line, e.g. "capture60 n=1980 mean +212 \
+/ v2-veto-neg 61% / v2-clear-neg 38% / σfwd-vs-rv30 MAE 0.31 vs 0.28") = FORWARD REALIZED CAPTURE \
+(spec E3): per ticker-day, IV30² minus the realized variance over the NEXT 21 sessions, in variance \
+points x1e4 — positive = implied exceeded what followed (the seller was paid), negative = a loss \
+day. It RESOLVES WITH A 21-SESSION LAG: the window is the last N resolved dates, which end about a \
+month BEFORE today — never read it as today's edge or today's divergence. "v2-veto-neg" = share of \
+v2-INELIGIBLE ticker-days that turned out to be loss days (higher = the veto was right); \
+"v2-clear-neg" = share of v2-ELIGIBLE ticker-days that were loss days (lower = clearing was right). \
+Together they are the standing veto-quality read and OUTRANK any single day's stricter/looser tally. \
+"σfwd-vs-rv30 MAE" = mean |ln(forecast/realized)| of the v2 forecaster vs v1's trailing RV30 on the \
+same rows (lower = better forecaster). SERIES BREAK — the segment exists from 2026-09-03 (WS2a); rows \
+before 2026-07-06 carry no v1/v2 labels and count only toward the mean. If the segment is absent, \
+say capture is not yet resolved/available — never infer it.
+- "veto-disagree" (when present, e.g. "veto-disagree 12%") = share of ticker-days in the window \
+where the FORECAST FVRP (IV30/sigma_fwd — what gates today) and the TRAILING FVRP (IV30 on the \
+richer of sigma_fwd and v1's RV30) disagree on eligibility (one side clears 1.0 or the dead zone, \
+the other does not). It is the live size of Test T1's population, NOT a verdict on either \
+denominator — T1 decides that; do not recommend switching the denominator from this number. \
+The `veto_denominator` field in the summary JSON says which one gates ("sigma_fwd" today).
 
 TODAY'S DETERMINISTIC SHADOW TABLE (already logged in v2-metrics-logs.md; do not restate it as a table):
 {shadow_table}
@@ -122,7 +141,9 @@ the divergence — which specific V2_STRICTER / V2_LOOSER tickers matter and why
 FVRP/z/slope), whether v2 is correctly vetoing or is at risk of missing tradeable premium, and the \
 FVRP / index-gating / oscillation TREND vs recent days — and finally a `**Calibration read:** ...` \
 line stating, concretely, what this day implies for the Phase-B FVRP dead-zone quantile-match \
-(e.g. whether the dead-zone bounds look too tight/too loose relative to v1's realized eligibility). \
+(e.g. whether the dead-zone bounds look too tight/too loose relative to v1's realized eligibility) \
+and — when the capture segment is present — what the resolved forward capture says about veto \
+quality (v2-veto-neg vs v2-clear-neg), which outranks the day's divergence tally. \
 HARD LENGTH CAP: keep the whole entry under 3,500 characters."""
 
 

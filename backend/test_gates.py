@@ -121,6 +121,33 @@ def test_structured_surface_propagates_gate_fields():
     assert e.pending == "DANGER" and e.pending_days == 1
 
 
+# ── WS4: veto denominator switch (behaviour-preserving by default; T1 owns the flip) ──
+
+def _etf_kwargs(**over):
+    kw = dict(is_etf=True, fvrp_ratio=1.30, abs_premium_volpts=3.0, earnings_dte=None,
+              accel_dn=0.9, slope_1m3m=0.95, fvrp_ratio_trail=0.95)
+    kw.update(over)
+    return kw
+
+
+def test_veto_denominator_default_ignores_trail(monkeypatch):
+    monkeypatch.setitem(tc.CONFIG, "veto_denominator", "sigma_fwd")
+    e = gates.evaluate_eligibility(_normal(), **_etf_kwargs())
+    assert e.eligible is True and e.ineligibility_reasons == []       # trail ratio is telemetry only
+
+
+def test_veto_denominator_max_gates_on_trail(monkeypatch):
+    monkeypatch.setitem(tc.CONFIG, "veto_denominator", "max")
+    e = gates.evaluate_eligibility(_normal(), **_etf_kwargs())
+    assert e.eligible is False
+    assert e.ineligibility_reasons == ["FVRP(max) 0.95 < 1.0 (neg fwd-VRP)"]
+    dz = gates.evaluate_eligibility(_normal(), **_etf_kwargs(fvrp_ratio_trail=1.10))
+    assert dz.eligible is False and dz.ineligibility_reasons == [f"FVRP(max) 1.10 < {DZ_INDEX:.2f} dead zone"]
+    # No trailing ratio available → degrades to the forecast ratio, plain "FVRP" tag.
+    fb = gates.evaluate_eligibility(_normal(), **_etf_kwargs(fvrp_ratio_trail=None, fvrp_ratio=0.90))
+    assert fb.eligible is False and fb.ineligibility_reasons == ["FVRP 0.90 < 1.0 (neg fwd-VRP)"]
+
+
 def test_reasons_order_matches_inline_contract():
     # Multi-failure single name: earnings(unverified) → FVRP dead-zone → premium floor,
     # gate NORMAL (no gate reason). Order must match the pre-extraction inline path.

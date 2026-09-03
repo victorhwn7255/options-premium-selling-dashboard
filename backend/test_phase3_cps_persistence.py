@@ -29,6 +29,17 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import database
 
+try:  # pytest-only isolation: restore the module-level DB paths after each test — fresh_db()
+    import pytest  # reassigns DB_PATH to a mktemp file that later tests cannot rely on
+
+    @pytest.fixture(autouse=True)
+    def _restore_db_paths():
+        saved = (database.DB_PATH, database.TRIAL_REGISTRY_PATH)
+        yield
+        database.DB_PATH, database.TRIAL_REGISTRY_PATH = saved
+except ImportError:  # standalone runner needs no restore
+    pass
+
 
 # ── Test runner ───────────────────────────────────────────────────────
 

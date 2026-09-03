@@ -45,7 +45,7 @@ def _make_ohlc(n=320, seed=1):
 
 def test_config_identical():
     assert port.CONFIG == ref.CONFIG
-    assert len(port.CONFIG) == 45   # +g1_earnings_gate_days (Phase B B0.4)
+    assert len(port.CONFIG) == 46   # +g1_earnings_gate_days (Phase B B0.4); +veto_denominator (WS4)
 
 
 def test_daily_inputs_1e9():
@@ -119,6 +119,16 @@ def test_fvrp_1e9():
     a = port.fvrp(0.25, 0.20, hist); e = ref.fvrp(0.25, 0.20, hist)
     for k in ("ratio", "z", "abs_premium_volpts"):
         assert abs(a[k] - e[k]) < TOL
+
+
+def test_fvrp_veto_ratio_1e9():
+    # WS4: conservative veto ratio on max(sigma_fwd, rv_trail); None/0 trail → forecast ratio.
+    for args in ((0.25, 0.20, 0.22), (0.25, 0.20, 0.18), (0.25, 0.20, None), (0.25, 0.20, 0.0)):
+        assert abs(port.fvrp_veto_ratio(*args) - ref.fvrp_veto_ratio(*args)) < TOL
+    assert abs(port.fvrp_veto_ratio(0.25, 0.20, 0.22) - 0.25 / 0.22) < TOL
+    assert abs(port.fvrp_veto_ratio(0.25, 0.20, 0.18) - port.fvrp(0.25, 0.20)["ratio"]) < TOL
+    assert abs(port.fvrp_veto_ratio(0.25, 0.20, None) - port.fvrp(0.25, 0.20)["ratio"]) < TOL
+    assert port.CONFIG["veto_denominator"] == "sigma_fwd"   # behaviour-preserving default
 
 
 def test_gate_state_sequence_agrees():

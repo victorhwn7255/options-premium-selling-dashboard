@@ -35,7 +35,11 @@ logger = logging.getLogger("backfill_bars")
 # VIX family for index_daily. PUT (Cboe PutWrite) benchmark is deferred to
 # Phase D (weekly Cboe CSV import) — MarketData indices are unentitled on the
 # trial token and yfinance does not carry the PutWrite index cleanly.
-INDEX_SYMBOLS = ["^VIX", "^VIX3M", "^VVIX"]
+INDEX_SYMBOLS = ["^VIX", "^VIX3M", "^VVIX",
+                 # Signal-Quality WS1 (2026-09-03): IV proxies for the index-sleeve replay —
+                 # ^VXN → QQQ, ^GVZ → GLD (VIX already proxies SPY). ^RVX (IWM) is delisted on
+                 # Yahoo (verified 2026-09-03); the replay falls back to ^VIX for IWM, flagged.
+                 "^VXN", "^GVZ"]
 
 SOURCE = "yfinance"
 MAX_ABS_LOG_RETURN = 0.5  # |ln(C/prevC)| ≥ this ⇒ integrity failure (split/data artifact)
@@ -136,6 +140,9 @@ def main():
                         help="Show the plan; fetch/write nothing")
     parser.add_argument("--no-index", action="store_true",
                         help="Skip the VIX-family index_daily backfill")
+    parser.add_argument("--index-only", action="store_true",
+                        help="Refresh ONLY index_daily (the VIX family + WS1 proxies); skip tickers. "
+                             "index_daily has no live writer — use this to bring it current.")
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -152,6 +159,8 @@ def main():
 
     tickers = ([t.strip().upper() for t in args.tickers.split(",")]
                if args.tickers else list(NAKED_PUT_UNIVERSE.keys()))
+    if args.index_only:
+        tickers = []
     bad = [t for t in tickers if t not in NAKED_PUT_UNIVERSE]
     if bad:
         print(f"ERROR: unknown tickers {bad}", file=sys.stderr)
@@ -179,7 +188,7 @@ def main():
                 print(f"  {s:7s} stored={r['stored']:4d} fetched={r['fetched']:4d}")
                 time.sleep(0.2)
 
-    if not args.dry_run:
+    if not args.dry_run and tickers:
         print("\nCoverage report:")
         cov = db.get_bars_coverage()
         short = [t for t in tickers if cov.get(t, {}).get("count", 0) < 500]

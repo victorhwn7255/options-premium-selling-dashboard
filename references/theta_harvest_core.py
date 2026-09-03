@@ -23,6 +23,11 @@ Corrections (2026-07-04, pre-port review — see docs/theta-harvest-v2-evaluatio
     IDENTICAL values (behavior-preserving) so line-11's "never hardcoded below" holds fully —
     fvrp_min_obs (60), reentry_ramp_exponent (2), margin_otm_min_frac (0.10), dial_O_z_clip (2.0),
     psr_min_obs (30). Golden-master outputs unchanged; fixtures derived before/after are identical.
+  * 2026-09-03 (Signal-Quality WS4): added `fvrp_veto_ratio()` — FVRP on the RICHER realized
+    denominator max(sigma_fwd, trailing RV) — and CONFIG["veto_denominator"] ("sigma_fwd" | "max";
+    default "sigma_fwd" = behaviour-preserving). Both ratios are persisted so Test T1 (Module F)
+    adjudicates the denominator on the disagreement set; the switch is T1's to flip (P2/§9), never
+    a judgement call. Sizing/z always use sigma_fwd. Every pre-existing function is unchanged.
 """
 
 from __future__ import annotations
@@ -51,6 +56,9 @@ CONFIG = {
                                           # from actual residuals once n >= min_pooled_obs). With the
                                           # build-plan backfill warm-start this is moot in production,
                                           # but it stays governable rather than hardcoded.
+    "veto_denominator": "sigma_fwd",      # [PROVISIONAL — owned by Test T1] "sigma_fwd" (today's veto)
+                                          # | "max" (veto on iv30 / max(sigma_fwd, rv_trail)). The
+                                          # z-score, O-dial and sizing ALWAYS use sigma_fwd (WS4).
     # Module B
     "g2_caution_in": 1.00, "g2_caution_out": 0.98,   # [PROVISIONAL]
     "g2_danger_in": 1.05, "g2_danger_out": 1.02,     # [PROVISIONAL]
@@ -206,6 +214,16 @@ def fvrp(iv30: float, sigma_fwd: float, log_hist: list[float] | None = None) -> 
         z = (math.log(ratio) - h.mean()) / sd if sd > 1e-9 else 0.0
     return {"ratio": ratio, "z": z,
             "abs_premium_volpts": (iv30 - sigma_fwd) * 100.0}
+
+
+def fvrp_veto_ratio(iv30: float, sigma_fwd: float, rv_trail: float | None) -> float:
+    """A4 (WS4): FVRP on the RICHER realized denominator, max(sigma_fwd, rv_trail) — the
+    conservative veto ratio. It gates only when CONFIG["veto_denominator"] == "max"; it is
+    always computed and persisted so Test T1 can compare it with the forecast ratio on the
+    same rows. `rv_trail` is an annualized decimal (v1's close-to-close RV30 / 100); None
+    (or 0) degrades to the forecast denominator."""
+    den = max(sigma_fwd, rv_trail if rv_trail is not None else 0.0, 1e-6)
+    return iv30 / den
 
 
 # ----------------------------------------------------------------------------

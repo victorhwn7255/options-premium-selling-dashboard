@@ -13,6 +13,18 @@ from datetime import date, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+try:  # pytest-only isolation: restore database.DB_PATH after each test (the DB test below
+    import pytest  # reassigns it to a mktemp file and never restores — later files broke)
+    import database as _database
+
+    @pytest.fixture(autouse=True)
+    def _restore_db_paths():
+        saved = (_database.DB_PATH, _database.TRIAL_REGISTRY_PATH)
+        yield
+        _database.DB_PATH, _database.TRIAL_REGISTRY_PATH = saved
+except ImportError:  # standalone `python test_calculator.py` runs need no restore
+    pass
+
 from marketdata_client import DailyBar, OptionContract
 from calculator import (
     compute_realized_vol, compute_atm_iv, compute_iv_rank,

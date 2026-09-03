@@ -79,6 +79,7 @@ class TickerResult(BaseModel):
     sigma_fwd: Optional[float] = None
     sigma_fwd_dn: Optional[float] = None
     fvrp_ratio: Optional[float] = None
+    fvrp_ratio_trail: Optional[float] = None   # WS4: FVRP on max(sigma_fwd, trailing RV30) — telemetry
     fvrp_z: Optional[float] = None
     slope_1m3m: Optional[float] = None
     accel_dn: Optional[float] = None
@@ -194,6 +195,30 @@ class ShadowSummaryResponse(BaseModel):
     oscillation_v1: Optional[float] = None
     oscillation_v2: Optional[float] = None
     warm_coverage: Optional[float] = None
+    # ── WS2a forward realized capture (spec E3) — aggregates over the last
+    # `capture_window` RESOLVED dates (rows resolve with a 21-session lag; never read
+    # them as today's edge). All additive/Optional so cached blobs still parse.
+    capture_n_resolved: Optional[int] = None
+    capture_window_resolved: Optional[int] = None
+    capture_window_dates: Optional[list[str]] = None
+    capture_mean_all: Optional[float] = None
+    capture_mean_v1_actionable: Optional[float] = None
+    capture_mean_v2_eligible: Optional[float] = None
+    capture_mean_v2_eligible_warm: Optional[float] = None
+    capture_neg_rate_v1_gated: Optional[float] = None
+    capture_neg_rate_v1_cleared: Optional[float] = None
+    capture_neg_rate_v2_vetoed: Optional[float] = None
+    capture_neg_rate_v2_cleared: Optional[float] = None
+    capture_neg_rate_v2_vetoed_warm: Optional[float] = None
+    capture_neg_rate_v2_cleared_warm: Optional[float] = None
+    sigma_fwd_log_mae: Optional[float] = None
+    rv30_log_mae: Optional[float] = None
+    sigma_fwd_log_mae_gk: Optional[float] = None
+    # ── WS4 veto-denominator instrumentation: which denominator gates today, and the share of
+    # ticker-days in the window where forecast and trailing FVRP disagree (T1's population).
+    veto_denominator: Optional[str] = None
+    veto_disagree_rate: Optional[float] = None
+    veto_disagree_n: Optional[int] = None
 
 
 class ShadowDiffResponse(BaseModel):

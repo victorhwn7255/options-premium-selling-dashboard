@@ -31,6 +31,18 @@ def _ok(label, cond):
     print(f"  PASS  {label}")
 
 
+try:  # pytest-only isolation: restore the module-level DB paths after each test so a later
+    import pytest  # file never inherits a tmpdir that TemporaryDirectory() already deleted
+
+    @pytest.fixture(autouse=True)
+    def _restore_db_paths():
+        saved = (database.DB_PATH, database.TRIAL_REGISTRY_PATH)
+        yield
+        database.DB_PATH, database.TRIAL_REGISTRY_PATH = saved
+except ImportError:  # standalone `python test_sizing.py` runs need no restore
+    pass
+
+
 def _fresh_db(tmpdir: str):
     database.DB_PATH = Path(tmpdir) / "test.db"
     database.TRIAL_REGISTRY_PATH = Path(tmpdir) / "trial_registry.jsonl"

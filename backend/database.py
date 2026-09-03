@@ -305,6 +305,15 @@ def init_db():
         ("legacy_signal_score", "INTEGER"), ("legacy_recommendation", "TEXT"),
         ("legacy_regime", "TEXT"), ("legacy_vrp_ratio", "REAL"),
         ("legacy_term_slope", "REAL"), ("legacy_rv_accel", "REAL"),
+        # WS2a (Signal-Quality Program, 2026-09) — spec E3 per-ticker-day forward realized
+        # capture, filled with a 21-session lag by backend/capture.py. Module G names the
+        # column `capture_30d`; horizon = tc.HOLD_SESSIONS (21 sessions ≈ IV30's 30 cal days).
+        ("rv_fwd_21_cc", "REAL"), ("rv_fwd_21", "REAL"),
+        ("capture_30d", "REAL"), ("capture_30d_log", "REAL"),
+        ("capture_resolved_at", "TEXT"),
+        # WS4 — the conservative veto ratio on max(sigma_fwd, trailing RV30) and the T1
+        # population marker (1 when the two ratios straddle 1.0 or the dead zone).
+        ("fvrp_ratio_trail", "REAL"), ("veto_disagree", "INTEGER"),
     )
     for col, typ in v2_cols:
         if col not in existing:
@@ -1075,6 +1084,10 @@ _V2_IV_COLS = frozenset({
     "transient_tag", "v2_gate_state", "v2_eligible", "v2_warm", "low_coverage",
     "legacy_signal_score", "legacy_recommendation", "legacy_regime",
     "legacy_vrp_ratio", "legacy_term_slope", "legacy_rv_accel",
+    # WS2a forward realized capture (backend/capture.py)
+    "rv_fwd_21_cc", "rv_fwd_21", "capture_30d", "capture_30d_log", "capture_resolved_at",
+    # WS4 veto denominator instrumentation
+    "fvrp_ratio_trail", "veto_disagree",
 })
 
 
@@ -1103,6 +1116,120 @@ def store_daily_iv_v2(ticker: str, as_of=None, **fields) -> int:
     n = cur.rowcount
     conn.close()
     return n
+
+
+# ── WS4 — veto denominator instrumentation ───────────────────────────────────
+
+def get_veto_summary(window_days: int = 10) -> dict:
+    """Share of ticker-days over the last `window_days` shadow dates where the forecast and
+    trailing FVRP ratios disagree on eligibility (straddle 1.0 or the dead zone) — the live
+    size of Test T1's population — plus which denominator currently gates. Own query;
+    get_shadow_summary's positional tuples are untouched."""
+    import theta_core as tc
+    out = {"veto_denominator": tc.CONFIG.get("veto_denominator"),
+           "veto_disagree_rate": None, "veto_disagree_n": None}
+    conn = get_connection()
+    dates = [r[0] for r in conn.execute(
+        "SELECT DISTINCT date FROM shadow_diff ORDER BY date DESC LIMIT ?", (int(window_days),))]
+    if not dates:
+        conn.close()
+        return out
+    ph = ",".join("?" * len(dates))
+    n, k = conn.execute(
+        f"SELECT COUNT(veto_disagree), COALESCE(SUM(veto_disagree), 0) FROM daily_iv "
+        f"WHERE date IN ({ph}) AND veto_disagree IS NOT NULL", dates).fetchone()
+    conn.close()
+    if n:
+        out["veto_disagree_rate"], out["veto_disagree_n"] = k / n, int(n)
+    return out
+
+
+# ── WS2a — forward realized capture (spec E3, per ticker-day) ────────────────
+
+def get_capture_candidates(cutoff_date: str, limit: int = 2000) -> list[tuple]:
+    """(ticker, date, atm_iv) rows that still lack capture_30d and are old enough to have
+    resolved (date <= cutoff). Oldest first so a bounded backfill fills history in order."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT ticker, date, atm_iv FROM daily_iv "
+        "WHERE atm_iv IS NOT NULL AND capture_30d IS NULL AND date <= ? "
+        "ORDER BY date ASC, ticker ASC LIMIT ?", (cutoff_date, int(limit))).fetchall()
+    conn.close()
+    return rows
+
+
+CAPTURE_SUMMARY_KEYS = (
+    "capture_n_resolved", "capture_window_resolved", "capture_window_dates",
+    "capture_mean_all", "capture_mean_v1_actionable", "capture_mean_v2_eligible",
+    "capture_mean_v2_eligible_warm",
+    "capture_neg_rate_v1_gated", "capture_neg_rate_v1_cleared",
+    "capture_neg_rate_v2_vetoed", "capture_neg_rate_v2_cleared",
+    "capture_neg_rate_v2_vetoed_warm", "capture_neg_rate_v2_cleared_warm",
+    "sigma_fwd_log_mae", "rv30_log_mae", "sigma_fwd_log_mae_gk",
+)
+
+
+def get_capture_summary(window_resolved: int = 60) -> dict:
+    """Aggregates of capture_30d over the last `window_resolved` distinct RESOLVED dates.
+
+    Kept as its own query/function (not folded into get_shadow_summary's positional tuples).
+    v1 'actionable' = legacy_recommendation in (SELL PREMIUM, CONDITIONAL) — the backend's
+    pre-earnings-gate view; v2 'eligible' = v2_eligible. Rows before 2026-07-06 have neither
+    (NULL) and count only toward the *_all fields. MAEs are |ln(forecast / realized)| against the
+    close-to-close forward RV (both forecasters on the same target) plus σ_fwd vs its own
+    GK+overnight target (`_gk`)."""
+    import math
+    out = {k: None for k in CAPTURE_SUMMARY_KEYS}
+    out["capture_n_resolved"], out["capture_window_resolved"], out["capture_window_dates"] = 0, int(window_resolved), []
+    conn = get_connection()
+    dates = [r[0] for r in conn.execute(
+        "SELECT DISTINCT date FROM daily_iv WHERE capture_30d IS NOT NULL "
+        "ORDER BY date DESC LIMIT ?", (int(window_resolved),))]
+    if not dates:
+        conn.close()
+        return out
+    ph = ",".join("?" * len(dates))
+    names = ("cap", "rvcc", "rvgk", "sf", "rv30", "rec", "elig", "warm")
+    rows = [dict(zip(names, r)) for r in conn.execute(
+        f"SELECT capture_30d, rv_fwd_21_cc, rv_fwd_21, sigma_fwd, rv30, legacy_recommendation, "
+        f"v2_eligible, v2_warm FROM daily_iv WHERE date IN ({ph}) AND capture_30d IS NOT NULL",
+        dates).fetchall()]
+    conn.close()
+
+    def mean(xs):
+        xs = [x for x in xs if x is not None]
+        return (sum(xs) / len(xs)) if xs else None
+
+    def neg_rate(xs):
+        xs = [x for x in xs if x is not None]
+        return (sum(1 for x in xs if x < 0) / len(xs)) if xs else None
+
+    def log_mae(pairs):
+        v = [abs(math.log(a / b)) for a, b in pairs if a and b and a > 0 and b > 0]
+        return (sum(v) / len(v)) if v else None
+
+    actionable = ("SELL PREMIUM", "CONDITIONAL")
+    v1 = [r for r in rows if r["rec"] is not None]
+    v2 = [r for r in rows if r["elig"] is not None]
+    v2w = [r for r in v2 if r["warm"]]
+    out.update({
+        "capture_n_resolved": len(rows),
+        "capture_window_dates": dates,
+        "capture_mean_all": mean(r["cap"] for r in rows),
+        "capture_mean_v1_actionable": mean(r["cap"] for r in v1 if r["rec"] in actionable),
+        "capture_mean_v2_eligible": mean(r["cap"] for r in v2 if r["elig"]),
+        "capture_mean_v2_eligible_warm": mean(r["cap"] for r in v2w if r["elig"]),
+        "capture_neg_rate_v1_gated": neg_rate(r["cap"] for r in v1 if r["rec"] not in actionable),
+        "capture_neg_rate_v1_cleared": neg_rate(r["cap"] for r in v1 if r["rec"] in actionable),
+        "capture_neg_rate_v2_vetoed": neg_rate(r["cap"] for r in v2 if not r["elig"]),
+        "capture_neg_rate_v2_cleared": neg_rate(r["cap"] for r in v2 if r["elig"]),
+        "capture_neg_rate_v2_vetoed_warm": neg_rate(r["cap"] for r in v2w if not r["elig"]),
+        "capture_neg_rate_v2_cleared_warm": neg_rate(r["cap"] for r in v2w if r["elig"]),
+        "sigma_fwd_log_mae": log_mae((r["sf"], r["rvcc"]) for r in rows),
+        "rv30_log_mae": log_mae(((r["rv30"] / 100.0) if r["rv30"] else None, r["rvcc"]) for r in rows),
+        "sigma_fwd_log_mae_gk": log_mae((r["sf"], r["rvgk"]) for r in rows),
+    })
+    return out
 
 
 def get_fvrp_history(ticker: str, days: int = 252) -> list[float]:

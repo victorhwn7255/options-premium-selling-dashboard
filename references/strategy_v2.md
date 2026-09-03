@@ -73,6 +73,9 @@ A ticker-day is **entry-eligible** iff ALL of the following hold:
 1. **Gate state NORMAL** (Section 4) with no transient blackout active.
 2. **Forward VRP above the dead zone**: `FVRP_ratio = IV30 / sigma_fwd` ≥ 1.20
    (index/ETF) or ≥ 1.15 (single names) [PROVISIONAL — Test T1 owns these].
+   *(WS4, 2026-09-03: the conservative ratio on `max(sigma_fwd, RV30_trailing)` is
+   computed and logged beside it every night; it replaces the forecast ratio in this
+   check only if T1 sets `CONFIG["veto_denominator"] = "max"` — today it does not. ADR-015.)*
 3. **Absolute premium floor**: `IV30 − sigma_fwd ≥ 2.0 vol points`. A rich ratio on a
    10-vol name is not a fundable edge after frictions.
 4. **Earnings clear (single names)**: no earnings inside the holding window + 5

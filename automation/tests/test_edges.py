@@ -121,6 +121,62 @@ def test_shadow_none_summary():
     _ok("empty summary -> (unavailable)", shadow_summary_line({}) == "**Shadow summary:** (unavailable)")
 
 
+def test_shadow_capture_segment():
+    """WS2a: the capture tail segment appears only when capture_n_resolved is truthy; absent or
+    zero omits it byte-identically (pre-WS2a fixtures unchanged); None numerics render '—'."""
+    base = {"n_ticker_days": 33, "divergence_counts": {"AGREE": 30}, "index_gating_rate_v1": 0.9,
+            "index_gating_rate_v2": 0.95, "oscillation_v1": 1.0, "oscillation_v2": 0.5, "warm_coverage": 1.0}
+    plain = shadow_summary_line(base)
+    _ok("no capture fields -> no segment", "capture" not in plain)
+    _ok("capture_n_resolved=0 -> no segment", shadow_summary_line({**base, "capture_n_resolved": 0}) == plain)
+    full = shadow_summary_line({**base, "capture_n_resolved": 1980, "capture_window_resolved": 60,
+                                "capture_mean_all": 212.4, "capture_neg_rate_v2_vetoed": 0.61,
+                                "capture_neg_rate_v2_cleared": 0.38, "sigma_fwd_log_mae": 0.314,
+                                "rv30_log_mae": 0.28})
+    _ok("segment format", full.endswith(
+        " | capture60 n=1980 mean +212 / v2-veto-neg 61% / v2-clear-neg 38% / σfwd-vs-rv30 MAE 0.31 vs 0.28"))
+    _ok("segment after day-flips", shadow_summary_line({**base, "capture_n_resolved": 5},
+        flips={"v1": (1, 33), "v2": (0, 33)}).find("day-flips") <
+        shadow_summary_line({**base, "capture_n_resolved": 5}, flips={"v1": (1, 33), "v2": (0, 33)}).find("capture"))
+    nones = shadow_summary_line({**base, "capture_n_resolved": 5})
+    _ok("None numerics -> —", nones.endswith("| capture n=5 mean — / v2-veto-neg — / v2-clear-neg — / σfwd-vs-rv30 MAE — vs —"))
+    # WS4 veto-disagree segment: guarded on presence (0.0 IS present), appended last.
+    _ok("veto-disagree absent -> omitted", "veto-disagree" not in plain)
+    _ok("veto-disagree 0.0 renders", shadow_summary_line({**base, "veto_disagree_rate": 0.0}).endswith(" | veto-disagree 0%"))
+    both = shadow_summary_line({**base, "capture_n_resolved": 5, "veto_disagree_rate": 0.123})
+    _ok("veto-disagree after capture", both.endswith("MAE — vs — | veto-disagree 12%"))
+
+
+def test_capture_summary_by_date_backfill():
+    """db_source parity: the as-of rule (rows dated <= D-29) and the same aggregation as the
+    backend; a snapshot without the column returns {} (segment omitted)."""
+    import sqlite3
+    from automation.sources.db_source import _capture_summary_by_date
+    conn = sqlite3.connect(":memory:")
+    conn.execute("CREATE TABLE daily_iv (ticker TEXT, date TEXT, atm_iv REAL, rv30 REAL)")
+    _ok("pre-WS2a snapshot -> {}", _capture_summary_by_date(conn, "2026-09-03") == {})
+    for col, typ in (("capture_30d", "REAL"), ("rv_fwd_21_cc", "REAL"), ("rv_fwd_21", "REAL"),
+                     ("sigma_fwd", "REAL"), ("legacy_recommendation", "TEXT"),
+                     ("v2_eligible", "INTEGER"), ("v2_warm", "INTEGER")):
+        conn.execute(f"ALTER TABLE daily_iv ADD COLUMN {col} {typ}")
+    rows = [  # (ticker, date, capture, rvcc, rvgk, sf, rv30, rec, elig, warm)
+        ("A", "2026-07-01", 100.0, 0.20, 0.21, 0.22, 24.0, "SELL PREMIUM", 1, 1),
+        ("B", "2026-07-01", -50.0, 0.30, 0.31, 0.25, 20.0, "NO EDGE", 0, 1),
+        ("C", "2026-07-01", -10.0, 0.30, 0.31, 0.25, 20.0, "NO EDGE", 0, 0),
+        ("A", "2025-03-01", 30.0, 0.20, 0.21, None, None, None, None, None),   # pre-label row
+        ("A", "2026-09-01", 999.0, 0.20, 0.21, 0.22, 24.0, "SELL PREMIUM", 1, 1),  # NOT resolved as of D
+    ]
+    conn.executemany("INSERT INTO daily_iv (ticker, date, capture_30d, rv_fwd_21_cc, rv_fwd_21, sigma_fwd, "
+                     "rv30, legacy_recommendation, v2_eligible, v2_warm) VALUES (?,?,?,?,?,?,?,?,?,?)", rows)
+    s = _capture_summary_by_date(conn, "2026-09-03", window=60)
+    _ok("as-of excludes rows dated after D-29", s["capture_n_resolved"] == 4 and "2026-09-01" not in s["capture_window_dates"])
+    _ok("mean_all includes the unlabeled row", abs(s["capture_mean_all"] - (100 - 50 - 10 + 30) / 4) < 1e-9)
+    _ok("v2 vetoed neg rate", s["capture_neg_rate_v2_vetoed"] == 1.0 and s["capture_neg_rate_v2_cleared"] == 0.0)
+    _ok("warm-only excludes the cold row", s["capture_neg_rate_v2_vetoed_warm"] == 1.0)
+    _ok("v1 actionable mean", s["capture_mean_v1_actionable"] == 100.0)
+    _ok("MAE uses labeled+unlabeled rows with both values", s["rv30_log_mae"] is not None and s["sigma_fwd_log_mae"] is not None)
+
+
 def test_shadow_all_agree_and_sort():
     # all-AGREE (no decision-changing rows) still renders a table, sorted by ticker.
     rows = [_srow("SPY"), _srow("AAA"), _srow("QQQ")]
@@ -168,6 +224,7 @@ if __name__ == "__main__":
     for fn in [test_earnings_gate_skip, test_cps_empty_candidates, test_cps_unknown_overlay,
                test_regime_precedence, test_first_day_no_deltas, test_avg_vrp_js_rounding_tie,
                test_shadow_empty_rows, test_shadow_none_summary, test_shadow_all_agree_and_sort,
-               test_shadow_decision_changing_first, test_shadow_none_numeric_cells]:
+               test_shadow_decision_changing_first, test_shadow_none_numeric_cells,
+               test_shadow_capture_segment, test_capture_summary_by_date_backfill]:
         fn()
     print("All edge-case tests passed.")

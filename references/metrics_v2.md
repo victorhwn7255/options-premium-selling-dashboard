@@ -79,6 +79,7 @@ model, not 33 fragile ones.
 | Metric | Definition | Use |
 |---|---|---|
 | `FVRP_ratio` | `IV30 / sigma_fwd` | Tradeability core. Dead zones: 1.20 index / 1.15 single [PROVISIONAL, owned by Test T1] |
+| `FVRP_ratio_trail` *(WS4, 2026-09-03)* | `IV30 / max(sigma_fwd, RV30_trailing)` — `fvrp_veto_ratio()` | The conservative veto ratio, computed and persisted nightly beside `FVRP_ratio`; `veto_disagree` marks rows where the two straddle 1.0 or the dead zone (Test T1's population). It **gates only when `CONFIG["veto_denominator"] == "max"`** — default `"sigma_fwd"` (unchanged behaviour); T1 owns the flip (ADR-015). z-score, O-dial and sizing always use `sigma_fwd`. |
 | `FVRP_z` | z-score of `ln(FVRP_ratio)`, trailing 252d per ticker (min 60 obs, else pooled) | Opportunity dial input |
 | `abs_premium` | `(IV30 − sigma_fwd) × 100` vol points | Floor at 2.0 pts [PROVISIONAL] — ratio richness must also be fundable in dollars |
 | `slope_1m3m` | `IV_1M / IV_3M` | Gate G2. CAUTION ≥ 1.00 / exit ≤ 0.98; DANGER ≥ 1.05 / exit ≤ 1.02 [PROVISIONAL] |
@@ -120,7 +121,7 @@ only; open positions never resized daily.
 | `PSR(0)`, `PSR(0.5)` | Probabilistic Sharpe Ratio on **daily** P&L, native frequency, worst-case moments (bootstrap 5th-pct skew / 95th-pct kurtosis) while sample is short | Acceptance bar 0.95. Raw Sharpe is never quoted without PSR beside it |
 | `MinTRL` | minimum track record length at 95% for the claimed benchmark | On ~336 daily obs, rejecting "no skill" needs ann. Sharpe ≈ 1.4–1.55 — calibrates humility about the 16-month window |
 | DSR hurdle | deflated-Sharpe threshold from trial-registry count N | Registry is append-only; every test raises the bar, adopted or not |
-| `capture` | per closed trade and per ticker-day: `IV30²(entry) − RV_realized(hold)` (variance points + log form) | Ground truth of the edge; feeds E4 and the future option-momentum feature |
+| `capture` | per closed trade and per ticker-day: `IV30²(entry) − RV_realized(hold)` (variance points + log form) | Ground truth of the edge; feeds E4 and the future option-momentum feature. **Ticker-day series IMPLEMENTED 2026-09-03 (WS2a)** as `daily_iv.capture_30d` — horizon `HOLD_SESSIONS` (21 sessions ≈ 30 cal days), close-to-close realized (matching the journal's per-trade `trades.capture`), filled with a 21-session lag by `backend/capture.py`; `rv_fwd_21` (GK+overnight) is stored beside it so `sigma_fwd` is graded against its own target. Aggregates (mean by v1 tier / v2 eligibility, loss-day rates conditional on veto/clear, σ_fwd vs RV30 log-MAE) ride additively on `/api/shadow/summary`. The per-trade and E4 consumers remain Phase D. |
 | `monitor_e4` | rolling 90-day mean of `capture` portfolio-wide; < 0 → gross ×0.5 + naked→spread migration | **Lagging damage-control indicator, not tail protection** — framing is part of the metric |
 | benchmarks | rolling 12-month NAV vs Cboe PUT and SPY TR | Pre-committed interpretation: bull-market lag vs SPY is regime-expected |
 | four-moment monitor | 60-day mean/SD/skew/kurt of daily P&L; alert on skew z < −2 vs trailing year | |

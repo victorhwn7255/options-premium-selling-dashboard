@@ -19,6 +19,10 @@ function pct(x: number | null | undefined, digits = 0): string {
 function num(x: number | null | undefined, digits = 2): string {
   return x == null ? '—' : x.toFixed(digits);
 }
+/** Forward-capture mean in variance points ×1e4 — signed integer, '—' when unresolved. */
+function capPts(x: number | null | undefined): string {
+  return x == null || Number.isNaN(x) ? '—' : `${x >= 0 ? '+' : ''}${Math.round(x)}`;
+}
 
 function Stat({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string }) {
   return (
@@ -136,6 +140,24 @@ export default function ShadowPanel() {
           keep V2 Looser above zero — a gate that clears nothing is stuck, not calibrated.
         </p>
       </div>
+
+      {/* WS2a — forward realized capture (spec E3): resolved with a 21-session lag; display-only */}
+      {summary?.capture_n_resolved ? (
+        <div className="bg-bg-alt rounded-lg border border-border-subtle px-4 sm:px-5 py-4">
+          <div className="font-primary text-[10px] font-semibold text-txt-tertiary tracking-widest uppercase mb-3">
+            Forward capture · last {summary.capture_window_resolved ?? '—'} resolved sessions · n={summary.capture_n_resolved}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            <Stat label="Capture · all / v2-eligible" value={`${capPts(summary.capture_mean_all)} / ${capPts(summary.capture_mean_v2_eligible)}`} sub="IV30² − realized² (var pts ×1e4)" />
+            <Stat label="v2 veto-neg / clear-neg" value={`${pct(summary.capture_neg_rate_v2_vetoed)} / ${pct(summary.capture_neg_rate_v2_cleared)}`} sub="loss-day share (↑ veto right / ↓ clear right)" />
+            <Stat label="v1 gated-neg / cleared-neg" value={`${pct(summary.capture_neg_rate_v1_gated)} / ${pct(summary.capture_neg_rate_v1_cleared)}`} sub="same read, v1 tiers" />
+            <Stat label="MAE · σ_fwd / rv30" value={`${num(summary.sigma_fwd_log_mae)} / ${num(summary.rv30_log_mae)}`} sub="|ln(forecast/realized)| (↓ better)" />
+          </div>
+          <p className="text-[10px] text-txt-tertiary mt-2.5 leading-relaxed italic">
+            Resolves 21 sessions after the fact — a read on past vetoes, never today&apos;s edge.
+          </p>
+        </div>
+      ) : null}
 
       {/* Filters */}
       <div className="flex items-center gap-2 flex-wrap">
