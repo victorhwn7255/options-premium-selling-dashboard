@@ -38,6 +38,20 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-09-03 (Thursday)
+
+**Scan summary:** Checked 11 / 2 actionable / 8 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 14.32 / VIX3M 17.42 / VVIX 83.8 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 2d | 37 | 14.2% | $0.42 | $3 | $2.58 | Good | Thin premium |
+| 2 | XLF | WATCH | 0d | 29 | 34.0% | $0.17 | $0.50 | $0.33 | Acceptable | — |
+
+**Notable:** IWM holds the return alive at **2d, its first three-session run since the nine-day streak died, but the score fades 44 → 37 (−7)** on **$0.42 credit over a $3 width for $2.58 max loss** — a penny back off yesterday's $0.43, skew easing **14.3% → 14.2%**, RV still **Good**, "Thin premium" welded on for the eleventh straight appearance. XLF returns at **0d after one session off**, and it brings back the number that vanished on Tuesday: **34.0% c/w, exactly matching Monday's record — but on $0.17 credit over a $0.50 width for $0.33 max loss**, which is the whole problem with the skew clause stated in one line. Record-tying relative premium worth seventeen cents is a rounding error, not a ticket, and the two names now sit twenty points of skew apart — the widest divergence of the run, one session after the tightest. Funnel is **checked 11 / actionable 2 / base_gate 8 / construction 1 / execution 0** — base gate loosens by exactly one name for the first time in four days, and execution is blank for the **seventy-fifth consecutive print**. The surface keeps giving back Tuesday's break: **VIX 15.20 → 14.32, back within a tick of the 14.43 low; VIX3M 17.73 → 17.42, slope re-flattening to 0.819; VVIX 86.3 → 83.8, finally off the pin but in the wrong direction.** Internals mirror it: regime holds **THE PLAYOFFS at 1S / 0C + 2W with 1 tradeable**, **stress 7 → 3 (9.4%) of 32 eligible, danger 0**, RV accel 0.815 — but **avg VRP deteriorates −4.7 → −5.0 and the negative share worsens 61% → 66%**. Day-over-day is broad and green off a low base: **XLV +35 to 40, WMT +15, TLT +13, SBUX +11, XLE/HD +10, EEM +7** against **XLI −20, XLB −18 to zero, JNJ −12, XLF −10, IWM −7**. Yesterday's flagged candidate did the predictable thing — **NKE +3 to 65, still two under the gate**, closest of the run and now two sessions of persistence, the only genuinely constructive fact on the board. The read: vol compressed, stress halved, and VRP got worse anyway — falling implied with falling realized is not a seller's market, it is a market with nothing to sell. A first SELL_CPS still needs VIX above 16 for multiple sessions with VRP turning positive across a majority; today moved the other way on all three, and NKE at 65 is the entire case for tomorrow.
+
+---
+
 ## 2026-09-02 (Wednesday)
 
 **Scan summary:** Checked 11 / 1 actionable / 9 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
