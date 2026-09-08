@@ -38,6 +38,15 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-09-04 (Friday)
+
+**Scan summary:** Checked 11 / 0 actionable / 10 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 14.53 / VIX3M 17.61 / VVIX 84.4 — NORMAL, Contango
+
+**Notable:** The board goes blank: **zero actionable, the first empty CPS tab of the run** — IWM's return dies at **2d**, XLF fails base gate again after its one-session cameo, and **base gate now culls 10 of 11** with construction holding the last name. No credit, no width, no skew to quote; the funnel is **checked 11 / actionable 0 / base_gate 10 / construction 1 / execution 0**, and execution is blank for the **seventy-sixth consecutive print**. The surface keeps grinding lower: **VIX 14.32 → 14.53** — nominally up but still inside the 14.43 low's orbit — **VIX3M 17.42 → 17.61**, slope re-steepening to **0.82**, **VVIX 83.8 → 84.4**, contango intact, NORMAL. That is the whole problem in three numbers: implied vol at the floor of the range with term structure widening, which prices back-month risk while paying nothing for the front. Internals confirm rather than contradict: **THE PLAYOFFS at 1S / 0C + 1W, 1 tradeable**, **danger 0**, but **stress worsens 3 → 6 (18.2%) of 33 eligible** and **avg VRP improves −5.0 → −4.1 while the negative share drops 66% → 55%** — the first two-sided move in a week, and still not one name with positive VRP worth selling. Day-over-day is mildly constructive off the bottom: **JNJ +18 to 47, XLI +17, XLB +16 off zero, SBUX +14, GS +6, PLTR +5, MCD +4** against **XLV −20, TSLA −10, HOOD −7, GLD/XLF −6**. The one fact that matters is **NKE +3 to 68 — third straight session of gains, top of the board, and now inside striking distance of the gate for the first time in the run**; it is the only name that has strung persistence together rather than spiking and reverting. The read: today was a nothing-print by construction, but the internals moved the right way for once — VRP less negative, negative share back under 60% — while the surface moved the wrong way, and a rising stress count with falling VIX is compression, not opportunity. **Still zero SELL_CPS at 76 sessions.** The trigger is unchanged and unmet: VIX holding above 16 across multiple sessions with VRP positive across a majority. NKE clearing 70 with the surface cooperating is the single most plausible path to a first ticket, and it is the only thing on this board worth watching Monday.
+
+---
+
 ## 2026-09-03 (Thursday)
 
 **Scan summary:** Checked 11 / 2 actionable / 8 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
