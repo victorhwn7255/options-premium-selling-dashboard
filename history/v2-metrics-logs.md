@@ -40,6 +40,258 @@ Authoritative data lives in the `shadow_diff` + `daily_iv` tables; this file is 
 
 ---
 
+## 2026-09-11 (Friday)
+
+**Shadow summary:** Checked 330 / 237 agree / 16 V2_STRICTER / 2 V2_LOOSER / 71 state_mismatch / 4 nodata | index-gating v1 96% vs v2 99% | oscillation v1 0.91 vs v2 0.61 | warm 100% | day-flips v1 4/33 vs v2 2/33 | capture60 n=1898 mean -146 / v2-veto-neg 32% / v2-clear-neg 33% / σfwd-vs-rv30 MAE 0.24 vs 0.24 | veto-disagree 10%
+
+| Ticker | v1 Action | v1 Regime | Earnings | v2 Eligible | v2 Gate | Divergence | sigma_fwd | FVRP | z | 1M/3M | accel_dn |
+|--------|-----------|-----------|----------|-------------|---------|------------|-----------|------|------|-------|----------|
+| JPM | CONDITIONAL | NORMAL | 32d | No | NORMAL | V2_STRICTER | 0.239 | 0.98 | +0.59 | 0.954 | 0.868 |
+| KO | CONDITIONAL | NORMAL | 39d | No | NORMAL | V2_STRICTER | 0.206 | 0.90 | -0.24 | 0.872 | 0.862 |
+| NKE | SELL PREMIUM | NORMAL | 18d | No | DANGER | V2_STRICTER | 0.330 | 1.45 | +1.27 | 1.087 | 0.957 |
+| SBUX | CONDITIONAL | NORMAL | 47d | No | CAUTION | V2_STRICTER | 0.301 | 1.07 | +0.10 | 1.014 | 1.296 |
+| SPY | CONDITIONAL | NORMAL | ETF | No | NORMAL | V2_STRICTER | 0.141 | 0.99 | +0.69 | 0.925 | 0.946 |
+| XLI | SELL PREMIUM | NORMAL | ETF | No | DANGER | V2_STRICTER | 0.185 | 1.29 | +1.70 | 1.384 | 1.056 |
+| AAPL | NO EDGE | NORMAL | 48d | No | NORMAL | AGREE | 0.294 | 0.86 | -0.14 | 0.927 | 0.763 |
+| AMZN | NO EDGE | NORMAL | 48d | No | NORMAL | AGREE | 0.331 | 0.92 | -0.25 | 0.839 | 0.865 |
+| CAT | NO EDGE | NORMAL | 48d | No | NORMAL | AGREE | 0.341 | 1.09 | +0.24 | 0.914 | 0.637 |
+| EEM | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.235 | 0.97 | -0.52 | 0.931 | 0.886 |
+| GLD | AVOID | DANGER | ETF | No | CAUTION | STATE_MISMATCH | 0.212 | 1.22 | +0.42 | 1.023 | 1.147 |
+| GOOG | NO EDGE | NORMAL | 54d | No | NORMAL | AGREE | 0.295 | 1.00 | -0.07 | 0.871 | 0.756 |
+| GS | NO EDGE | NORMAL | 32d | No | NORMAL | AGREE | 0.303 | 1.10 | +1.02 | 0.974 | 0.642 |
+| HD | NO EDGE | NORMAL | 67d | No | NORMAL | AGREE | 0.254 | 1.00 | +0.04 | 0.879 | 1.095 |
+| HOOD | NO EDGE | CAUTION | 54d | No | NORMAL | STATE_MISMATCH | 0.707 | 0.88 | -0.08 | 0.924 | 0.899 |
+| IWM | NO EDGE | NORMAL | ETF | No | CAUTION | STATE_MISMATCH | 0.198 | 1.00 | +0.71 | 0.986 | 1.177 |
+| JNJ | WATCHLIST | NORMAL | 32d | No | CAUTION | STATE_MISMATCH | 0.228 | 1.04 | +0.04 | 0.921 | 1.049 |
+| MCD | NO EDGE | NORMAL | 55d | No | NORMAL | AGREE | 0.199 | 1.08 | +0.69 | 0.897 | 0.886 |
+| META | NO EDGE | NORMAL | 47d | No | NORMAL | AGREE | 0.450 | 0.87 | -0.12 | 0.902 | 0.535 |
+| MSFT | NO EDGE | NORMAL | 47d | No | NORMAL | AGREE | 0.282 | 0.92 | -0.38 | 0.848 | 0.867 |
+| NFLX | NO EDGE | NORMAL | 39d | No | CAUTION | STATE_MISMATCH | 0.377 | 0.88 | -0.07 | 0.865 | 1.162 |
+| NVDA | NO EDGE | CAUTION | 68d | No | NORMAL | STATE_MISMATCH | 0.409 | 0.82 | -0.69 | 0.878 | 1.001 |
+| PLTR | NO EDGE | NORMAL | 52d | No | CAUTION | STATE_MISMATCH | 0.594 | 0.80 | -0.21 | 0.853 | 1.140 |
+| QQQ | WATCHLIST | NORMAL | ETF | No | NORMAL | AGREE | 0.208 | 0.94 | -0.28 | 0.922 | 0.758 |
+| TLT | NO EDGE | CAUTION | ETF | No | NORMAL | STATE_MISMATCH | 0.136 | 0.94 | +0.71 | 0.967 | 1.206 |
+| TSLA | NO EDGE | CAUTION | 47d | No | NORMAL | STATE_MISMATCH | 0.530 | 0.76 | -0.96 | 0.908 | 0.889 |
+| UBER | NO EDGE | NORMAL | 53d | No | CAUTION | STATE_MISMATCH | 0.479 | 0.78 | -0.48 | 0.949 | 1.109 |
+| WMT | NO EDGE | NORMAL | 69d | No | NORMAL | AGREE | 0.233 | 0.99 | -0.39 | 0.832 | 0.703 |
+| XLB | NO DATA | NORMAL | ETF | No | NORMAL | NODATA_SKEW | — | — | — | — | — |
+| XLE | NO EDGE | CAUTION | ETF | No | NORMAL | STATE_MISMATCH | 0.284 | 0.90 | +0.32 | 0.957 | 0.695 |
+| XLF | REDUCE SIZE | CAUTION | ETF | No | CAUTION | AGREE | 0.175 | 1.02 | +1.32 | 1.044 | 1.199 |
+| XLV | NO EDGE | NORMAL | ETF | No | CAUTION | STATE_MISMATCH | 0.173 | 1.04 | +0.25 | 0.939 | 1.322 |
+| XOM | NO EDGE | NORMAL | 49d | No | NORMAL | AGREE | 0.307 | 0.97 | +0.48 | 0.967 | 0.866 |
+
+---
+
+## 2026-09-10 (Thursday)
+
+**Shadow summary:** Checked 330 / 248 agree / 10 V2_STRICTER / 2 V2_LOOSER / 67 state_mismatch / 3 nodata | index-gating v1 98% vs v2 99% | oscillation v1 0.85 vs v2 0.55 | warm 100% | day-flips v1 2/33 vs v2 5/33 | capture60 n=1898 mean -147 / v2-veto-neg 32% / v2-clear-neg 33% / σfwd-vs-rv30 MAE 0.24 vs 0.24 | veto-disagree 10%
+
+| Ticker | v1 Action | v1 Regime | Earnings | v2 Eligible | v2 Gate | Divergence | sigma_fwd | FVRP | z | 1M/3M | accel_dn |
+|--------|-----------|-----------|----------|-------------|---------|------------|-----------|------|------|-------|----------|
+| JPM | CONDITIONAL | NORMAL | 33d | No | NORMAL | V2_STRICTER | 0.254 | 0.94 | +0.21 | 0.960 | 0.917 |
+| KO | CONDITIONAL | NORMAL | 40d | No | NORMAL | V2_STRICTER | 0.187 | 1.03 | +0.72 | 0.910 | 0.925 |
+| NKE | SELL PREMIUM | NORMAL | 19d | No | DANGER | V2_STRICTER | 0.336 | 1.44 | +1.25 | 1.113 | 0.889 |
+| XLI | CONDITIONAL | NORMAL | ETF | No | NORMAL | V2_STRICTER | 0.184 | 1.19 | +1.21 | 1.078 | 1.081 |
+| AAPL | NO EDGE | CAUTION | 49d | No | NORMAL | STATE_MISMATCH | 0.307 | 0.85 | -0.25 | 0.956 | 0.819 |
+| AMZN | NO EDGE | NORMAL | 49d | No | NORMAL | AGREE | 0.341 | 0.91 | -0.27 | 0.854 | 0.927 |
+| CAT | NO EDGE | NORMAL | 49d | No | NORMAL | AGREE | 0.345 | 1.10 | +0.33 | 0.911 | 0.612 |
+| EEM | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.197 | 1.19 | +0.54 | 0.943 | 0.464 |
+| GLD | NO EDGE | CAUTION | ETF | No | CAUTION | AGREE | 0.217 | 1.16 | +0.06 | 1.018 | 1.103 |
+| GOOG | NO EDGE | NORMAL | 55d | No | NORMAL | AGREE | 0.311 | 0.93 | -0.52 | 0.850 | 0.812 |
+| GS | NO EDGE | NORMAL | 33d | No | NORMAL | AGREE | 0.306 | 1.09 | +0.98 | 0.963 | 0.625 |
+| HD | NO EDGE | NORMAL | 68d | No | NORMAL | AGREE | 0.258 | 1.00 | +0.02 | 0.902 | 1.075 |
+| HOOD | NO EDGE | CAUTION | 55d | No | NORMAL | STATE_MISMATCH | 0.721 | 0.86 | -0.34 | 0.916 | 0.928 |
+| IWM | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.191 | 1.00 | +0.72 | 0.972 | 1.139 |
+| JNJ | NO EDGE | NORMAL | 33d | No | CAUTION | STATE_MISMATCH | 0.224 | 1.08 | +0.37 | 0.941 | 1.121 |
+| MCD | NO EDGE | NORMAL | 56d | No | NORMAL | AGREE | 0.198 | 1.08 | +0.72 | 0.908 | 0.949 |
+| META | NO EDGE | NORMAL | 48d | No | NORMAL | AGREE | 0.474 | 0.84 | -0.26 | 0.915 | 0.451 |
+| MSFT | NO EDGE | NORMAL | 48d | No | NORMAL | AGREE | 0.278 | 0.92 | -0.38 | 0.835 | 0.931 |
+| NFLX | NO EDGE | NORMAL | 40d | No | CAUTION | STATE_MISMATCH | 0.384 | 0.86 | -0.18 | 0.841 | 1.249 |
+| NVDA | NO EDGE | CAUTION | 69d | No | NORMAL | STATE_MISMATCH | 0.405 | 0.85 | -0.37 | 0.874 | 0.926 |
+| PLTR | NO EDGE | NORMAL | 53d | No | CAUTION | STATE_MISMATCH | 0.598 | 0.80 | -0.26 | 0.848 | 1.172 |
+| QQQ | WATCHLIST | NORMAL | ETF | No | NORMAL | AGREE | 0.183 | 1.10 | +1.25 | 0.935 | 0.589 |
+| SBUX | NO EDGE | NORMAL | 48d | No | CAUTION | STATE_MISMATCH | 0.291 | 0.88 | -0.73 | 0.803 | 1.364 |
+| SPY | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.131 | 1.07 | +1.31 | 0.919 | 0.871 |
+| TLT | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.122 | 0.95 | +0.77 | 0.952 | 0.802 |
+| TSLA | NO EDGE | CAUTION | 48d | No | NORMAL | STATE_MISMATCH | 0.522 | 0.81 | -0.55 | 0.937 | 0.937 |
+| UBER | NO EDGE | NORMAL | 54d | No | CAUTION | STATE_MISMATCH | 0.414 | 0.84 | +0.03 | 0.897 | 1.191 |
+| WMT | NO EDGE | NORMAL | 70d | No | NORMAL | AGREE | 0.236 | 0.98 | -0.44 | 0.835 | 0.755 |
+| XLB | NO DATA | NORMAL | ETF | No | NORMAL | NODATA_SKEW | — | — | — | — | — |
+| XLE | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.271 | 0.97 | +1.04 | 0.987 | 0.671 |
+| XLF | NO EDGE | CAUTION | ETF | No | CAUTION | AGREE | 0.183 | 0.82 | -0.49 | 0.875 | 1.269 |
+| XLV | NO EDGE | NORMAL | ETF | No | CAUTION | STATE_MISMATCH | 0.185 | 0.93 | -0.54 | 0.968 | 1.399 |
+| XOM | NO EDGE | NORMAL | 50d | No | NORMAL | AGREE | 0.295 | 1.00 | +0.77 | 0.960 | 0.930 |
+
+---
+
+## 2026-09-09 (Wednesday)
+
+**Shadow summary:** Checked 330 / 256 agree / 6 V2_STRICTER / 2 V2_LOOSER / 64 state_mismatch / 2 nodata | index-gating v1 99% vs v2 99% | oscillation v1 0.91 vs v2 0.48 | warm 100% | day-flips v1 3/33 vs v2 1/33 | capture60 n=1898 mean -150 / v2-veto-neg 32% / v2-clear-neg 33% / σfwd-vs-rv30 MAE 0.24 vs 0.23 | veto-disagree 11%
+
+| Ticker | v1 Action | v1 Regime | Earnings | v2 Eligible | v2 Gate | Divergence | sigma_fwd | FVRP | z | 1M/3M | accel_dn |
+|--------|-----------|-----------|----------|-------------|---------|------------|-----------|------|------|-------|----------|
+| NKE | SELL PREMIUM | NORMAL | 20d | No | DANGER | V2_STRICTER | 0.328 | 1.44 | +1.26 | 1.083 | 0.790 |
+| XLE | CONDITIONAL | NORMAL | ETF | No | NORMAL | V2_STRICTER | 0.271 | 1.08 | +1.97 | 1.089 | 0.721 |
+| GS | NO EDGE | NORMAL | 34d | Yes | NORMAL | V2_LOOSER | 0.288 | 1.15 | +1.49 | 0.951 | 0.624 |
+| AAPL | NO EDGE | CAUTION | 50d | No | NORMAL | STATE_MISMATCH | 0.299 | 0.89 | +0.09 | 0.959 | 0.876 |
+| AMZN | NO EDGE | NORMAL | 50d | No | NORMAL | AGREE | 0.323 | 0.97 | +0.03 | 0.855 | 0.821 |
+| CAT | NO EDGE | NORMAL | 50d | No | NORMAL | AGREE | 0.352 | 1.09 | +0.29 | 0.928 | 0.628 |
+| EEM | WATCHLIST | NORMAL | ETF | No | NORMAL | AGREE | 0.194 | 1.14 | +0.30 | 0.908 | 0.453 |
+| GLD | NO EDGE | CAUTION | ETF | No | CAUTION | AGREE | 0.211 | 1.18 | +0.18 | 1.009 | 1.185 |
+| GOOG | NO EDGE | NORMAL | 56d | No | NORMAL | AGREE | 0.292 | 1.02 | +0.03 | 0.866 | 0.628 |
+| HD | NO EDGE | NORMAL | 69d | No | NORMAL | AGREE | 0.256 | 1.03 | +0.27 | 0.920 | 1.109 |
+| HOOD | NO EDGE | CAUTION | 56d | No | NORMAL | STATE_MISMATCH | 0.738 | 0.86 | -0.35 | 0.935 | 0.960 |
+| IWM | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.182 | 0.99 | +0.59 | 0.924 | 0.920 |
+| JNJ | NO EDGE | NORMAL | 34d | No | NORMAL | AGREE | 0.239 | 1.00 | -0.34 | 0.915 | 1.170 |
+| JPM | NO EDGE | NORMAL | 34d | No | NORMAL | AGREE | 0.248 | 0.93 | +0.14 | 0.927 | 0.985 |
+| KO | NO EDGE | NORMAL | 41d | No | NORMAL | AGREE | 0.194 | 0.97 | +0.27 | 0.887 | 0.865 |
+| MCD | NO EDGE | NORMAL | 57d | No | NORMAL | AGREE | 0.204 | 1.04 | +0.46 | 0.908 | 0.952 |
+| META | NO EDGE | NORMAL | 49d | No | NORMAL | AGREE | 0.389 | 1.00 | +0.56 | 0.916 | 0.484 |
+| MSFT | NO EDGE | NORMAL | 49d | No | NORMAL | AGREE | 0.299 | 0.86 | -0.70 | 0.843 | 0.986 |
+| NFLX | NO EDGE | CAUTION | 41d | No | CAUTION | AGREE | 0.412 | 0.80 | -0.48 | 0.844 | 1.326 |
+| NVDA | NO EDGE | CAUTION | 70d | No | NORMAL | STATE_MISMATCH | 0.438 | 0.78 | -1.09 | 0.878 | 0.970 |
+| PLTR | NO EDGE | NORMAL | 54d | No | CAUTION | STATE_MISMATCH | 0.641 | 0.75 | -0.68 | 0.853 | 1.257 |
+| QQQ | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.186 | 1.01 | +0.45 | 0.903 | 0.614 |
+| SBUX | NO EDGE | NORMAL | 49d | No | NORMAL | AGREE | 0.282 | 1.09 | +0.15 | 0.954 | 1.303 |
+| SPY | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.132 | 0.99 | +0.74 | 0.887 | 0.839 |
+| TLT | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.113 | 1.02 | +1.50 | 0.981 | 0.642 |
+| TSLA | NO EDGE | CAUTION | 49d | No | NORMAL | STATE_MISMATCH | 0.553 | 0.74 | -1.18 | 0.925 | 1.007 |
+| UBER | NO EDGE | NORMAL | 55d | No | NORMAL | AGREE | 0.434 | 0.85 | +0.07 | 0.914 | 1.132 |
+| WMT | NO EDGE | NORMAL | 71d | No | NORMAL | AGREE | 0.235 | 1.04 | -0.14 | 0.862 | 0.810 |
+| XLB | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.198 | 0.99 | -0.76 | 0.964 | 0.933 |
+| XLF | NO EDGE | CAUTION | ETF | No | NORMAL | STATE_MISMATCH | 0.187 | 0.85 | -0.17 | 0.951 | 1.337 |
+| XLI | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.176 | 1.00 | +0.08 | 0.880 | 0.882 |
+| XLV | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.202 | 0.87 | -1.00 | 0.890 | 1.497 |
+| XOM | NO EDGE | CAUTION | 51d | No | NORMAL | STATE_MISMATCH | 0.297 | 0.99 | +0.76 | 0.999 | 0.999 |
+
+---
+
+## 2026-09-08 (Tuesday)
+
+**Shadow summary:** Checked 330 / 259 agree / 4 V2_STRICTER / 1 V2_LOOSER / 64 state_mismatch / 2 nodata | index-gating v1 100% vs v2 99% | oscillation v1 0.88 vs v2 0.55 | warm 100% | day-flips v1 3/33 vs v2 2/33 | capture60 n=1899 mean -153 / v2-veto-neg 32% / v2-clear-neg 33% / σfwd-vs-rv30 MAE 0.23 vs 0.23 | veto-disagree 7%
+
+| Ticker | v1 Action | v1 Regime | Earnings | v2 Eligible | v2 Gate | Divergence | sigma_fwd | FVRP | z | 1M/3M | accel_dn |
+|--------|-----------|-----------|----------|-------------|---------|------------|-----------|------|------|-------|----------|
+| NKE | SELL PREMIUM | NORMAL | 21d | No | DANGER | V2_STRICTER | 0.338 | 1.39 | +1.09 | 1.109 | 0.821 |
+| AAPL | NO EDGE | NORMAL | 51d | No | NORMAL | AGREE | 0.302 | 0.82 | -0.49 | 0.926 | 0.870 |
+| AMZN | NO EDGE | NORMAL | 51d | No | NORMAL | AGREE | 0.334 | 0.90 | -0.35 | 0.850 | 0.862 |
+| CAT | WATCHLIST | NORMAL | 51d | No | NORMAL | AGREE | 0.357 | 1.03 | -0.15 | 0.913 | 0.674 |
+| EEM | WATCHLIST | NORMAL | ETF | No | NORMAL | AGREE | 0.200 | 1.02 | -0.21 | 0.869 | 0.487 |
+| GLD | NO EDGE | NORMAL | ETF | No | CAUTION | STATE_MISMATCH | 0.222 | 1.08 | -0.54 | 0.987 | 1.151 |
+| GOOG | NO EDGE | NORMAL | 57d | No | NORMAL | AGREE | 0.287 | 0.98 | -0.20 | 0.857 | 0.675 |
+| GS | WATCHLIST | NORMAL | 35d | No | NORMAL | AGREE | 0.301 | 1.03 | +0.50 | 0.929 | 0.668 |
+| HD | NO EDGE | NORMAL | 70d | No | NORMAL | AGREE | 0.252 | 0.99 | -0.02 | 0.882 | 0.929 |
+| HOOD | NO EDGE | CAUTION | 57d | No | NORMAL | STATE_MISMATCH | 0.762 | 0.80 | -0.96 | 0.922 | 0.825 |
+| IWM | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.191 | 0.86 | -0.83 | 0.883 | 0.947 |
+| JNJ | WATCHLIST | NORMAL | 35d | No | NORMAL | AGREE | 0.231 | 0.98 | -0.50 | 0.865 | 0.866 |
+| JPM | NO EDGE | NORMAL | 35d | No | NORMAL | AGREE | 0.256 | 0.83 | -0.75 | 0.882 | 0.755 |
+| KO | NO EDGE | NORMAL | 42d | No | NORMAL | AGREE | 0.198 | 0.90 | -0.24 | 0.876 | 0.929 |
+| MCD | NO EDGE | NORMAL | 58d | No | NORMAL | AGREE | 0.213 | 0.94 | -0.30 | 0.875 | 1.023 |
+| META | NO EDGE | NORMAL | 50d | No | NORMAL | AGREE | 0.401 | 0.88 | -0.01 | 0.875 | 0.504 |
+| MSFT | NO EDGE | NORMAL | 50d | No | NORMAL | AGREE | 0.298 | 0.81 | -1.03 | 0.825 | 0.981 |
+| NFLX | NO EDGE | CAUTION | 42d | No | NORMAL | STATE_MISMATCH | 0.425 | 0.76 | -0.70 | 0.851 | 1.372 |
+| NVDA | NO EDGE | CAUTION | 71d | No | NORMAL | STATE_MISMATCH | 0.436 | 0.79 | -1.04 | 0.893 | 0.922 |
+| PLTR | NO EDGE | NORMAL | 55d | No | CAUTION | STATE_MISMATCH | 0.678 | 0.68 | -1.28 | 0.850 | 1.303 |
+| QQQ | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.190 | 0.92 | -0.52 | 0.873 | 0.659 |
+| SBUX | NO EDGE | NORMAL | 50d | No | NORMAL | AGREE | 0.277 | 1.00 | -0.18 | 0.902 | 1.035 |
+| SPY | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.136 | 0.90 | -0.06 | 0.857 | 0.752 |
+| TLT | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.116 | 0.90 | +0.28 | 0.896 | 0.810 |
+| TSLA | NO EDGE | CAUTION | 50d | No | NORMAL | STATE_MISMATCH | 0.587 | 0.68 | -1.86 | 0.918 | 1.081 |
+| UBER | NO EDGE | NORMAL | 56d | No | NORMAL | AGREE | 0.436 | 0.82 | -0.13 | 0.913 | 0.906 |
+| WMT | NO EDGE | NORMAL | 72d | No | NORMAL | AGREE | 0.247 | 0.90 | -0.93 | 0.827 | 0.869 |
+| XLB | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.208 | 0.86 | -1.36 | 0.802 | 0.846 |
+| XLE | WATCHLIST | NORMAL | ETF | No | NORMAL | AGREE | 0.267 | 0.93 | +0.60 | 0.966 | 0.774 |
+| XLF | NO EDGE | CAUTION | ETF | No | NORMAL | STATE_MISMATCH | 0.188 | 0.80 | -0.74 | 0.873 | 1.072 |
+| XLI | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.185 | 0.99 | +0.01 | 0.864 | 0.914 |
+| XLV | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.183 | 0.86 | -1.08 | 0.880 | 1.009 |
+| XOM | NO EDGE | NORMAL | 52d | No | NORMAL | AGREE | 0.279 | 0.95 | +0.37 | 0.926 | 1.073 |
+
+---
+
+## 2026-09-04 (Friday)
+
+**Shadow summary:** Checked 330 / 258 agree / 4 V2_STRICTER / 1 V2_LOOSER / 65 state_mismatch / 2 nodata | index-gating v1 98% vs v2 98% | oscillation v1 0.88 vs v2 0.52 | warm 100% | day-flips v1 3/33 vs v2 2/33 | capture60 n=1905 mean -156 / v2-veto-neg 32% / v2-clear-neg 33% / σfwd-vs-rv30 MAE 0.23 vs 0.23 | veto-disagree 5%
+
+| Ticker | v1 Action | v1 Regime | Earnings | v2 Eligible | v2 Gate | Divergence | sigma_fwd | FVRP | z | 1M/3M | accel_dn |
+|--------|-----------|-----------|----------|-------------|---------|------------|-----------|------|------|-------|----------|
+| NKE | SELL PREMIUM | NORMAL | 25d | No | CAUTION | V2_STRICTER | 0.332 | 1.38 | +1.06 | 1.092 | 0.843 |
+| AAPL | NO EDGE | NORMAL | 55d | No | NORMAL | AGREE | 0.284 | 0.88 | +0.00 | 0.924 | 0.462 |
+| AMZN | NO EDGE | NORMAL | 55d | No | NORMAL | AGREE | 0.323 | 0.90 | -0.36 | 0.813 | 0.925 |
+| CAT | NO EDGE | NORMAL | 55d | No | NORMAL | AGREE | 0.365 | 0.98 | -0.45 | 0.896 | 0.724 |
+| EEM | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.202 | 0.94 | -0.64 | 0.892 | 0.523 |
+| GLD | NO EDGE | CAUTION | ETF | No | CAUTION | AGREE | 0.227 | 1.08 | -0.52 | 0.995 | 1.208 |
+| GOOG | NO EDGE | NORMAL | 61d | No | NORMAL | AGREE | 0.290 | 0.94 | -0.43 | 0.823 | 0.659 |
+| GS | NO EDGE | NORMAL | 39d | No | NORMAL | AGREE | 0.312 | 0.96 | -0.12 | 0.919 | 0.717 |
+| HD | NO EDGE | NORMAL | 74d | No | NORMAL | AGREE | 0.257 | 0.94 | -0.40 | 0.900 | 0.998 |
+| HOOD | NO EDGE | CAUTION | 61d | No | NORMAL | STATE_MISMATCH | 0.781 | 0.83 | -0.70 | 0.950 | 0.819 |
+| IWM | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.196 | 0.84 | -1.09 | 0.902 | 1.017 |
+| JNJ | WATCHLIST | NORMAL | 39d | No | NORMAL | AGREE | 0.235 | 0.94 | -0.80 | 0.874 | 0.770 |
+| JPM | NO EDGE | NORMAL | 39d | No | NORMAL | AGREE | 0.250 | 0.83 | -0.81 | 0.897 | 0.620 |
+| KO | NO EDGE | NORMAL | 46d | No | NORMAL | AGREE | 0.201 | 0.86 | -0.61 | 0.831 | 0.896 |
+| MCD | NO EDGE | NORMAL | 62d | No | NORMAL | AGREE | 0.219 | 0.95 | -0.23 | 0.912 | 0.918 |
+| META | NO EDGE | NORMAL | 54d | No | NORMAL | AGREE | 0.424 | 0.82 | -0.35 | 0.850 | 0.541 |
+| MSFT | NO EDGE | NORMAL | 54d | No | NORMAL | AGREE | 0.308 | 0.78 | -1.19 | 0.801 | 0.738 |
+| NFLX | NO EDGE | NORMAL | 46d | No | NORMAL | AGREE | 0.385 | 0.81 | -0.43 | 0.819 | 0.570 |
+| NVDA | NO EDGE | CAUTION | 75d | No | CAUTION | AGREE | 0.444 | 0.75 | -1.52 | 0.872 | 0.990 |
+| PLTR | NO EDGE | NORMAL | 59d | No | CAUTION | STATE_MISMATCH | 0.694 | 0.70 | -1.16 | 0.846 | 1.198 |
+| QQQ | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.197 | 0.87 | -1.15 | 0.874 | 0.707 |
+| SBUX | NO EDGE | CAUTION | 54d | No | NORMAL | STATE_MISMATCH | 0.281 | 0.99 | -0.21 | 0.884 | 0.950 |
+| SPY | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.141 | 0.84 | -0.61 | 0.861 | 0.726 |
+| TLT | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.120 | 0.93 | +0.63 | 0.976 | 0.870 |
+| TSLA | NO EDGE | CAUTION | 54d | No | NORMAL | STATE_MISMATCH | 0.544 | 0.79 | -0.74 | 0.945 | 0.652 |
+| UBER | NO EDGE | NORMAL | 60d | No | NORMAL | AGREE | 0.456 | 0.77 | -0.52 | 0.883 | 0.971 |
+| WMT | NO EDGE | NORMAL | 76d | No | NORMAL | AGREE | 0.262 | 0.84 | -1.36 | 0.836 | 0.904 |
+| XLB | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.210 | 0.98 | -0.82 | 0.935 | 0.888 |
+| XLE | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.261 | 0.91 | +0.43 | 0.924 | 0.690 |
+| XLF | NO EDGE | CAUTION | ETF | No | NORMAL | STATE_MISMATCH | 0.181 | 0.75 | -1.26 | 0.811 | 0.966 |
+| XLI | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.195 | 1.05 | +0.38 | 1.109 | 0.981 |
+| XLV | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.180 | 0.80 | -1.58 | 0.784 | 0.850 |
+| XOM | NO EDGE | NORMAL | 56d | No | NORMAL | AGREE | 0.283 | 0.97 | +0.54 | 0.936 | 0.915 |
+
+---
+
+## 2026-09-03 (Thursday)
+
+**Shadow summary:** Checked 330 / 254 agree / 3 V2_STRICTER / 1 V2_LOOSER / 70 state_mismatch / 2 nodata | index-gating v1 98% vs v2 98% | oscillation v1 1.00 vs v2 0.58 | warm 100% | day-flips v1 4/33 vs v2 3/33 | capture60 n=1906 mean -162 / v2-veto-neg 33% / v2-clear-neg 33% / σfwd-vs-rv30 MAE 0.23 vs 0.23 | veto-disagree 6%
+
+| Ticker | v1 Action | v1 Regime | Earnings | v2 Eligible | v2 Gate | Divergence | sigma_fwd | FVRP | z | 1M/3M | accel_dn |
+|--------|-----------|-----------|----------|-------------|---------|------------|-----------|------|------|-------|----------|
+| NKE | SELL PREMIUM | NORMAL | 26d | No | CAUTION | V2_STRICTER | 0.321 | 1.41 | +1.18 | — | 0.906 |
+| AAPL | NO EDGE | NORMAL | 56d | No | NORMAL | AGREE | 0.294 | 0.84 | -0.32 | 0.928 | 0.496 |
+| AMZN | NO EDGE | NORMAL | 56d | No | NORMAL | AGREE | 0.344 | 0.83 | -0.72 | 0.810 | 0.993 |
+| CAT | NO EDGE | NORMAL | 56d | No | NORMAL | AGREE | 0.358 | 0.99 | -0.41 | 0.873 | 0.778 |
+| EEM | WATCHLIST | NORMAL | ETF | No | NORMAL | AGREE | 0.197 | 1.01 | -0.29 | 0.897 | 0.562 |
+| GLD | NO EDGE | NORMAL | ETF | No | CAUTION | STATE_MISMATCH | 0.219 | 1.11 | -0.34 | 1.000 | 1.297 |
+| GOOG | NO EDGE | NORMAL | 62d | No | NORMAL | AGREE | 0.299 | 0.91 | -0.65 | 0.823 | 0.707 |
+| GS | NO EDGE | NORMAL | 40d | No | NORMAL | AGREE | 0.325 | 0.90 | -0.75 | 0.900 | 0.770 |
+| HD | NO EDGE | NORMAL | 75d | No | NORMAL | AGREE | 0.254 | 0.99 | -0.07 | 0.904 | 1.072 |
+| HOOD | NO EDGE | CAUTION | 62d | No | NORMAL | STATE_MISMATCH | 0.684 | 0.95 | +0.64 | 0.962 | 0.879 |
+| IWM | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.193 | 0.90 | -0.47 | 0.932 | 1.092 |
+| JNJ | NO EDGE | NORMAL | 40d | No | NORMAL | AGREE | 0.243 | 0.95 | -0.73 | 0.916 | 0.827 |
+| JPM | NO EDGE | NORMAL | 40d | No | NORMAL | AGREE | 0.254 | 0.81 | -0.97 | 0.878 | 0.666 |
+| KO | NO EDGE | NORMAL | 47d | No | NORMAL | AGREE | 0.208 | 0.86 | -0.57 | 0.869 | 0.963 |
+| MCD | NO EDGE | NORMAL | 63d | No | NORMAL | AGREE | 0.200 | 1.01 | +0.22 | 0.909 | 0.965 |
+| META | WATCHLIST | NORMAL | 55d | No | NORMAL | AGREE | 0.431 | 0.83 | -0.32 | 0.859 | 0.582 |
+| MSFT | NO EDGE | NORMAL | 55d | No | NORMAL | AGREE | 0.297 | 0.80 | -1.08 | 0.801 | 0.793 |
+| NFLX | NO EDGE | NORMAL | 47d | No | NORMAL | AGREE | 0.394 | 0.79 | -0.54 | 0.807 | 0.612 |
+| NVDA | NO EDGE | CAUTION | 76d | No | CAUTION | AGREE | 0.467 | 0.70 | -2.09 | 0.884 | 1.063 |
+| PLTR | NO EDGE | NORMAL | 60d | No | NORMAL | AGREE | 0.679 | 0.68 | -1.33 | 0.837 | 1.287 |
+| QQQ | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.204 | 0.84 | -1.42 | 0.879 | 0.760 |
+| SBUX | NO EDGE | CAUTION | 55d | No | NORMAL | STATE_MISMATCH | 0.280 | 0.92 | -0.53 | 0.809 | 0.943 |
+| SPY | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.142 | 0.83 | -0.77 | 0.864 | 0.780 |
+| TLT | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.122 | 0.93 | +0.57 | 0.978 | 0.935 |
+| TSLA | NO EDGE | NORMAL | 55d | No | NORMAL | AGREE | 0.513 | 0.81 | -0.58 | 0.923 | 0.701 |
+| UBER | NO EDGE | NORMAL | 61d | No | CAUTION | STATE_MISMATCH | 0.431 | 0.82 | -0.12 | 0.878 | 1.032 |
+| WMT | NO EDGE | NORMAL | 77d | No | NORMAL | AGREE | 0.264 | 0.83 | -1.42 | 0.840 | 0.934 |
+| XLB | NO DATA | NORMAL | ETF | No | NORMAL | NODATA_SKEW | — | — | — | — | — |
+| XLE | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.274 | 0.89 | +0.24 | 0.950 | 0.624 |
+| XLF | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.188 | 0.77 | -1.08 | 0.888 | 1.038 |
+| XLI | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.192 | 0.71 | -2.11 | 0.641 | 1.054 |
+| XLV | NO EDGE | NORMAL | ETF | No | NORMAL | AGREE | 0.179 | 0.91 | -0.69 | 0.850 | 0.913 |
+| XOM | NO EDGE | NORMAL | 57d | No | NORMAL | AGREE | 0.289 | 0.97 | +0.59 | 0.950 | 0.835 |
+
+---
+
 ## 2026-09-02 (Wednesday)
 
 **Shadow summary:** Checked 330 / 252 agree / 4 V2_STRICTER / 1 V2_LOOSER / 72 state_mismatch / 1 nodata | index-gating v1 96% vs v2 98% | oscillation v1 1.00 vs v2 0.52 | warm 100% | day-flips v1 2/33 vs v2 1/33 | capture60 n=1907 mean -173 / v2-veto-neg 34% / v2-clear-neg 33% / σfwd-vs-rv30 MAE 0.22 vs 0.22
