@@ -38,6 +38,48 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-09-25 (Friday)
+
+**Scan summary:** Checked 11 / 3 actionable / 7 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 14.87 / VIX3M 17.93 / VVIX 87.8 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | XLI | WATCH | 0d | 65 | 32.8% | $0.66 | $2 | $1.34 | Good | — |
+| 2 | IWM | WATCH | 12d | 56 | 14.2% | $0.43 | $3 | $2.57 | Good | Thin premium |
+| 3 | XLF | WATCH | 0d | 30 | 10.0% | $0.10 | $1 | $0.90 | Acceptable | Thin premium |
+
+**Notable:** Friday finally hands the board a real skew number and hangs it on the wrong ticker. **XLI arrives at 0d, 65, 32.8% c/w on $0.66 over $2 for $1.34 max loss**, RV Good, no thin-premium flag — that is the first row of the run to clear both the 60 score and the 15% skew condition at once, and it does it on a $2 wing with real credit rather than a dollar-wide artifact. What it lacks is the 5d+ line: XLI was on the regime board at 59 Thursday and 53 Wednesday, so the score has persisted, but this is its first CPS print, and Tuesday's XLF (36% c/w to dead in one session) is the template for what a day-one skew number is worth. **IWM makes 12d and lifts to 56** (+4), RV back to Good, but the $3 wing is stuck at **$0.43 credit, $2.57 max loss**, c/w 14.3% → 14.2% — the 15% condition fails a seventh straight print and the score is still four short. Thursday's ticket asked for VIX 16 and a $0.45 wing; VIX went the other way. **XLF is back at 0d, 30, 10.0% c/w on $0.10 over $1** — it cleared its base gate and lost 31 score points doing it, so the row is a construction pass with nothing behind it. Funnel: **checked 11 / actionable 3 / base_gate 7 / construction 1 / execution 0** — two construction fails cleared into actionable, the widest board since the XLF/XLE week. **Execution is blank for the ninetieth consecutive print.** Surface gives back Thursday's lift: **VIX 15.67 → 14.87, VIX3M 18.43 → 17.93, VVIX 90.6 → 87.8**, slope 0.90 → 0.87, contango and NORMAL — spot back to a 14-handle, front falling faster than back, which is the wrong direction for IWM's skew and yet XLI's wing prints 32.8% into it. Internals: **avg VRP +2.4 → +2.9, negative share flat 19%, stress flat 12 (39%) of 31 eligible**, danger 1, regime **REGULAR SEASON at 2S / 5C + 1W**, seven tradeable off six. Day-over-day: **TLT +21, KO/SBUX +15, CAT +12, HD/XOM +11, XLV +9, XLI +6 to 65, JNJ +5 to 72** against **XLF −31, TSLA −7, XLE −3** — a broad defensive and industrial bid with nothing risk-off in it. The read: vol is compressing and stress is flat, so the vol-lift path to a ticket is closed for now, and the first SELL_CPS has to come from a name whose skew is idiosyncratic rather than VIX-driven — which is exactly what XLI's 32.8% on an industrials wing looks like. **Still zero SELL_CPS at 90 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line**. XLI is 65 / 32.8% / 0d — two-thirds met, persistence untested. If it prints a second day at 60+ with the $2 wing holding $0.55+, it is on pace to write the first ticket of the run by Thursday, and it leapfrogs IWM outright. If it round-trips like XLF did, IWM is a 13d streak at 56 and 14.2% with VIX moving away from it.
+
+---
+
+## 2026-09-24 (Thursday)
+
+**Scan summary:** Checked 11 / 2 actionable / 6 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.67 / VIX3M 18.43 / VVIX 90.6 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 11d | 52 | 14.3% | $0.43 | $3 | $2.57 | Acceptable | Thin premium |
+| 2 | TLT | WATCH | 0d | 15 | 16.5% | $0.16 | $1 | $0.83 | Caution | Thin premium |
+
+**Notable:** Thursday gives IWM the surface it asked for and takes the score away instead. **IWM makes 11d and drops to 52** (−8), the $3 wing intact at **$0.43 credit, $2.57 max loss**, but RV slips Good → Acceptable and c/w ticks 14.5% → 14.3% — the 15% condition fails a sixth straight print, and now the score half fails too. Wednesday's ticket needed VIX to hold 15 and the wing to print $0.45; VIX held and the wing printed $0.43, two cents and eight score points short. **TLT arrives at 0d, 15, 16.5% c/w on $0.16 over $1 for $0.83 max loss**, RV Caution — the skew clears on a dollar wing with a fifteen-handle score, which is a construction artifact, not a candidate. Funnel: **checked 11 / actionable 2 / base_gate 6 / construction 3 / execution 0** — one fewer base-gate fail than Wednesday, and the freed row is TLT. **Execution is blank for the eighty-ninth consecutive print.** Surface keeps lifting: **VIX 15.18 → 15.67, VIX3M 18.11 → 18.43, VVIX 88.6 → 90.6**, slope flat at 0.90, contango and NORMAL — spot up a point and a half in two sessions, vol-of-vol back over 90, back moving in step with front. Internals: **avg VRP flat at +2.4, negative share 22% → 19%, stress 10 → 12 (39%) of 31 eligible**, danger 0 → 1 — first danger name since the run lows, regime **REGULAR SEASON at 1S / 5C + 1W**, six tradeable off Wednesday's three. Day-over-day: **XLF +43 to 61, XLE +11, JPM/MSFT +8, XLI +6 to 59** against **XLB −14 to zero, MCD −13, HD −12, XOM −10, EEM −9, IWM −8** — the financials bid that died Wednesday is back in one print, XLF round-tripping 52 → 18 → 61, yet it does not reach the CPS board, so its base gate is failing on something the regime score does not see. The read: VIX rising with stress up and a danger name back is a slow risk-off drift, and it is starting to cost IWM its score faster than it pays IWM's skew — the two conditions are now moving against each other. **Still zero SELL_CPS at 89 sessions.** The trigger stands at **60+ score, 15% c/w, 5d+ line**; IWM sits at 52 / 14.3% / 11d, persistence long solved and both other halves regressing. What fires the first ticket now is a VIX 16 print that lifts the $3 wing to $0.45+ while IWM's RV holds Acceptable and the score reclaims 60 — that is a narrow window. If XLF holds 60+ a second day and clears its base gate with a $2 wing, it leapfrogs IWM on skew alone. If neither, IWM is a 12d streak persisting toward nothing, and the drift argues the next SELL_CPS comes from a vol lift, not from this grind.
+
+---
+
+## 2026-09-23 (Wednesday)
+
+**Scan summary:** Checked 11 / 1 actionable / 7 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.18 / VIX3M 18.11 / VVIX 88.6 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 10d | 60 | 14.5% | $0.44 | $3 | $2.56 | Good | Thin premium |
+
+**Notable:** Wednesday closes the score gap and leaves the skew gap. **IWM makes 10d and prints 60** (+3), the $3 wing intact at **$0.44 credit, $2.56 max loss**, RV Good, and c/w finally turns — 13.2% → 14.5%, the first uptick in five sessions but still half a point under the 15% condition, which fails a fifth straight print. The restated trigger is now two-thirds met: persistence and score are there, skew is not. **XLF is gone in one print, 52 → 18** (−34), the 36% c/w wing evaporating the day after it arrived — that ends the XLF path before persistence could be tested, and it confirms the dollar-wide skew number was a construction artifact, not a surface. XLE is culled too despite scoring +11 to 36. The board is one row. Funnel narrows: **checked 11 / actionable 1 / base_gate 7 / construction 3 / execution 0** — one more base-gate fail and one more construction fail than Tuesday. **Execution is blank for the eighty-eighth consecutive print.** Surface reverses off the run lows: **VIX 14.21 → 15.18, VIX3M 17.61 → 18.11, VVIX 83.2 → 88.6**, slope 0.86 → 0.90, contango and NORMAL — spot back to a 15-handle, vol-of-vol up five points in a day, front rising faster than back. That is the move IWM's skew needed, and it delivered 1.3 points of c/w on the $3 wing. Internals soften: **avg VRP +2.0 → +2.4, negative share 19% → 22%, stress 8 → 10 (31%) of 32 eligible**, danger 0, regime **THE PLAYOFFS → REGULAR SEASON at 1S / 2C + 1W** — six tradeable to three. Day-over-day: **XLE +11, UBER +8, XOM +7, MCD +6** against **XLF −34, XLB −20, TLT −16, SBUX/XLV −12, XLI −11 to 53, HD −10, JPM −8 to 55** — Monday's financials/industrials bid is fully unwound and energy is the only bid left. The read: a one-point VIX lift with stress rising is a mild risk-off tick, not a vol event, but it is the direction that pays this tab — IWM's skew moves with VIX and its score held through it. **Still zero SELL_CPS at 88 sessions.** With XLF dead, the first ticket is IWM's alone: **60+ score, 15% c/w, 5d+ line**, and it sits at 60 / 14.5% / 10d. If VIX holds 15 and the $3 wing prints $0.45+ credit, that is 15.0% and the ticket writes itself Thursday — at 10d and 60 it would be the first SELL_CPS of the run. If VIX gives back the point, skew slides under 14% and IWM is back to a persistence streak with nothing to persist toward.
+
+---
+
 ## 2026-09-22 (Tuesday)
 
 **Scan summary:** Checked 11 / 3 actionable / 6 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation
