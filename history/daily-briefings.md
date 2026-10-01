@@ -43,6 +43,63 @@ previous day, earnings impacts, sector themes, data quality notes if any]
 
 ---
 
+## 2026-09-30 (Wednesday)
+
+**Regime:** THE PLAYOFFS (three watchpoints answer yes, the book goes to five seats, and four of them share the same earnings clock) | **Tradeable:** 5S / 3C | **Avg VRP:** +3.9
+
+**Watchpoints (1), (2) and (3) all pass on the same session. SBUX +7 to 77 with accel 0.63 on +12.4, IVpct 65, 28d. XLI +12 to 70 on +11.6 at 0.70, bin 87, the fifth print under 1.00 and the fuel back above the second-half line. CAT +4 to 74 on +17.3 at 0.60, bin 92, the third print holding.** All three are SELL. AMZN takes the lead, +10 to 78 on +14.5 as accel finally moves, 0.98 to 0.90, with IVpct 78 at 29d. That is the third print under the line and the first one that counts as a cooling. KO +3 to 66 on +6.2 at 0.88, 27d, the fifth SELL. Watchpoint (4) says no again: GOOG +7 to 67 on +13.2 at 1.12, down from 1.14, still AVOID. MSFT +13 to 68 on +12.3 but accel rose to 1.16, so rank without a seat. The two fattest fuels outside the book stay caged. Stress fell from 31% to 24.1% (7 of 29), the crest from 0.92 to 0.914 and danger from 2 to 1, while the average widened to +3.9. XLE left DANGER by emptying: -18 to 35 as fuel fell from +13.1 to +6.8 at 1.07. TLT took the slot, +9 to 45 at 1.19 on a 1.20 slope, bin 95. Yesterday's three first prints all died: UBER -18 to 33 at 0.58, AAPL -9 to 43 on +3.8, and NFLX slipped to 58 on +8.4 at 0.84 with 20d, CONDITIONAL. XLF -10 to 52 at 1.03, index width leaving for the fourth time. XLB -16 to 43 at 0.98. EEM -7 to 35, XLV +11 to 33 at -0.1, HD +5 to 36 at 1.07, MCD +3 to 32 at 1.23. IWM 61 at IVpct 24, no premium. Tails: HOOD -19.0, WMT -12.3, NVDA -8.1 at IVpct 2, GLD -5.0, META -1.7 at 1.48, TSLA -0.4. NKE reports tomorrow, +23.5 raw on a 2.00 slope. JNJ, GS and JPM sit gated at 13d.
+
+**Position:** SBUX earned the second half: 77 beats the 76 test and 0.63 is well under 0.90, so round six goes full. XLI earned its second half on +11.6 and 0.70, the best tape of its twelve-trip history. Close over 1.05, as always. CAT's third print passes, so the half becomes a full seat with the widest fuel on the board and the bin at 92. AMZN at 0.90 is the cooling the rule waited for, and a first tranche half on +14.5 is defensible, with the second half on a fourth print under 0.95. KO stays a fraction. That is five seats, the most of the run, and the risk is the clock, not the tape: AMZN, SBUX, CAT and KO all gate between 27d and 29d, so the exit walk for four seats starts in the same week. Size the whole book against that, not each seat alone. GOOG 1.12 and MSFT 1.16 get nothing. NFLX at 20d has six sessions to the gate, too few for a second tranche to matter. UBER and AAPL died on the second print as the history said they might. XLF -10 is the skipped width trade, vindicated a fourth time. IWM's CPS flag is $0.41 over $3 at 15d (13.8%), the twenty-sixth thin print, WATCH. XLF and QQQ at 0d are noise. CPS is 3 flags of 11, all WATCH, with 5 base-gated and 3 construction. Avoid META 1.48, MCD 1.23, SPY 1.21, TLT 1.19, QQQ 1.18, MSFT 1.16, GOOG 1.12, XOM 1.08, HD 1.07 and XLE 1.07.
+
+Forward watchpoints:
+1. AMZN's fourth print: under 0.95 with 78 holding earns the second half.
+2. The shared gate. Four seats hit 14d around October 13, so the first tranche walk begins the week before.
+3. GOOG 1.12 and MSFT 1.16 on +12 fuel each. The next cooling adds a sixth seat or doesn't.
+4. Stress 24.1% under a +3.9 average, crest 0.914. The narrowest divergence of the run, and the first time the average and the breadth agree.
+5. VIX 16.34 / VIX3M 18.37, spread 2.03 narrowing from 2.05, VVIX 89.5 easing. Contango and NORMAL, but the curve is still flattening under a full book.
+
+Three tests pass, the book fills to five, and the next problem is that they all leave together.
+
+---
+
+## 2026-09-29 (Tuesday)
+
+**Regime:** REGULAR SEASON (the carry leaves by gate, CAT converts on its second print, and SBUX keeps the accel but not the rank) | **Tradeable:** 3S / 8C | **Avg VRP:** +3.8
+
+**Watchpoint (1) was closed by the clock: JNJ went from 72 to 0 on the 14d earnings gate, with JPM (-62) and GS (-39) gated alongside it. The book resets to SBUX and XLI as planned.** Watchpoint (2) split. SBUX fell 6 to 70 while accel held at 0.86 and fuel eased from +11.7 to +11.4, with IVpct 61 at 29d. It is still SELL, but it did not hold 76, which was the price of the second half. Watchpoint (3) answered yes. XLI rose 7 to 58 as fuel rebuilt from +6.2 to +7.2, accel cooled from 0.86 to 0.75 and the bin rose from 55 to 61. That is the fourth print under 1.00, so the seat survives on width, not just on tape. CAT is the new leader, up 9 to 70 on +13.7 at 0.58, down from 0.99, with IVpct 88 at 30d. Yesterday's "second print" test is passed and it is SELL. AMZN rose 4 to 68 on +12.4 at 0.98, its second print under the line, but only barely, and it is SELL. Watchpoint (4) eased. Stress fell from 43.8% to 31% (9 of 29) and the crest from 0.961 to 0.92, and the average widened from +3.2 to +3.8 on real fuel. Danger rose from 0 to 2: XLE jumped 25 to 53 on +13.1 at 1.28 with an inverted slope of 1.24, and TLT rose 7 to 36 at 1.17 on 1.16. Rank breadth: NFLX +15 to 60 on +8.2 at 0.84 (21d), UBER +16 to 51 on +9.0 at 0.48 with skew -2.9, AAPL +15 to 52 on +5.6 at 0.65. All three are CONDITIONAL and on their first print. KO fell 5 to 63 on +6.0 at 0.87. XLB rose 5 to 59 on +10.2, still exactly 1.00. XLF is flat at 62 at 1.02. GOOG is 60 on +12.9, cooling from 1.35 to 1.14 but still AVOID. MSFT rose 6 to 55 at 1.13. Tails: HOOD -18.8, WMT -11.5, NVDA -7.0 at IVpct 4, META -5.0 at 1.42, GLD -4.7, XLV -1.8. NKE reports today, with +20.3 raw on a 1.94 slope.
+
+**Position:** JNJ is done. If any of the second tranche is still open it goes today, since the gate has already made the call. SBUX stays a half. Accel passed but the rank failed the 76 test, and six rounds of history say you don't add on a half-pass. It earns the second half on a print back at 76 under 0.90. XLI keeps its full seat, and 0.75 on rebuilding fuel is the best tape it has had. If +7 holds tomorrow the skipped second half becomes defensible. Close it over 1.05, as before. CAT is the new seat, sized as a first tranche half: two prints under the line, the widest fuel of any open name and the bin at 88. AMZN at 0.98 twice is a fraction at most, because a second print 0.02 under the line is not a cooling. KO stays a fraction. NFLX, UBER and AAPL are first prints and get nothing until a second one. XLB at 1.00 is on the line, not under it. GOOG coming down from 1.35 is the first real cooling in its run, so watch it and don't fund it. XLE's +25 into DANGER is a warning, not a setup. IWM at IVpct 21 still has no premium. Its CPS flag is $0.41 over $3 at 14d (13.7%), the twenty-fifth thin print, so it stays WATCH. CPS is 1 flag of 11, with 7 base-gated and 3 construction. Avoid META 1.42, XLE 1.28, QQQ 1.24, SPY 1.23, XOM 1.22, MCD 1.18, TLT 1.17, GOOG 1.14, MSFT 1.13 and HD 1.10.
+
+Forward watchpoints:
+1. SBUX back to 76 under 0.90, or a second slip that caps it at a half.
+2. XLI's fuel above +7 for the second half.
+3. CAT's third print: 0.58 holding with the bin at 88.
+4. GOOG under 1.00 on +12.9. That would be the fattest fuel on the board finally leaving the cage.
+5. VIX 16.04 / VIX3M 18.09, with the spread narrowing from 2.16 to 2.05 and VVIX easing to 89.7. Still Contango and NORMAL, but the curve keeps flattening.
+
+The carry leaves by rule, one seat regains its premium, and a new one arrives on the second print.
+
+---
+
+## 2026-09-28 (Monday)
+
+**Regime:** REGULAR SEASON (SBUX survives its second print, the carry reaches the gate, and XLI keeps the tape but loses the fuel) | **Tradeable:** 3S / 6C | **Avg VRP:** +3.2
+
+**Watchpoint (4) finally answers yes: SBUX +24 to 76, the session leader, with fuel widening from +8.2 to +11.7, accel 0.86 and IVpct 62 at 30d. It's a SELL (NORMAL), and round six is the first one to live past the second print.** Watchpoint (2) splits. XLI fell 14 to 51 even though accel cooled from 0.92 to 0.86, a third print under 1.00. Fuel dropped from +10.5 to +6.2 and the bin from 81 to 55, which puts it back to CONDITIONAL. The tape confirmed and the premium didn't. Watchpoint (1) holds: JNJ is flat at 72, accel 0.33, fuel +7.1, IVpct 90, 15d. One session to the gate. KO rose 5 to 68 on +6.1 at 0.96, 22d, and becomes the third SELL. Watchpoint (3) gets worse again. Stress rose from 38.7% to 43.8% (14 of 32) and the crest from 0.953 to 0.961, while the average widened from +2.9 to +3.2. Danger went from 1 to 0, with TLT down 7 to 29 at 1.15. The breadth came back through rank: XLF +32 to 62, from +2.2 to +6.0 at 0.99, index width returning for the third time. AMZN +23 to 64 on +10.9, with accel down from 1.07 to 0.98. CAT +15 to 61 on +10.5 at 0.99, just under the line. XLB returns from NO DATA to 54 on +9.0 at 1.01. All four are CONDITIONAL. IWM rose 3 to 59 on +6.4, but IVpct is only 15. GOOG rose 10 to 58 on +11.9 at 1.35 and JPM sits at 62 on +8.9 at 1.30. Both are AVOID, with the fattest fuel on the board still caged. MSFT slipped from 0.98 to 1.16 and lost its seat. META rose 15 to 38 on -2.8 at 1.35. XLE fell 16 to 28 at 1.26 and XLV fell 9 to 24 at -1.5. Tails: HOOD -21.0, WMT -11.8, NVDA -8.6 at IVpct 0, GLD -4.0, MCD -1.4. NKE is 0 at 1d, with +19.7 raw on a 1.50 slope.
+
+**Position:** Take JNJ's second tranche off today or tomorrow. 15d means the gate closes it this week anyway, and exiting at 72 with the bin at 90 is the good version of the exit. For XLI, keep the seat but skip the second half: 0.86 met the accel test, but fuel falling 4.3 points and the bin losing 26 is exactly the "survive the bin" failure Friday flagged. Close it over 1.05, as before. SBUX is the new seat. The honest print held, the fuel widened and 30d leaves room, so a first tranche is defensible. Size it as a half, because five rounds died before this one. KO at 0.96 is a fraction at most. AMZN and CAT at 0.98–0.99 are first prints under the line and get nothing until a second one. XLF +32 is the same width round-trip for the third time, so skip it. XLB at 1.01 is on the line, not under it. IWM at IVpct 15 has no premium. Its CPS flag is $0.41 over $3 at 13d, the twenty-fourth thin print, so WATCH. TLT at 0d, $0.13 over $1 on Caution RV, is noise. XLI's CPS flag is gone, along with its fuel. Avoid GOOG 1.35, META 1.35, MCD 1.35, JPM 1.30, XLE 1.26, QQQ 1.23, SPY 1.21, EEM 1.21, XOM 1.19, MSFT 1.16, GS 1.16, TLT 1.15, HD 1.14 and NFLX 1.10. CPS is 2 flags of 11, both WATCH, with 6 base-gated and 3 construction.
+
+Forward watchpoints:
+1. JNJ fully off, so the book resets to SBUX and XLI.
+2. SBUX's third print. 76 holding under 0.90 earns the second half.
+3. XLI's fuel. Under +6 with the bin falling closes the seat by width, not by accel.
+4. Stress at 43.8% under a +3.2 average that rank built. The divergence is at its widest of the run.
+5. VIX 16.07 / VIX3M 18.23. The spread narrowed from 3.06 to 2.16 and VVIX rose to 91.0. Still Contango and NORMAL, but the curve is flattening under the book.
+
+One seat leaves on the clock, one arrives on the second print, and one has the right tape but the wrong premium.
+
+---
+
 ## 2026-09-25 (Friday)
 
 **Regime:** REGULAR SEASON (the cage opens at XLI on the second print, the carry rallies into its exit, and the book has two seats for one session) | **Tradeable:** 2S / 5C + 1W | **Avg VRP:** +2.9

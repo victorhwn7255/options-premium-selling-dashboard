@@ -38,6 +38,48 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-09-30 (Wednesday)
+
+**Scan summary:** Checked 11 / 3 actionable / 5 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 16.34 / VIX3M 18.37 / VVIX 89.5 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 15d | 61 | 13.8% | $0.41 | $3 | $2.59 | Good | Thin premium |
+| 2 | XLF | WATCH | 0d | 52 | 13.0% | $0.13 | $1 | $0.87 | Acceptable | Thin premium |
+| 3 | QQQ | WATCH | 0d | 35 | 13.7% | $1.10 | $8 | $6.90 | Caution | Thin premium |
+
+**Notable:** IWM makes 15d and prints 61 (+1), its second straight session over the score line, and the skew still won't move: the $3 wing is pinned at **$0.41 credit, $2.59 max loss** for a fourth print, c/w ticks 13.7% → 13.8% on rounding only, and the 15% condition fails for a tenth consecutive print. **XLF is back at 0d, 52, 13.0% c/w on $0.13 over $1**, RV Acceptable, the same dollar-wide row it ran in mid-September, and it arrives on the day its regime score dropped 62 → 52, so it's on the board with less behind it than when it couldn't clear the gate. **QQQ debuts at 0d, 35, 13.7% on $1.10 over $8**, RV Caution, the widest wing on the board and the lowest score. Funnel: **checked 11 / actionable 3 / base_gate 5 / construction 3 / execution 0**, two rows out of the base gate but neither anywhere near a ticket. **Execution is blank for the ninety-third consecutive print.** Surface firms a touch: **VIX 16.04 → 16.34, VIX3M 18.09 → 18.37, VVIX 89.7 → 89.5**, contango and NORMAL, a third session on a 16 handle with vol-of-vol easing under 90 rather than pushing through it. Internals improve: **avg VRP +3.8 → +3.9**, negative share flat at 24%, **stress 9 → 7 (24%) of 29 eligible, danger 2 → 1**, and the regime flips to **THE PLAYOFFS at 5S / 3C**, eight tradeable off eleven as conditionals convert to sells. Day-over-day: **MSFT +13 to 68, XLI +12 to 70, XLV +11, AMZN +10 to 78, TLT +9 to 45, SBUX +7 to 77, GOOG +7 to 67** against **XLE −18 to 35, UBER −18, XLB −16, XLF −10, AAPL −9**. The 60+ group is now seven deep (AMZN, SBUX, CAT, XLI, MSFT, GOOG, KO) and none of them has reached the CPS board; XLI is 70 on the regime side after round-tripping off CPS on Monday. The read: the regime board is as constructive as it's been all run, and the CPS board can't translate it, because IWM's skew is the one input a better VRP tape doesn't fix. **Still zero SELL_CPS at 93 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line**. IWM is 61 / 13.8% / 15d, two of three met, gap still exactly **$0.04 on the $3 wing ($0.41 → $0.45)**, and it can fire on any single print where the wing bids up and the score holds 60. VVIX drifting lower is the wrong direction for that; it needs a put bid, not a firmer VIX. XLF and QQQ started fresh clocks today, so next Wednesday is the earliest either can satisfy 5d, and XLF would need +8 score and the $1 wing to $0.15, QQQ far more than that. IWM remains the only name that can print this week.
+
+---
+
+## 2026-09-29 (Tuesday)
+
+**Scan summary:** Checked 11 / 1 actionable / 7 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 16.04 / VIX3M 18.09 / VVIX 89.7 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 14d | 60 | 13.7% | $0.41 | $3 | $2.59 | Good | Thin premium |
+
+**Notable:** IWM makes 14d and prints exactly 60 (+1). The score line is met for the first time in the run, which leaves skew as the only thing standing between the board and a ticket. It's still a hard constraint: the $3 wing is frozen at **$0.41 credit, $2.59 max loss**, and c/w holds at 13.7%, so the 15% condition fails for a ninth straight print with no movement at all. **TLT drops off the CPS board** after one day, even though it lifted to 36 on the regime board. Funnel: **checked 11 / actionable 1 / base_gate 7 / construction 3 / execution 0**, with one row slipping back into the base gate. **Execution is blank for the ninety-second consecutive print.** The surface is basically unchanged: **VIX 16.07 → 16.04, VIX3M 18.23 → 18.09, VVIX 91.0 → 89.7**, contango and NORMAL. That's a second session on a 16 handle, and the IWM wing hasn't moved a cent. Internals are split: **avg VRP +3.2 → +3.8**, but the **negative share rises 22% → 24%**. **Stress falls 14 → 9 (31%) of 29 eligible** while **danger goes 0 → 2**, and the regime reads **REGULAR SEASON at 3S / 8C**, eleven tradeable off nine. Day-over-day, **XLE +25 to 53, UBER +16, NFLX +15 to 60, AAPL +15, EEM +10, CAT +9 to 70** run against **JNJ, JPM and GS all zeroed (−72, −62, −39)**, plus META −7 and SBUX −6 to 70. The eligible universe shrank by three names, taking the financials with it. The 60+ group is now CAT, SBUX, AMZN, KO and NFLX, but none has reached the CPS board. The read: the score was never really IWM's problem. It crossed 60 into a flat tape and its skew didn't respond, so the vol level is not what's holding the ticket back. **Still zero SELL_CPS at 92 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line**. IWM is 60 / 13.7% / 14d, two of three met, and the gap is exactly **$0.04 on the $3 wing ($0.41 → $0.45)**. Because persistence is long banked, IWM can write the first ticket on any single print where that wing reaches $0.45 and the score holds 60. That makes it the only name that can fire this week. It likely takes a real put bid, a VVIX push back through 90 with the front steepening, not another day of VIX drifting at 16. Any of the regime-board 60s would need to reach the CPS board with a $2 wing and then run a fresh 5d clock, so next Tuesday is the earliest that path can print.
+
+---
+
+## 2026-09-28 (Monday)
+
+**Scan summary:** Checked 11 / 2 actionable / 6 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 16.07 / VIX3M 18.23 / VVIX 91.0 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 13d | 59 | 13.7% | $0.41 | $3 | $2.59 | Good | Thin premium |
+| 2 | TLT | WATCH | 0d | 29 | 13.0% | $0.13 | $1 | $0.87 | Caution | Thin premium |
+
+**Notable:** Monday delivers the VIX 16 print Thursday's ticket asked for, and it pays IWM nothing. **IWM makes 13d and lifts to 59** (+3), RV holding Good, one point off the score line. But the $3 wing slips to **$0.41 credit, $2.59 max loss**, and c/w goes 14.2% → 13.7%, so the 15% condition fails an eighth straight print and the gap is now widening. **XLI is off the board entirely** after one day: regime score 65 → 51, no second print at 60+, no $0.55 wing. It round-tripped exactly the way XLF did, and Friday's idiosyncratic-skew path dies with it. **TLT returns at 0d, 29, 13.0% c/w on $0.13 over $1**, RV Caution. The score is up from Thursday's 15 and the skew is below it, a dollar-wide row with nothing behind it. Funnel: **checked 11 / actionable 2 / base_gate 6 / construction 3 / execution 0**, two rows back into construction off Friday. **Execution is blank for the ninety-first consecutive print.** Surface lifts hard: **VIX 14.87 → 16.07, VIX3M 17.93 → 18.23, VVIX 87.8 → 91.0**, slope 0.87 → 0.83, contango and NORMAL. The front is outrunning the back and vol-of-vol is over 90 again, yet IWM's put wing cheapened into it. Internals: **avg VRP +2.9 → +3.2, negative share 19% → 22%, stress 12 → 14 (44%) of 32 eligible**, danger 1 → 0, regime **REGULAR SEASON at 3S / 6C**, nine tradeable off seven. Day-over-day: **XLB +54 off zero, XLF +32 to 62, SBUX +24 to 76, AMZN +23 to 64, CAT +15 to 61** against **XLE −16, XLI −14, XLV −9, TLT −7**. XLF is at 60+ on the regime board and still can't clear its CPS base gate. The read: both paths to a ticket were tested inside two sessions and both failed. The vol lift raised spot vol without steepening IWM's skew, and the one idiosyncratic skew print didn't survive a weekend. **Still zero SELL_CPS at 91 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line**. IWM is 59 / 13.7% / 13d: persistence long solved, score a point away, skew the binding constraint. It needs the $3 wing back to $0.45 while the score crosses 60. A VIX 16 handle hasn't done that, so it likely takes a real put bid, not drift. The alternative is one of the new 60+ names (SBUX, AMZN, CAT, XLF) reaching the CPS board with a $2 wing and holding it. With the 5d clock unstarted, next Monday is the earliest that ticket can print.
+
+---
+
 ## 2026-09-25 (Friday)
 
 **Scan summary:** Checked 11 / 3 actionable / 7 base_gate / 1 construction / 0 execution / 0 overlay / 0 confirmation
