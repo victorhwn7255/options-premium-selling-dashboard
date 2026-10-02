@@ -28,6 +28,9 @@ services:
       context: ./frontend
       args:
         BACKEND_URL: http://backend:8000
+        # Navbar social links — public, inlined into the browser bundle at build time (from .env)
+        NEXT_PUBLIC_LINKEDIN_URL: ${NEXT_PUBLIC_LINKEDIN_URL:-}
+        NEXT_PUBLIC_TWITTER_URL: ${NEXT_PUBLIC_TWITTER_URL:-}
     ports:
       - "3001:3000"
     depends_on:

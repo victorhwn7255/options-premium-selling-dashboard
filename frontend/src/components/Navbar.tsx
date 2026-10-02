@@ -23,6 +23,35 @@ interface NavbarProps {
   onOpenGuide: (tab: GuideTab) => void;
 }
 
+// Social links (NEXT_PUBLIC_* are inlined at build time — see docker-compose build args / frontend/.env.local).
+// Icons are the official brand marks (Simple Icons paths, same as public/assets/*.svg), inlined so
+// `currentColor` follows the theme variables in both light and dark mode. An unset URL hides its icon.
+const LINKEDIN_URL = process.env.NEXT_PUBLIC_LINKEDIN_URL || '';
+const TWITTER_URL = process.env.NEXT_PUBLIC_TWITTER_URL || '';
+
+function SocialLinks() {
+  if (!LINKEDIN_URL && !TWITTER_URL) return null;
+  const cls = 'p-2 rounded-md text-txt-tertiary hover:text-txt hover:bg-surface-alt transition-colors';
+  return (
+    <span className="flex items-center">
+      {LINKEDIN_URL && (
+        <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn" className={cls}>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+          </svg>
+        </a>
+      )}
+      {TWITTER_URL && (
+        <a href={TWITTER_URL} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" title="X (Twitter)" className={cls}>
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+          </svg>
+        </a>
+      )}
+    </span>
+  );
+}
+
 export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, scanProgress, viewMode, onViewModeChange, scannedAt, verification, earningsVerification, onOpenGuide }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -300,6 +329,11 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
             {today}
           </span>
 
+          {/* Social links (desktop only; mobile has them in the dropdown) */}
+          <div className="hidden sm:flex">
+            <SocialLinks />
+          </div>
+
           {/* [HUMAN|MACHINE] view toggle (desktop only; earnings refresh now lives in MACHINE's ops console) */}
           <div className="hidden sm:flex">
             <ViewModeToggle mode={viewMode} onChange={onViewModeChange} />
@@ -406,8 +440,11 @@ export default function Navbar({ theme, onToggleTheme, onRefresh, refreshing, sc
               )}
             </div>
           </div>
-          {/* Row 3: Date — 12px to match the view-mode toggle below it */}
-          <span className="font-mono text-[12px] text-txt-tertiary">{today}</span>
+          {/* Row 3: Date + social links — 12px to match the view-mode toggle below it */}
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[12px] text-txt-tertiary">{today}</span>
+            <SocialLinks />
+          </div>
           {/* Row 4: [HUMAN|MACHINE] view toggle — doesn't auto-close the menu */}
           <div className="pt-1">
             <ViewModeToggle mode={viewMode} onChange={onViewModeChange} />
