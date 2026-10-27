@@ -38,6 +38,289 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-10-26 (Monday)
+
+**Scan summary:** Checked 11 / 4 actionable / 4 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 18.39 / VIX3M 19.94 / VVIX 101.4 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 16d | 59 | 10.3% | $1.03 | $10 | $8.97 | Acceptable | Thin premium |
+| 2 | XLE | WATCH | 0d | 48 | 14.7% | $0.22 | $1.50 | $1.28 | Acceptable | Thin premium |
+| 3 | XLF | WATCH | 0d | 41 | 10.0% | $0.10 | $1 | $0.90 | Acceptable | Thin premium |
+| 4 | QQQ | WATCH | 0d | 35 | 14.1% | $1.41 | $10 | $8.59 | Caution | Thin premium |
+
+**Notable:** SPY makes 16d at **59 (+1)**, one point under the line for a second print, $10 wing holds, credit **$1.05 → $1.03**, skew **10.5% → 10.3%**, RV Acceptable, Thin. XLE is back for a fourth entry at **0d, 48 (+4), 14.7% on $0.22**, $1.50 wing, RV Acceptable, now Thin where Thursday's 26.3% print was not. XLF is new at **0d, 41, 10.0% on $0.10**, $1 wing, Thin, the lowest skew on the board. QQQ returns after one session off at **0d, 35, 14.1% on $1.41**, $10 wing, RV Caution, Thin, its clock reset from 14d to zero. TLT and EEM are gone after two and one prints, EEM **+7 to 42** in the tracker so it left on construction, TLT off the tracker entirely. Four rows, four Thin, the first all-Thin board in the run. Funnel: **checked 11 / actionable 4 / base_gate 4 / construction 3 / execution 0**. **Execution is blank for the 111th consecutive print.** Surface fades: **VIX 19.45 → 18.39, VIX3M 20.48 → 19.94, VVIX 109.7 → 101.4**, NORMAL and contango, term spread 1.0 → 1.6. Internals steady-to-better: **avg VRP +5.5 → +5.0**, negative share flat at 11%, eligible 19 from 18, **stress 10 (53%)** from 56%, **danger 0** from 2, and **REGULAR SEASON holds at 0S / 4C**, second print with no sell name anywhere. Day-over-day is eight up, three down: **XLB +48 to 48** from zero, **GLD +12 to 40, NVDA +9 to 53, IWM +8 to 44, EEM +7, JNJ +7 to 33, XLE +4, XLI +3 to 64** against **XLV −10 to 18, NKE −8 to 42, HD −4 to 32**. The read: Friday's call was re-cut-the-wing or hand-SPY-two-points-with-skew, and the board did neither, the wing held at $10 and SPY got one point with skew falling two tenths, so the 110 is 111 as called; the vol fade cost SPY two cents and VVIX eight handles, and the danger count going to zero is the only thing on the page that moved toward a trade. **Still zero SELL_CPS at 111 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. SPY has clock only, needs one point and $1.50 on $10, 47 cents away, the gap wider than Friday. XLE has nothing yet, needs twelve points, three tenths of skew, five sessions, and a credit that is not $0.22. QQQ needs 25 points and a reset clock. XLF needs 19 points and five points of skew on a $1 wing. XLI holds the only 60+ score in the tracker at 64 and is still not on the board. With VIX back under 18.5, VVIX back at 101 and the board uniformly Thin, Tuesday more likely hands SPY the one point than the 47 cents, which puts score and clock together with no skew for the third time in the run, the 111 becomes 112, and the first SELL_CPS still needs XLE to do on this fourth entry what it has not done on three.
+
+---
+
+## 2026-10-23 (Friday)
+
+**Scan summary:** Checked 11 / 3 actionable / 5 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 19.45 / VIX3M 20.48 / VVIX 109.7 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 15d | 58 | 10.5% | $1.05 | $10 | $8.95 | Acceptable | Thin premium |
+| 2 | TLT | WATCH | 2d | 36 | 13.0% | $0.13 | $1 | $0.87 | Good | Thin premium |
+| 3 | EEM | WATCH | 0d | 35 | 18.5% | $0.19 | $1 | $0.81 | Good | — |
+
+**Notable:** SPY makes 15d at **58 (−5)**, back under the score line after one print over it, wing widens $6 → $10, credit **$0.67 → $1.05**, skew **11.2% → 10.5%**, RV Good → Acceptable, Thin, the widening bought 38 cents and cost seven tenths of c/w. TLT is **2d, 36 (−15)**, **$0.16 → $0.13, 15.5% → 13.0%**, RV Excellent → Good, Thin, Thursday's only row over 15% skew gave it back in one session. EEM is new at **0d, 35, 18.5% on $0.19**, $1 wing, RV Good, Notes blank, the best skew on the board on the wing that cannot clear the floor. QQQ and XLE are gone after one and two prints, tracker shows **QQQ −7 to 37, XLE +3 to 44**, so QQQ left on score and XLE on construction again, its third exit in the run. Three rows, two Thin. Funnel: **checked 11 / actionable 3 / base_gate 5 / construction 3 / execution 0**, base_gate the widest since the regime went up. **Execution is blank for the 110th consecutive print.** Surface holds and edges higher: **VIX 19.03 → 19.45, VIX3M 20.12 → 20.48, VVIX 107.9 → 109.7**, NORMAL and contango, term spread 1.1 → 1.0, narrowest in the run. Internals split: **avg VRP +5.0 → +5.5**, negative share flat at 11%, eligible 18, but **stress 10 (56%)** from 9, **danger 2 (11%)** from 1, and **REGULAR SEASON holds at 0S / 4C**, the first print with no sell name anywhere in the regime, four tradeable from five. Day-over-day is six up, eight down: **XLI +8 to 61, NFLX +8 to 22, GS +7 to 43, JNJ +6 to 26, XLV +5 to 28, XLE +3** against **TLT −15, WMT −13 to 59, GLD −9 to 28, QQQ −7, NVDA −6 to 44, SPY −5, EEM −5, HD −4 to 36**. The read: Thursday's call offered hold-vol-keep-SPY-over-60 or fade-and-lose-sixteen, and the board took neither, vol held and SPY lost five anyway, because the wing re-cut to $10 and the extra credit did not keep pace; the 109 is 110 as called. **Still zero SELL_CPS at 110 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. SPY has clock only, needs two points and $1.50 on $10, 45 cents away, the gap doubled by the wider wing. TLT has nothing, needs 24 points, two points of skew, three sessions. EEM has skew only, needs 25 points and five sessions on a $1 wing. XLI holds the only 60+ score in the tracker and is not on the board. With stress past half the eligible set, danger doubled and VVIX near 110, Monday more likely re-cuts SPY's wing again than hands it the two points with skew attached, the 110 becomes 111, and the first SELL_CPS still needs a sector row to survive construction for five prints, which XLE has now failed three times.
+
+---
+
+## 2026-10-22 (Thursday)
+
+**Scan summary:** Checked 11 / 4 actionable / 4 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 19.03 / VIX3M 20.12 / VVIX 107.9 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 14d | 63 | 11.2% | $0.67 | $6 | $5.33 | Good | Thin premium |
+| 2 | TLT | WATCH | 1d | 51 | 15.5% | $0.16 | $1 | $0.84 | Excellent | Thin premium |
+| 3 | QQQ | WATCH | 14d | 44 | 12.8% | $1.29 | $10 | $8.71 | Caution | Thin premium |
+| 4 | XLE | WATCH | 0d | 41 | 26.3% | $0.39 | $1.50 | $1.10 | Acceptable | — |
+
+**Notable:** SPY makes 14d at **63 (+16)**, back over the score line for the first time since 12d, $6 wing credit flat at **$0.67, 11.1% → 11.2%**, RV Good, Thin, sixteen points on a vol pop that moved skew one tenth. **QQQ is 14d, 44 (+1)**, wing narrows $13 → $10, credit **$1.65 → $1.29**, skew **12.7% → 12.8%**, RV Acceptable → Caution, Thin, the narrowing Wednesday called for and it bought nothing. TLT is **1d, 51 (−3)**, **$0.14 → $0.16, 13.5% → 15.5%**, RV Excellent, Thin, the first row over 15% skew with clock in the run, on a $1 wing that cannot clear the floor. XLE is back after two sessions off at **0d, 41, 26.3% on $0.39**, $1.50 wing, RV Acceptable, Notes blank. Four rows, three Thin. Funnel: **checked 11 / actionable 4 / base_gate 4 / construction 3 / execution 0**. **Execution is blank for the 109th consecutive print.** Surface reverses the whole week's bleed in one session: **VIX 16.68 → 19.03, VIX3M 18.72 → 20.12, VVIX 94.6 → 107.9**, back over 100, still NORMAL and contango but term spread 2.0 → 1.1. Internals crack: **avg VRP +6.0 → +5.0**, negative share **0% → 11%**, eligible 18, **stress 9 (50%)** from 4, danger 1 (6%), and the label drops **THE PLAYOFFS → REGULAR SEASON at 1S / 4C**, five tradeable from six. Day-over-day is eight up, two down: **SPY +16, WMT +6 to 72, EEM +6 to 40, XLV +6 to 23, XLF +5 to 44, JPM +5 to 40, HD +5 to 40** against **NFLX −51 to 14, NVDA −12 to 50, TLT −3**. The read: Wednesday's call got the wing and the 109 right and the direction wrong, because the fade turned into a 2.3-point VIX jump that handed SPY its points back; but score here came from vol, not skew, and the wing re-priced with the credit so c/w sat still. **Still zero SELL_CPS at 109 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. SPY now holds score and clock, needs $0.90 on $6, 23 cents away, same gap as three prints ago at 47. TLT holds skew, needs nine points and four sessions and a wider wing that does not exist. QQQ has clock only, needs sixteen points and $1.50 on $10. XLE has skew and premium, needs nineteen points and five sessions, and left last time at 4d. The board has every trigger leg somewhere and no row with more than two. With stress at half the eligible set and VVIX back over 100, Friday either holds vol and keeps SPY above 60 still short of skew, or fades and takes the sixteen back, and the 109 becomes 110 either way; the first SELL_CPS still needs a sector row like XLE to hold 26% skew through five prints while finding twenty points, which the two-session gap says it has not learned to do.
+
+---
+
+## 2026-10-21 (Wednesday)
+
+**Scan summary:** Checked 11 / 3 actionable / 4 base_gate / 4 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 16.68 / VIX3M 18.72 / VVIX 94.6 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | TLT | WATCH | 0d | 54 | 13.5% | $0.14 | $1 | $0.86 | Good | Thin premium |
+| 2 | SPY | WATCH | 13d | 47 | 11.1% | $0.67 | $6 | $5.33 | Good | Thin premium |
+| 3 | QQQ | WATCH | 13d | 43 | 12.7% | $1.65 | $13 | $11.35 | Acceptable | Thin premium |
+
+**Notable:** SPY makes 13d at **47 (−8)**, $6 wing **$0.66 → $0.67, 10.9% → 11.1%**, RV Good, Thin, the second straight print where credit and skew tick up and score falls. **QQQ is 13d, 43 (−5)**, wing widens $11 → $13, credit **$1.35 → $1.65**, skew **12.3% → 12.7%**, RV Acceptable, Thin, the first wing change in four that bought both credit and c/w, and it still cost five points. TLT is back after one session off, **0d, 54 (−5), 13.5% on $0.14**, $1 wing, RV Good, Thin, clock reset to zero and skew three points under Monday's 16.5%. XLI and XLF are gone after one print each, and the tracker shows both rose, **XLI +7 to 54, XLF +8 to 39**, so they left on construction, not score. Three rows, all Thin, none clear of the floor. Funnel: **checked 11 / actionable 3 / base_gate 4 / construction 4 / execution 0**. **Execution is blank for the 108th consecutive print.** Surface keeps bleeding: **VIX 17.31 → 16.68, VIX3M 18.99 → 18.72, VVIX 97.2 → 94.6**, NORMAL and contango, term spread out to 2.0 points, widest in the run. Internals rebuild again: **avg VRP +5.0 → +6.0**, negative share **11% → 0%**, eligible 19 → 18, **stress 4 (22%), danger 1 (6%)**, the first danger name since the regime went up, and **THE PLAYOFFS holds at 1S / 5C**, six tradeable, one sell, down from eight. Day-over-day is eight and eight: **NFLX +65 to 65, XLE +10 to 43, XLF +8, XLI +7, HD +6 to 35, GS +5 to 38, WMT +4 to 66, NKE +3 to 52** against **MCD −54 to 0, XLB −33 to 0, IWM −9 to 34, SPY −8, TLT −5, QQQ −5, JPM −3 to 35, XLV −3 to 17**. The read: Tuesday's call hit on every line, SPY and QQQ lost points into the fade, 107 became 108, and XLI never got the second print it needed; the only rows that held skew left on construction, and the only rows that hold clock keep converting vol decay into wider wings and lower score. **Still zero SELL_CPS at 108 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. SPY has clock only, needs thirteen points and $0.90 on $6, 23 cents away. QQQ has clock only, needs seventeen points and $1.95 on $13, 30 cents away on a wing that grows faster than the credit. TLT needs six points, one cent for skew, five sessions for clock, and a $1 wing cannot clear the floor at any score. With VVIX in the low nineties, VIX under 17 and the term spread at two points, Thursday more likely narrows a wing and takes another few points off the index rows than hands them back, the 108 becomes 109, and the first SELL_CPS still needs a sector row like XLI to survive construction for five prints with its skew intact, which none has done yet.
+
+---
+
+## 2026-10-20 (Tuesday)
+
+**Scan summary:** Checked 11 / 4 actionable / 4 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 17.31 / VIX3M 18.99 / VVIX 97.2 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 12d | 55 | 10.9% | $0.66 | $6 | $5.34 | Good | Thin premium |
+| 2 | QQQ | WATCH | 12d | 48 | 12.3% | $1.35 | $11 | $9.65 | Acceptable | Thin premium |
+| 3 | XLI | WATCH | 0d | 47 | 38.8% | $0.78 | $2 | $1.22 | Acceptable | High credit/width |
+| 4 | XLF | WATCH | 0d | 31 | 21.5% | $0.21 | $1 | $0.79 | Good | — |
+
+**Notable:** SPY makes 12d at **55 (−5)**, falls back under the score line one session after sitting on it, $6 wing **$0.63 → $0.66, 10.5% → 10.9%**, RV Acceptable → Good, Thin, so for once credit and skew both tick up and score goes the other way. **QQQ is 12d, 48 (−3)**, wing widens $10 → $11, credit **$1.29 → $1.35**, skew **12.9% → 12.3%**, RV Acceptable, Thin, the third straight wing change that buys credit and sells c/w. TLT is gone after 11 prints, 67 → 59 on the tracker and off the board; XLE is gone after 4, XLB after 1. XLI enters at **0d, 47, 38.8% on $0.78**, $2 wing, RV Acceptable, Notes read High credit/width, the richest skew the board has printed in the run, on a row that lost ten points today. XLF enters at **0d, 31, 21.5% on $0.21**, RV Good, Notes blank, **down 24 points from Monday**. Four rows, two Thin, two clear of the floor. Funnel: **checked 11 / actionable 4 / base_gate 4 / construction 3 / execution 0**. **Execution is blank for the 107th consecutive print.** Surface unwinds the rest of Friday: **VIX 18.44 → 17.31, VIX3M 19.60 → 18.99, VVIX 106.9 → 97.2**, back under 100, NORMAL and contango, term spread out to 1.7 points. Internals give back Monday's heal: **avg VRP +6.2 → +5.0**, negative share **0% → 11%**, eligible 20 → 19, **stress 4 (21%), danger 0**, regime holds **THE PLAYOFFS at 0S / 8C**, eight tradeable, no sells. Day-over-day is one up and fifteen down: **WMT +5 to 62** against **UBER −68 to 0, XLF −24, GS −14 to 33, XLI −10, XLV −10 to 20, JPM −9 to 38, TLT −8, JNJ −8 to 22, SPY −5, IWM −5 to 43**. The read: Monday's call hit, XLE never found the twenty points and the 106 became 107, and the vol fade took score off every row at once while the two new sector rows arrived with skew the index rows cannot build. **Still zero SELL_CPS at 107 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. SPY has clock only, needs five points and $0.90 on $6, 24 cents away. QQQ has clock only, needs twelve points and $1.65 on $11. XLI has skew and premium, needs thirteen points and five sessions. XLF has skew and premium and needs 29 points. Nothing on the board holds score, the first time in the run that is true, and the only two rows that could reach it inside a week are the two that keep paying for credit with c/w. With VVIX back in the nineties and VRP a full point lower, Wednesday more likely takes another few points off SPY and QQQ than hands them back, the 107 becomes 108, and the question is whether XLI's second print keeps its 38% skew long enough to make 5d with a score worth having.
+
+---
+
+## 2026-10-19 (Monday)
+
+**Scan summary:** Checked 11 / 5 actionable / 3 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 18.44 / VIX3M 19.60 / VVIX 106.9 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | TLT | WATCH | 11d | 67 | 16.5% | $0.17 | $1 | $0.83 | Excellent | Thin premium |
+| 2 | SPY | WATCH | 11d | 60 | 10.5% | $0.63 | $6 | $5.37 | Acceptable | Thin premium |
+| 3 | QQQ | WATCH | 11d | 51 | 12.9% | $1.29 | $10 | $8.71 | Acceptable | Thin premium |
+| 4 | XLE | WATCH | 4d | 37 | 19.5% | $0.19 | $1 | $0.81 | Acceptable | — |
+| 5 | XLB | WATCH | 0d | 32 | 17.0% | $0.17 | $1 | $0.83 | Good | Thin premium |
+
+**Notable:** TLT makes 11d at **67 (+11)**, the $1 wing frozen at **$0.17, 16.5%**, RV Excellent, so the row again holds score, skew and clock and the gate again holds on Thin premium. **SPY is 11d, 60 (−1)**, sits exactly on the score line, wing widens $5 → $6, credit **$0.57 → $0.63** but skew slips **11.4% → 10.5%**, RV Good → Acceptable. **QQQ is 11d, 51 (−17)**, loses the score line after one print above it, wing widens $8 → $10, credit **$1.08 → $1.29**, skew **13.4% → 12.9%**, RV Good → Acceptable, so Friday's call missed the way Wednesday's did: VVIX held above 100 and QQQ still gave back seventeen points and half a point of c/w. XLE makes 4d at **37 (+1)**, skew **26.0% → 19.5% on $0.19**, RV Good → Acceptable, Notes still blank, the only row clear of the thin floor. XLB enters at **0d, 32, 17.0% on $0.17**, RV Good, Thin. Five rows, four Thin. Funnel: **checked 11 / actionable 5 / base_gate 3 / construction 3 / execution 0**. **Execution is blank for the 106th consecutive print.** Surface eases off Friday's spike: **VIX 19.99 → 18.44, VIX3M 20.50 → 19.60, VVIX 109.9 → 106.9**, NORMAL and contango, term spread back out to 1.2 points. Internals rebuild: **avg VRP +6.1 → +6.2**, negative share **11% → 0%**, eligible 19 → 20, **stress 5 (25%), danger 0**, regime upgrades **REGULAR SEASON → THE PLAYOFFS at 1S / 9C + 1W**, ten tradeable. Day-over-day: **XLI +57 to 57, XLB +32, NVDA +26 to 60, WMT +22 to 57, XLF +21 to 55, NKE +15 to 53, TLT +11, GS +8 to 47, JPM +6 to 47** against **PLTR −77 to 0, QQQ −17, MCD −5 to 52, XLV −3 to 30, SPY −1**. The read: the internals healed, the regime went back up a notch, and none of it reached the board, because the index wings widened into the fade and skew fell as fast as credit rose. **Still zero SELL_CPS at 106 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. TLT has three of four and a $1 wing that cannot produce the fourth. SPY needs $0.90 on $6 for skew, 27 cents away and widening. QQQ needs nine points and $1.50 on $10. XLE has skew and premium and needs 23 points plus one more session. XLB has skew and nothing else. With VVIX fading from 110 and the index rows trading c/w for credit on every wing change, Tuesday more likely narrows the SPY wing back than fixes it, and the 106 becomes 107 unless XLE finds twenty points first.
+
+---
+
+## 2026-10-16 (Friday)
+
+**Scan summary:** Checked 11 / 4 actionable / 3 base_gate / 4 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 19.99 / VIX3M 20.50 / VVIX 109.9 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | QQQ | WATCH | 10d | 68 | 13.4% | $1.08 | $8 | $6.92 | Good | Thin premium |
+| 2 | SPY | WATCH | 10d | 61 | 11.4% | $0.57 | $5 | $4.43 | Good | Thin premium |
+| 3 | TLT | WATCH | 10d | 56 | 16.5% | $0.17 | $1 | $0.83 | Excellent | Thin premium |
+| 4 | XLE | WATCH | 3d | 36 | 26.0% | $0.26 | $1 | $0.74 | Good | — |
+
+**Notable:** QQQ makes 10d at **68 (+13)**, back over the score line, and the wing widens $7 → $8, credit **$0.98 → $1.08** but skew slips **13.9% → 13.4%**, RV Acceptable → Good, so the vol lift bought credit and not c/w. **SPY is 10d, 61 (+13)**, clears score for the first time in the run, $5 wing **$0.59 → $0.57, 11.7% → 11.4%**, RV Good. **TLT is 10d, 56 (−5)**, loses the score line, $1 wing **$0.16 → $0.17, 15.5% → 16.5%**, RV Excellent, so the rotation runs again: TLT trades score for skew while QQQ and SPY do the reverse. XLE makes 3d at **36 (−18), 26.0% on $0.26**, and the Notes column is blank, **the first row in weeks to clear the thin floor**, on a $1 wing and a score that just lost eighteen points. IWM is gone after 26 prints. Four rows, three Thin. Funnel: **checked 11 / actionable 4 / base_gate 3 / construction 4 / execution 0**. **Execution is blank for the 105th consecutive print.** Surface jumps: **VIX 16.46 → 19.99, VIX3M 18.49 → 20.50, VVIX 92.6 → 109.9**, first VVIX print above 100 in the run, still NORMAL and contango but the term spread compresses to half a point. Internals keep sliding: **avg VRP +6.4 → +6.1**, negative share **10% → 11%**, eligible 21 → 19, **stress 5 (26%), danger 0**, regime holds **REGULAR SEASON at 2S / 3C**, five tradeable off ten. Day-over-day: **QQQ +13, SPY +13, PLTR +10 to 77, XLV +8, MCD +6 to 57** against **XOM −50 to 0, XLI −42 to 0, XLE −18, XLF −13 to 34, WMT −10 to 35, TLT −5, UBER −4 to 72**. The read: Thursday's call hit on both counts, the board dropped a row and the 104 became 105, and the vol spike landed in the index rows as score while the energy and financial rows fell apart underneath it. **Still zero SELL_CPS at 105 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. QQQ and SPY both have score and clock now, the first time two rows hold the same two conditions, but QQQ needs roughly $1.20 on $8 for skew and SPY needs $0.75 on $5, twelve and eighteen cents away with c/w moving the wrong way. TLT has skew and clock and is four points short. XLE has skew and premium, the two conditions nobody else can get, and needs 24 points and two more sessions. If VVIX holds above 100 into Monday the $8 QQQ wing plausibly pays the twelve cents; if the spike unwinds the way Wednesday's did, the index scores give back half of today and the 105 becomes 106.
+
+---
+
+## 2026-10-15 (Thursday)
+
+**Scan summary:** Checked 11 / 5 actionable / 3 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 16.46 / VIX3M 18.49 / VVIX 92.6 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | TLT | WATCH | 9d | 61 | 15.5% | $0.16 | $1 | $0.84 | Excellent | Thin premium |
+| 2 | QQQ | WATCH | 9d | 55 | 13.9% | $0.98 | $7 | $6.02 | Acceptable | Thin premium |
+| 3 | XLE | WATCH | 2d | 54 | 17.0% | $0.17 | $1 | $0.83 | Good | Thin premium |
+| 4 | IWM | WATCH | 26d | 49 | 13.8% | $0.42 | $3 | $2.58 | Caution | Thin premium |
+| 5 | SPY | WATCH | 9d | 48 | 11.7% | $0.59 | $5 | $4.41 | Good | Thin premium |
+
+**Notable:** TLT makes 9d at **61 (−1)** and the $1 wing swings straight back, **$0.11 → $0.16, 11.0% → 15.5%**, RV Excellent, so for the third time in five prints one row holds score, skew and clock and the gate holds on Thin premium, the same $1-wing ceiling as Tuesday. **IWM makes 26d at 49 (−15)**, loses the score line after five prints above it, $3 wing slips **$0.44 → $0.42, 14.5% → 13.8%**, RV downgrades Good → Caution, so Wednesday's call missed cleanly: VVIX held above 90 and IWM still gave back two cents and a point of skew. **QQQ is 9d, 55 (−8)**, out of the score line after one session in it, $7 wing frozen at **$0.98, 13.9%**, RV Excellent → Acceptable. **SPY is 9d, 48 (−8), 11.7% on $0.59 over $5.** XLE makes 2d at **54 (+8), 17.0% on $0.17**, still the best skew on the board and still Thin on a $1 wing. Five rows, all Thin. Funnel shifts one block upstream: **checked 11 / actionable 5 / base_gate 3 / construction 3 / execution 0**. **Execution is blank for the 104th consecutive print.** Surface eases: **VIX 16.87 → 16.46, VIX3M 18.79 → 18.49, VVIX 94.4 → 92.6**, NORMAL and contango. Internals weaken faster than vol: **avg VRP +6.5 → +6.4**, negative share **8% → 10%**, eligible 25 → 21, **stress 6 (29%), danger 1 (5%)**, first danger count in weeks, and the regime downgrades **THE PLAYOFFS → REGULAR SEASON at 2S / 8C**, ten tradeable off twelve. Day-over-day: **WMT +21 to 45, JPM +12 to 42, JNJ +9 to 26, XLE +8, PLTR +6 to 67** against **AMZN −71 to 0, AAPL −46 to 0, CAT −40 to 0, XLB −33 to 0, IWM −15, NVDA −11, UBER −9 to 72, XLF −9, NKE −9, QQQ −8, SPY −8**. The read: the vol lift bought one day of IWM progress and the rotation took it back, and the three wide-wing rows that could ever clear the thin floor all lost score at once. **Still zero SELL_CPS at 104 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. TLT has three of four and cannot get the fourth on a $1 wing. IWM now needs eleven points and three cents, QQQ five points and seven cents, and both are moving away. XLE needs six points and three more sessions of clock before its 17% means anything. With VIX fading and the regime a notch lower, Friday is more likely to drop a row than add one, and the 104 becomes 105 unless the score rebuilds on IWM first.
+
+---
+
+## 2026-10-14 (Wednesday)
+
+**Scan summary:** Checked 11 / 5 actionable / 2 base_gate / 4 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 16.87 / VIX3M 18.79 / VVIX 94.4 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 25d | 64 | 14.5% | $0.44 | $3 | $2.56 | Good | Thin premium |
+| 2 | QQQ | WATCH | 8d | 63 | 13.9% | $0.98 | $7 | $6.02 | Excellent | Thin premium |
+| 3 | TLT | WATCH | 8d | 62 | 11.0% | $0.11 | $1 | $0.89 | Excellent | Thin premium |
+| 4 | SPY | WATCH | 8d | 56 | 11.6% | $0.58 | $5 | $4.42 | Excellent | Thin premium |
+| 5 | XLE | WATCH | 1d | 46 | 18.0% | $0.18 | $1 | $0.82 | Good | Thin premium |
+
+**Notable:** IWM makes 25d at **64 (flat)**, score clear for a fifth print, and the $3 wing finally moves, **$0.41 → $0.44, 13.7% → 14.5%**, RV Good, so it is now **one cent short of the $0.45 line and half a point short of 15%**, the closest any row has come to all four conditions in the run. **QQQ is 8d, 63 (+13)**, clears the score line for the first time, $7 wing at **$0.98, 13.9%**, RV Excellent, so it has score and clock and needs roughly $1.05 for skew. **TLT is 8d, 62 (−9)**, $1 wing collapses **$0.16 → $0.11, 15.5% → 11.0%**, giving back everything Tuesday added, which is the rotation pattern of the last three weeks exactly: one row holds three conditions for a day, then loses two. **SPY is 8d, 56 (+10), 11.6% on $0.58 over $5.** XLE makes 1d at **46 (−2), 18.0% on $0.18**, best skew on the board and still Thin on a $1 wing. Five rows, all Thin premium. Funnel unchanged: **checked 11 / actionable 5 / base_gate 2 / construction 4 / execution 0**. **Execution is blank for the 103rd consecutive print.** Surface finally moves: **VIX 15.27 → 16.87, VIX3M 17.96 → 18.79, VVIX 85.4 → 94.4**, biggest one-day VVIX lift of the run, still NORMAL and contango. Internals soften with it: **avg VRP +7.4 → +6.5**, negative share **4% → 8%**, **stress 6 (24%) of 25, danger 0**, regime holds **THE PLAYOFFS at 2S / 10C**, twelve tradeable off fourteen, sells cut from five to two. Day-over-day: **GS +33 to 33, JPM +30 to 30, JNJ +17, QQQ +13, SPY +10, XOM +7, NVDA +7** against **GOOG −76 to 0, MSFT −66 to 0, SBUX −56 to 0, XLV −38 to 23, XLB −23 to 33, CAT −11, TLT −9**. The read: Tuesday's call missed on direction, the board did not add a sixth row, but the vol lift did what flat vol could not and put three cents on IWM. **Still zero SELL_CPS at 103 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. IWM has score and clock and sits at $0.44 and 14.5%, so one more session of VVIX above 90 plausibly delivers the cent and the half point together, and the thin flag then becomes the only question. QQQ is the second candidate for the first time, two of four met, seven cents from skew. TLT is back to score and clock only. If VIX holds 16.5+ into Thursday, IWM clears skew; if it mean-reverts, the $0.41 freeze returns and the 103 becomes 104.
+
+---
+
+## 2026-10-13 (Tuesday)
+
+**Scan summary:** Checked 11 / 5 actionable / 2 base_gate / 4 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.27 / VIX3M 17.96 / VVIX 85.4 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | TLT | WATCH | 7d | 71 | 15.5% | $0.16 | $1 | $0.84 | Excellent | Thin premium |
+| 2 | IWM | WATCH | 24d | 64 | 13.7% | $0.41 | $3 | $2.59 | Good | Thin premium |
+| 3 | QQQ | WATCH | 7d | 50 | 13.9% | $0.97 | $7 | $6.03 | Excellent | Thin premium |
+| 4 | XLE | WATCH | 0d | 48 | 14.5% | $0.15 | $1 | $0.85 | Good | Thin premium |
+| 5 | SPY | WATCH | 7d | 46 | 11.8% | $0.59 | $5 | $4.41 | Excellent | Thin premium |
+
+**Notable:** TLT makes 7d at **71 (flat)** and the $1 wing recovers to **$0.16, 15.5% c/w**, RV Excellent, so for the second time in three prints every published condition sits on one row, 60+ score, 15% skew, 5d+ clock, and the gate holds on the Thin premium flag exactly as Friday said it would. **IWM makes 24d at 64 (+3)**, score clear for a fourth print, $3 wing frozen at **$0.41, 13.7%** for a third session, still four cents short of the $0.45 line. **QQQ is 7d, 50 (flat)**, $7 wing at **$0.97, 13.9%**, RV Excellent, still ten points away. **SPY is 7d, 46 (+1), 11.8% on $0.59 over $5.** XLE returns at **0d, 48 (+13), 14.5% on $0.15**, and XLF, XLV and XLI all drop off despite scoring up, XLV to 61 and XLI to 54, which means the one row that cleared the credit floor on Monday is gone before its clock started. Board narrows seven to five, every row Thin premium. Funnel: **checked 11 / actionable 5 / base_gate 2 / construction 4 / execution 0**, construction blocks doubling as the dropped rows fail there rather than at the gate. **Execution is blank for the 102nd consecutive print.** Surface is flat: **VIX 15.21 → 15.27, VIX3M 17.93 → 17.96, VVIX 85.9 → 85.4**, NORMAL and contango. Internals improve: **avg VRP +6.1 → +7.4**, negative share **7% → 4%**, **stress 7 → 6 (24%) of 25, danger 0**, and the regime upgrades back to **THE PLAYOFFS at 5S / 9C**, fourteen tradeable off eleven. Day-over-day: **XLI +28 to 54, XLB +19 to 56, XLV +18 to 61, XLE +13, GLD +12, UBER +9 to 77, AMZN +6 to 73** against **KO −67 to 0, HOOD −35 to 0, SBUX −12 to 56, XOM −7, HD −7**. The read: Monday's call was half right, IWM kept its score and still did not get its four cents, and the sector rotation is lifting names into the 50s without putting any of them on the CPS board. **Still zero SELL_CPS at 102 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. TLT has three of four and cannot get the fourth on a $1 wing. IWM has score and clock, needs **$0.45 on the $3 wing**, and with VVIX drifting lower the premium is moving the wrong way for it. QQQ needs ten points and roughly $1.05. With vol flat and VRP widening, Wednesday is more likely to add a sixth row at 0d than to add IWM four cents.
+
+---
+
+## 2026-10-12 (Monday)
+
+**Scan summary:** Checked 11 / 7 actionable / 2 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.21 / VIX3M 17.93 / VVIX 85.9 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | TLT | WATCH | 6d | 71 | 13.5% | $0.14 | $1 | $0.86 | Good | Thin premium |
+| 2 | IWM | WATCH | 23d | 61 | 13.7% | $0.41 | $3 | $2.59 | Good | Thin premium |
+| 3 | QQQ | WATCH | 6d | 50 | 13.9% | $0.97 | $7 | $6.03 | Excellent | Thin premium |
+| 4 | XLF | WATCH | 2d | 48 | 14.5% | $0.14 | $1 | $0.85 | Good | Thin premium |
+| 5 | SPY | WATCH | 6d | 45 | 11.7% | $0.59 | $5 | $4.41 | Excellent | Thin premium |
+| 6 | XLV | WATCH | 0d | 43 | 21.8% | $0.54 | $2.50 | $1.96 | Acceptable | — |
+| 7 | XLI | WATCH | 0d | 26 | 13.8% | $0.28 | $2 | $1.73 | Caution | Thin premium |
+
+**Notable:** TLT makes 6d at **71 (+3)** but the $1 wing slips **$0.16 → $0.14, 16.0% → 13.5%**, RV Good, so the conditions rotate again: score and clock are met, skew and credit are not. **IWM makes 23d at 61 (−4)**, score clear by one point for a third print, $3 wing flat at **$0.41, 13.7%**, still four cents short. **QQQ is 6d, 50 (−1)**, back to the **$7 wing at $0.97, 13.9%**, RV Excellent. **SPY is 6d, 45 (flat)**, narrows to **$5 at $0.59, 11.7%**. XLF moves to **2d, 48 (+6), 14.5% on $0.14**. XLV debuts at **0d, 43 (−26), 21.8% on $0.54 over $2.50**, RV Acceptable, and is the **only row of seven without the Thin premium flag**, which is the useful print of the day: a $0.54 credit at 22% clears the floor while QQQ's $0.97 at 13.9% does not, so the floor reads as a skew-and-credit test, not an absolute dollar line, and no $1 wing will pass it at current vol. XLI debuts at **0d, 26 (−18), 13.8% on $0.28**, RV Caution, and XLE drops off. Seven rows is the widest board of the run. Funnel: **checked 11 / actionable 7 / base_gate 2 / construction 2 / execution 0**, base gate back to two. **Execution is blank for the 101st consecutive print.** Surface firms modestly: **VIX 14.84 → 15.21, VIX3M 17.77 → 17.93, VVIX 84.9 → 85.9**, back over 85, NORMAL and contango. Internals split: **avg VRP +6.6 → +6.1**, negative share collapses **15% → 7%**, but **stress 6 → 7 (26%) of 27, danger 0**, and the regime downgrades from THE PLAYOFFS to **REGULAR SEASON at 5S / 6C + 1W**, eleven tradeable off twelve. Day-over-day: **XLB +37 to 37, SBUX +13 to 68, XLF +6, XOM +4, TLT +3** against **META −53 to 0, XLV −26, XLI −18, AMZN −11 to 67, AAPL −11, UBER −8, HD −8, GOOG −6 to 75**. The read: Friday's prediction held, Monday reset the dollar wings rather than funding the wide ones, and TLT gave back its 15% the session after clearing it. **Still zero SELL_CPS at 101 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**, and only IWM and QQQ can plausibly satisfy all four. IWM needs **$0.45 on the $3 wing** with 61 leaving no room for a down day; QQQ needs ten points and roughly $1.05. XLV has the credit and skew but is 17 points and five sessions away. With VVIX just over 85 and the regime label downgraded, Tuesday is more likely to cost IWM its score than to add it four cents.
+
+---
+
+## 2026-10-09 (Friday)
+
+**Scan summary:** Checked 11 / 6 actionable / 3 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 14.84 / VIX3M 17.77 / VVIX 84.9 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | TLT | WATCH | 5d | 68 | 16.0% | $0.16 | $1 | $0.84 | Good | Thin premium |
+| 2 | IWM | WATCH | 22d | 65 | 13.7% | $0.41 | $3 | $2.59 | Good | Thin premium |
+| 3 | QQQ | WATCH | 5d | 51 | 13.9% | $1.12 | $8 | $6.88 | Excellent | Thin premium |
+| 4 | SPY | WATCH | 5d | 45 | 11.7% | $0.70 | $6 | $5.30 | Excellent | Thin premium |
+| 5 | XLF | WATCH | 1d | 42 | 17.0% | $0.17 | $1 | $0.83 | Good | Thin premium |
+| 6 | XLE | WATCH | 0d | 36 | 13.0% | $0.13 | $1 | $0.87 | Good | Thin premium |
+
+**Notable:** TLT makes 5d at **68 (−14)** and the $1 wing prints **$0.16, 16.0% c/w**, RV Good. That is the first print of the run where all three stated conditions sit on the board together, 60+ score, 15% skew, 5d clock, and the row is still WATCH with execution blank. So the trigger as written is not the whole gate: the **"Thin premium" flag on a $0.16 credit is the binding constraint**, and the standing thesis needs an absolute-credit floor added to it. **IWM makes 22d at 65 (−1)**, score clear for a second day, but the $3 wing slips **$0.43 → $0.41, 14.2% → 13.7%**, so credit is four cents short, the widest skew gap in a week. **QQQ is 5d, 51 (−8)**, back to the **$8 wing at $1.12, 13.9%**, RV Excellent, needing nine points and $1.20. **SPY is 5d, 45 (−5), 11.7% on $0.70 over $6.** XLF moves to **1d, 42 (−5), 17.0% on $0.17 over $1**, the only row clearing skew with room, but eighteen points short. XLE debuts at **0d, 36, 13.0% on $0.13 over $1** after a −21 day, and EEM drops off. Funnel: **checked 11 / actionable 6 / base_gate 3 / construction 2 / execution 0**, the most base-gate passes of the run. **Execution is blank for the hundredth consecutive print.** The surface gives back Thursday's lift: **VIX 15.41 → 14.84, VIX3M 18.08 → 17.77, VVIX 87.7 → 84.9**, back under the 85 line, still NORMAL and in contango. Internals soften: **avg VRP +6.8 → +6.6**, negative share **14% → 15%**, **stress 3 → 6 (22%) of 27, danger 0**, and the regime stays **THE PLAYOFFS** but thins to **7S / 5C + 3W**, twelve tradeable off twenty-one. Day-over-day: **XLV +15 to 69, WMT +6, AAPL +4, META +4** against **XLB −45 to 0, XLE −21, SBUX −19 to 55, KO −17 to 71, TLT −14, HD −11, QQQ −8**. The read: the hundredth session was the window, both live paths reached 5d, TLT cleared every published condition, and the gate held anyway on a sixteen-cent wing. **Still zero SELL_CPS at 100 sessions.** The revised trigger is **60+ score, 15% c/w, 5d+ line, and a credit wide enough to clear the thin-premium floor**, which the dollar wings on TLT, XLF and XLE cannot do at current vol. That leaves the first realistic fire with IWM or QQQ, the only rows where the wing is wide enough to matter. IWM needs **$0.45 on the $3 wing with score holding above 60**, and it has had score for two prints and credit for none. QQQ needs nine points. With VVIX fading into the weekend, Monday is more likely to reset the dollar wings than to fund the wide ones.
+
+---
+
+## 2026-10-08 (Thursday)
+
+**Scan summary:** Checked 11 / 6 actionable / 2 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.41 / VIX3M 18.08 / VVIX 87.7 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | TLT | WATCH | 4d | 82 | 15.0% | $0.15 | $1 | $0.85 | Good | Thin premium |
+| 2 | IWM | WATCH | 21d | 66 | 14.2% | $0.43 | $3 | $2.57 | Good | Thin premium |
+| 3 | QQQ | WATCH | 4d | 59 | 14.1% | $0.98 | $7 | $6.02 | Excellent | Thin premium |
+| 4 | SPY | WATCH | 4d | 50 | 12.4% | $0.62 | $5 | $4.38 | Excellent | Thin premium |
+| 5 | EEM | WATCH | 0d | 48 | 17.5% | $0.18 | $1 | $0.82 | Good | Thin premium |
+| 6 | XLF | WATCH | 0d | 47 | 10.0% | $0.10 | $1 | $0.90 | Excellent | Thin premium |
+
+**Notable:** TLT moves to 4d at **82 (+4)** and the $1 wing prints **$0.15, 15.0% c/w**, with RV back to Good from Acceptable. That is the first time this run the displayed c/w has sat on the line rather than under it, so score and skew are both met, and only the 5d clock is open. **IWM makes 21d at 66 (+9)**, its first finish above 60 in this stretch, but the $3 wing gives back **$0.45 → $0.43, 14.8% → 14.2%**, so the two conditions have swapped: score now has six points of room and credit is two cents short again. **QQQ is 4d, 59 (+5)**, the grid narrows to the **$7 wing at $0.98, 14.1%**, RV Excellent, and it needs one point and $1.05. **SPY is 4d, 50 (+3), 12.4% on $0.62 over $5.** EEM returns at **0d, 48, 17.5% on $0.18 over $1**, and XLF debuts at **0d, 47, 10.0% on $0.10 over $1**, so there are six rows for the first time since September. Funnel: **checked 11 / actionable 6 / base_gate 2 / construction 3 / execution 0**. **Execution is blank for the ninety-ninth consecutive print.** The surface firms properly: **VIX 15.08 → 15.41, VIX3M 17.72 → 18.08, VVIX 83.2 → 87.7**, the biggest vol-of-vol lift of the run and through the 85 level flagged Wednesday, still NORMAL and in contango. Internals improve with it: **avg VRP +6.2 → +6.8**, negative share **15% → 14%**, **stress 4 → 3 (11%) of 28, danger 0**, and the regime stays **THE PLAYOFFS at 8S / 13C + 1W**, twenty-one tradeable off sixteen. Day-over-day: **XLB +45 to 45, GOOG +17 to 81, MCD +15, UBER +11 to 81, HD +11, IWM +9, SBUX +9, XLV +9, XOM +9** against **CAT −10 to 58, XLE −4**. The read: the put bid showed up, and it landed on the dollar wings first. TLT got its 15% and IWM got its 60, but not in the same print for either name. **Still zero SELL_CPS at 99 sessions.** The trigger stands at **60+ score, 15% c/w, 5d+ line**. TLT is 82 / 15.0% / 4d, so **Friday is the first day it can fire, and it now needs nothing but the clock**, provided the $1 wing holds $0.15 and the unrounded print is not a hair under. IWM is the only name that could fire Thursday, at **$0.02 short** with score finally clear. QQQ hits 5d Friday too, one point and seven cents away, which is the closest it has been. If VVIX holds high-80s overnight, Friday is the first print in this run with two live paths at full conditions, and the hundredth session is the most likely to break the streak.
+
+---
+
+## 2026-10-07 (Wednesday)
+
+**Scan summary:** Checked 11 / 4 actionable / 2 base_gate / 5 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.08 / VIX3M 17.72 / VVIX 83.2 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | TLT | WATCH | 3d | 78 | 14.5% | $0.15 | $1 | $0.85 | Acceptable | Thin premium |
+| 2 | IWM | WATCH | 20d | 57 | 14.8% | $0.45 | $3 | $2.55 | Acceptable | Thin premium |
+| 3 | QQQ | WATCH | 3d | 54 | 14.2% | $1.14 | $8 | $6.86 | Excellent | Thin premium |
+| 4 | SPY | WATCH | 3d | 47 | 12.2% | $0.73 | $6 | $5.27 | Good | Thin premium |
+
+**Notable:** IWM makes 20d at **57 (+1)**. The $3 wing ticks to **$0.45 credit, $2.55 max loss**, and c/w improves from 14.3% to **14.8%**. The displayed credit now matches Tuesday's $0.45 target, but the unrounded print is still under a penny short of 15%. **TLT moves to 3d at 78 (+1), 14.5% on $0.15 over $1**, with RV easing Good → Acceptable. The wing recovered two cents but rounds to the line without clearing it. **QQQ is 3d, 54 (+3), 14.2% on $1.14 over $8**, with RV Excellent, and still needs $1.20 and six points. **SPY is 3d, 47 (flat), 12.2% on $0.73 over $6.** EEM drops off after one print, so the only row that cleared skew is gone. Funnel: **checked 11 / actionable 4 / base_gate 2 / construction 5 / execution 0**. **Execution is blank for the ninety-eighth consecutive print.** The surface firms slightly: **VIX 15.01 → 15.08, VIX3M 17.64 → 17.72, VVIX 82.6 → 83.2**, the first vol-of-vol uptick off the run low, and it is still NORMAL and in contango. Internals hold: **avg VRP +6.1 → +6.2**, negative share **14% → 15%**, **stress 5 → 4 (15%) of 27, danger 0**, and the regime stays **THE PLAYOFFS at 6S / 10C + 2W**, sixteen tradeable. Day-over-day: **XLF +26 to 46, XLE +13 to 61, GOOG +5, QQQ +3, KO +3 to 85** against **XLB −40 to 0, TSLA −35 to 0, XLI −19, SBUX −13, XLV −13, CAT −12, NKE −10**. The read: both live paths are now within a fraction of a cent on skew, and the small VVIX lift was enough to stop the drain on the dollar wings. **Still zero SELL_CPS at 98 sessions.** The trigger stands at **60+ score, 15% c/w, 5d+ line**. TLT is 78 / 14.5% / 3d, so **Friday is still the earliest it can fire**. That needs the $1 wing to print a clean $0.15 or better with eighteen points of score cushion, which leaves credit as the only open condition. IWM's gap is now **+3 score and under a penny** in the same print. It is the only name that could fire Thursday, but it has finished below 60 for three straight prints. QQQ has the clock running but needs six points and six cents together. If VVIX keeps rising toward 85, the put bid both paths have been waiting on may finally show up, and Friday becomes the first realistic window for a fire in this run.
+
+---
+
+## 2026-10-06 (Tuesday)
+
+**Scan summary:** Checked 11 / 5 actionable / 1 base_gate / 5 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.01 / VIX3M 17.64 / VVIX 82.6 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | TLT | WATCH | 2d | 77 | 13.0% | $0.13 | $1 | $0.87 | Good | Thin premium |
+| 2 | IWM | WATCH | 19d | 56 | 14.3% | $0.43 | $3 | $2.57 | Acceptable | Thin premium |
+| 3 | QQQ | WATCH | 2d | 51 | 14.1% | $1.13 | $8 | $6.87 | Excellent | Thin premium |
+| 4 | EEM | WATCH | 0d | 49 | 17.0% | $0.17 | $1 | $0.83 | Good | Thin premium |
+| 5 | SPY | WATCH | 2d | 47 | 12.0% | $0.72 | $6 | $5.28 | Good | Thin premium |
+
+**Notable:** IWM makes 19d, flat at **56**, and the strike grid returns to the **$3 wing at $0.43 credit, $2.57 max loss**. C/w improves from 13.6% to 14.3%, so 15% now needs **$0.45, a $0.02 gap**, down from Monday's five cents. **TLT moves to 2d at 77 (+7)** and RV improves from Caution to Good, but the wing gives back **$0.18 → $0.13 on $1, 17.5% → 13.0%**. The two-condition row lasted one print: score now has seventeen points of room, and skew is two cents short. **QQQ is 2d, 51 (+15), 14.1% on $1.13 over $8**, with RV Excellent, and needs $1.20 and nine points. **SPY is 2d, 47 (+13), 12.0% on $0.72 over $6.** **EEM debuts at 0d, 49, 17.0% on $0.17 over $1**, RV Good, and is now the only row that clears skew, eleven points under the line. Funnel: **checked 11 / actionable 5 / base_gate 1 / construction 5 / execution 0**. **Execution is blank for the ninety-seventh consecutive print.** The surface softens again: **VIX 15.52 → 15.01, VIX3M 18.00 → 17.64, VVIX 85.5 → 82.6**, a new run low for vol-of-vol, with VIX one tick from the 14 handle. Internals firm up: **avg VRP +5.3 → +6.1**, negative share **17% → 14%**, **stress 8 → 5 (17%) of 29, danger 0**, and the regime goes back to **THE PLAYOFFS at 7S / 10C + 1W**, seventeen tradeable off eleven. Day-over-day: **NKE +24 to 56, XLV +19, EEM +17, QQQ +15, SPY +13** against **NFLX −65 to 0, HD −15, XLF −14, XLE −12**. The read: the regime is broadening, but the falling VVIX is draining the dollar wings. TLT lost five cents on a day its score jumped, which is the trade-off this setup keeps forcing. **Still zero SELL_CPS at 97 sessions.** The trigger stands at **60+ score, 15% c/w, 5d+ line**. TLT is 77 / 13.0% / 2d, so **Friday is still the earliest it can fire**, provided the $1 wing gets back to $0.15. The clock and score are on track, so credit is now the only thing holding it back. IWM's gap is smaller than it has been in weeks, at **+4 score and $0.02** in the same print. That makes it the closer call again, and the only name that could fire before Friday. EEM has the skew but needs eleven points and five days. If VVIX keeps sliding toward 80, both live paths are waiting on a put bid that the surface isn't offering.
+
+---
+
+## 2026-10-05 (Monday)
+
+**Scan summary:** Checked 11 / 4 actionable / 2 base_gate / 5 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.52 / VIX3M 18.00 / VVIX 85.5 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | TLT | WATCH | 1d | 70 | 17.5% | $0.18 | $1 | $0.82 | Caution | Thin premium |
+| 2 | IWM | WATCH | 18d | 56 | 13.6% | $0.48 | $3.50 | $3.02 | Acceptable | Thin premium |
+| 3 | QQQ | WATCH | 1d | 36 | 14.0% | $1.12 | $8 | $6.88 | Caution | Thin premium |
+| 4 | SPY | WATCH | 1d | 34 | 12.2% | $0.73 | $6 | $5.27 | Caution | Thin premium |
+
+**Notable:** IWM makes 18d but slips to **56 (−4)** and falls off the score line it had held all run. The strike grid also shifted: the wing widens to **$3.50 at $0.48 credit, $3.02 max loss**, and c/w goes 14.0% → 13.6% with RV easing Good → Acceptable. On the wider wing, 15% needs **$0.53, a $0.05 gap**, and Friday's three-cent gap is gone. **TLT moves to 1d at 70 (+13), 17.5% on $0.18 over $1**, RV Caution. It now clears score and skew together, the first row in this run to meet two conditions with room to spare. **QQQ holds its clock at 1d, 36 (−5), 14.0% on $1.12 over $8. SPY is 1d, 34 (−10), 12.2% on $0.73 over $6**, with RV slipping to Caution. XLE drops off the CPS board on the same day its regime score jumped +12 to 60. Funnel: **checked 11 / actionable 4 / base_gate 2 / construction 5 / execution 0**. **Execution is blank for the ninety-sixth consecutive print.** The surface is flat to softer: **VIX 15.31 → 15.52, VIX3M 18.01 → 18.00, VVIX 87.0 → 85.5**, still contango and NORMAL, and vol-of-vol is at its lowest of the run. Internals give a little back: **avg VRP +5.7 → +5.3**, negative share flat at 17%, **stress 7 → 8 (27%) of 30, danger 1 → 0**, and the regime steps down to **REGULAR SEASON at 6S / 5C**, eleven tradeable off fourteen. Day-over-day: **HD +24 to 60, TLT +13, XLE +12, UBER +6** against **NKE −34 to 32, XLV −21, XLF −19, XLI −18 to 56, WMT −16, SPY −10**. The read: the lead path has flipped. IWM now fails two conditions, score and skew, and a falling VVIX won't bid its wing. TLT has the cleanest row the board has produced, and only the clock stands in its way. **Still zero SELL_CPS at 96 sessions.** The trigger stands at **60+ score, 15% c/w, 5d+ line**. TLT is 70 / 17.5% / 1d, so **Friday is the earliest it can fire**, provided it holds 60+ and the $1 wing stays at or above $0.15 for four more prints. It has ten points of score cushion and three cents of credit cushion, and its RV Caution is the main risk. IWM needs +4 score and $0.05 on the $3.50 wing in the same print, which is now the harder ask. QQQ and SPY are nowhere near the score line. If TLT's line breaks before Friday, the board has no live path left this week.
+
+---
+
+## 2026-10-02 (Friday)
+
+**Scan summary:** Checked 11 / 5 actionable / 1 base_gate / 5 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 15.31 / VIX3M 18.01 / VVIX 87.0 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | IWM | WATCH | 17d | 60 | 14.0% | $0.42 | $3 | $2.58 | Good | Thin premium |
+| 2 | TLT | WATCH | 0d | 57 | 16.5% | $0.17 | $1 | $0.83 | Caution | Thin premium |
+| 3 | XLE | WATCH | 0d | 48 | 15.0% | $0.15 | $1 | $0.85 | Good | Thin premium |
+| 4 | SPY | WATCH | 0d | 44 | 12.3% | $0.74 | $6 | $5.26 | Acceptable | Thin premium |
+| 5 | QQQ | WATCH | 0d | 41 | 14.1% | $1.13 | $8 | $6.87 | Caution | Thin premium |
+
+**Notable:** IWM makes 17d and holds exactly 60 (−1 vs Wednesday). For the first time in weeks the $3 wing moves: **$0.41 → $0.42 credit, $2.58 max loss**, and c/w goes from 13.8% to 14.0%. That's still short of 15%, but the gap narrows to **$0.03 ($0.42 → $0.45)**, and it happened on a softer tape, not a firmer one. **TLT debuts at 0d, 57, 16.5% c/w on $0.17 over $1**, RV Caution. It's the first row on the board in this run to clear the c/w condition outright, and it's three points under the score line. **XLE prints 0d, 48, exactly 15.0% on $0.15 over $1**, RV Good, so it meets skew to the cent but sits twelve points short on score. **SPY debuts at 0d, 44, 12.3% on $0.74 over $6**, and **QQQ is back at 0d, 41, 14.1% on $1.13 over $8**, which means Wednesday's clock didn't survive. XLF drops off. Funnel: **checked 11 / actionable 5 / base_gate 1 / construction 5 / execution 0**, the widest board of the run, with four rows clearing the gate in one session. **Execution is blank for the ninety-fifth consecutive print.** The surface softens: **VIX 16.34 → 15.31, VIX3M 18.37 → 18.01, VVIX 89.5 → 87.0**, still contango and NORMAL. The 16 handle is gone, and vol-of-vol is moving further from 90. Internals are the strongest yet: **avg VRP +3.9 → +5.7**, negative share **24% → 17%**, **stress 7 (23%) of 30 eligible, danger 1**, and **THE PLAYOFFS widens to 6S / 8C**, fourteen tradeable off eight. The read: the regime tape is now feeding the CPS board, and the dollar-wide wings in TLT and XLE are where the skew is. IWM's wing ticked up even as VVIX fell, so its last three cents may not need a put bid after all. **Still zero SELL_CPS at 95 sessions.** The trigger stands at **60+ score, 15% c/w, 5d+ line**. IWM is 60 / 14.0% / 17d, two of three met, and can fire on any print where the $3 wing reaches $0.45 and the score doesn't slip below 60. TLT is the inverse case: c/w is met, and it needs +3 score and five straight days on the line, so next Friday is the earliest it can print, provided the $1 wing holds $0.15. XLE has the same clock and needs +12. IWM is still the only name that can fire before then. TLT is now a real second path where last week there was none.
+
+---
+
 ## 2026-09-30 (Wednesday)
 
 **Scan summary:** Checked 11 / 3 actionable / 5 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
