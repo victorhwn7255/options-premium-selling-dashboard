@@ -38,6 +38,48 @@ Authoritative data lives in `cps_candidate_history` + `cps_scan_responses` table
 
 ---
 
+## 2026-10-29 (Thursday)
+
+**Scan summary:** Checked 11 / 2 actionable / 5 base_gate / 4 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 17.20 / VIX3M 19.37 / VVIX 98.0 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 19d | 45 | 11.4% | $0.69 | $6 | $5.31 | Acceptable | Thin premium |
+| 2 | IWM | WATCH | 0d | 36 | 13.4% | $0.47 | $3.50 | $3.03 | Acceptable | Thin premium |
+
+**Notable:** SPY makes 19d at **45 (+6)**, first gain in four prints, $6 wing holds, credit **$0.67 → $0.69**, skew **11.2% → 11.4%**, RV Caution → Acceptable, Thin. IWM returns at **0d, 36 (+5), 13.4% on $0.47**, $3.50 wing, RV Acceptable, Thin, back after Monday's exit. Two rows, both Thin, third all-Thin board. Funnel: **checked 11 / actionable 2 / base_gate 5 / construction 4 / execution 0**. **Execution is blank for the 114th consecutive print.** Surface turns up for the first time in the run: **VIX 16.91 → 17.20, VIX3M 19.22 → 19.37, VVIX 96.6 → 98.0**, NORMAL and contango, term spread 2.3 → 2.2. Internals firm: **avg VRP +4.1 flat**, **negative share 21% → 17%**, eligible 19 → 23, **stress 12 (52%)** from 53%, **danger 2** from 0, and **REGULAR SEASON lifts to 0S / 4C**, fifth print with no sell name. Day-over-day flips to eleven up, five down: **MSFT +59 to 59, CAT +50 to 50, META +33, TSLA +19** all from zero, **XLV +13 to 37, WMT +11 to 64, SPY +6, XLI +5 to 63, IWM +5, GS +5 to 27, JNJ +3 to 37** against **XLE −15 to 38, TLT −13 to 14, JPM −9 to 24, NVDA −5 to 43, EEM −3 to 30**. The read: Wednesday's call was SPY under 45 and the 113 becomes 114, SPY landed on 45 to the point and the clock is as called, but XLE went the wrong way and IWM rebuilt instead, and for the first time since Monday the tracker has names past 60, **WMT 64 and XLI 63**, neither of which reaches the board. **Still zero SELL_CPS at 114 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. SPY has clock only, needs fifteen points, 3.6 points of skew and $0.90 on $6, 21 cents away. IWM has nothing, needs 24 points, 1.6 points of skew, five sessions and $0.53 on $3.50, six cents away, the closest any row has been on credit in the run. WMT and XLI clear the score line but sit in base_gate or construction, which is where every 60+ print in the regime has died. With VIX back over 17, stress near half, danger back on the page and the two best scores off the board, Friday more likely holds SPY in the mid-40s than carries a 60 through construction, the 114 becomes 115, and the first SELL_CPS now needs WMT or XLI to pass construction and hold five sessions above 60 with real credit, which no name has done since the regime went up.
+
+---
+
+## 2026-10-28 (Wednesday)
+
+**Scan summary:** Checked 11 / 1 actionable / 5 base_gate / 5 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 16.91 / VIX3M 19.22 / VVIX 96.6 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 18d | 39 | 11.2% | $0.67 | $6 | $5.33 | Caution | Thin premium |
+
+**Notable:** SPY makes 18d at **39 (−5)**, a new run low for the second straight print, $6 wing holds, credit **$0.68 → $0.67**, skew **11.3% → 11.2%**, RV Caution, Thin. EEM and XLF are gone after one print each, tracker shows **EEM −7 to 33, XLF −5 to 23**, both out on score, so the board is one row for the first time since the regime went up. Funnel: **checked 11 / actionable 1 / base_gate 5 / construction 5 / execution 0**, construction the widest in the regime. **Execution is blank for the 113th consecutive print.** Surface keeps fading: **VIX 17.52 → 16.91, VIX3M 19.57 → 19.22, VVIX 99.4 → 96.6**, NORMAL and contango, term spread 2.1 → 2.3, VIX under 17 for the first time in the run. Internals split: **avg VRP +4.9 → +4.1**, lowest of the regime, **negative share 11% → 21%**, eligible 19, but **stress 10 (53%)** from 63%, **danger 0** from 1, and **REGULAR SEASON holds 0S / 3C**, fourth print with no sell name. Day-over-day is six up, eight down: **XLE +23 to 53, KO +18 to 18** from zero, **JNJ +11 to 34, JPM +6 to 33, NKE +4 to 37, HD +3 to 29** against **XLB −51 to 0, GS −10 to 22, EEM −7, GLD −7 to 30, IWM −6 to 31, SPY −5, XLF −5, XLV −3 to 24**. The read: Tuesday's call was SPY holds in the 40s and the 112 becomes 113, and the board did worse, SPY lost the 40 handle and the two skew names left on score, so the clock is the only thing on the page still building. The vol fade is now eating VRP as well as credit, which is the first print where the surface and the internals point the same way, and it is away from a trade. **Still zero SELL_CPS at 113 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. SPY has clock only, needs 21 points, 3.8 points of skew and $0.90 on $6, 23 cents away, the score gap wider than any print in its 18d run. XLE's 53 is the tracker ceiling and the only score within ten of the line, but it is not on the board, has exited four times, and has printed Thin on every entry since the first. With VIX under 17, VVIX under 97, negative VRP share doubled and the board down to one Thin row, Thursday more likely holds SPY under 45 than rebuilds anything, the 113 becomes 114, and the first SELL_CPS now needs XLE to carry a fifth entry seven points past where its fourth stopped, with a credit that is not $0.22, before SPY's clock is the only thing left standing.
+
+---
+
+## 2026-10-27 (Tuesday)
+
+**Scan summary:** Checked 11 / 3 actionable / 6 base_gate / 2 construction / 0 execution / 0 overlay / 0 confirmation
+**Overlay:** VIX 17.52 / VIX3M 19.57 / VVIX 99.4 — NORMAL, Contango
+
+| # | Ticker | Action | Days | Score | C/W | Credit | Width | Max Loss | RV Status | Notes |
+|---|--------|--------|------|-------|------|--------|-------|----------|-----------|-------|
+| 1 | SPY | WATCH | 17d | 44 | 11.3% | $0.68 | $6 | $5.32 | Caution | Thin premium |
+| 2 | EEM | WATCH | 0d | 40 | 15.0% | $0.15 | $1 | $0.85 | Good | Thin premium |
+| 3 | XLF | WATCH | 1d | 28 | 11.0% | $0.11 | $1 | $0.89 | Acceptable | Thin premium |
+
+**Notable:** SPY makes 17d at **44 (−15)**, its lowest score in the run, wing re-cut $10 → $6, credit **$1.03 → $0.68**, skew **10.3% → 11.3%**, RV Acceptable → Caution, Thin, the narrower wing bought a point of c/w and cost 35 cents and fifteen points. EEM returns after one session off at **0d, 40, 15.0% on $0.15**, $1 wing, RV Good, now Thin where Friday's 18.5% print was not, and it sits exactly on the skew line. XLF is **1d, 28 (−13)**, **$0.10 → $0.11, 10.0% → 11.0%**, RV Acceptable, Thin. XLE and QQQ are gone after one print each, tracker shows **XLE −18 to 30, QQQ −7 to 28**, both out on score, XLE's fourth exit in the run and its first on score rather than construction. Three rows, three Thin, second all-Thin board. Funnel: **checked 11 / actionable 3 / base_gate 6 / construction 2 / execution 0**, base_gate the widest in the regime. **Execution is blank for the 112th consecutive print.** Surface keeps fading: **VIX 18.39 → 17.52, VIX3M 19.94 → 19.57, VVIX 101.4 → 99.4**, NORMAL and contango, term spread 1.6 → 2.1, VVIX under 100 for the first time since the regime went up. Internals go the other way: **avg VRP +5.0 → +4.9**, negative share flat at 11%, eligible 19, but **stress 12 (63%)** from 53%, **danger 1** from 0, and **REGULAR SEASON slips to 0S / 3C** from 0S / 4C, third print with no sell name. Day-over-day is two up, fifteen down: **XLV +9 to 27, XLB +3 to 51** against **XLE −18, SPY −15, JPM −14 to 27, XLF −13, TLT −11 to 26, GS −10 to 32, JNJ −10 to 23, NKE −9 to 33, XLI −8 to 56, WMT −7 to 52, IWM −7 to 37, QQQ −7, HD −6 to 26**. The read: Monday's call was SPY takes the one point, not the 47 cents, and the board did worse than either, re-cutting the wing and taking fifteen points off SPY at once, so score and clock are split again and the 111 is 112 as called; XLI's 64 is 56, and for the first time in the run no name in the tracker clears 60. **Still zero SELL_CPS at 112 sessions.** Trigger stands at **60+ score, 15% c/w, 5d+ line, credit clear of the thin floor**. SPY has clock only, needs sixteen points, 3.7 points of skew and $0.90 on $6, 22 cents away, the dollar gap halved by the narrower wing and the score gap tripled. EEM has skew only, at the line to the tenth, needs twenty points and five sessions on a $1 wing. XLF has nothing, needs 32 points, four points of skew, four sessions. With stress near two thirds of the eligible set, fifteen of seventeen tracker names down and vol still fading, Wednesday more likely holds SPY in the 40s than rebuilds sixteen points, the 112 becomes 113, and the first SELL_CPS now needs a score to be rebuilt from a tracker whose ceiling is 56, which is further from a trade than any print since the regime went up.
+
+---
+
 ## 2026-10-26 (Monday)
 
 **Scan summary:** Checked 11 / 4 actionable / 4 base_gate / 3 construction / 0 execution / 0 overlay / 0 confirmation
