@@ -47,6 +47,132 @@ observations across the corpus]
 
 ---
 
+## 2026-11-06 (Friday)
+
+**Book summary:** 2 open · credit at risk $1,605 · notional $132,000 · top concentration CAT 52%
+
+| # | Ticker | Structure | Strikes | Expiry | Qty | Credit | Mark | uPnL | Capture | DTE | Δ | Regime | v1 Action | v2 Gate | FVRP | Flags |
+|---|--------|-----------|---------|--------|-----|--------|------|------|---------|-----|---|--------|-----------|---------|------|-------|
+| 1 | AMZN | naked_put | 210P | 2026-11-20 | 3 | $1.65 | $0.49 | +$348 | 70% | 14 | -0.04 | DANGER | AVOID | CAUTION | 0.78 | PROFIT_TARGET, TIME_EXIT |
+| 2 | CAT | naked_put | 690P | 2026-11-20 | 1 | $11.10 | $136.20 | -$12,510 | -1127% | 14 | -0.97 | DANGER | AVOID | DANGER | 0.94 | TIME_EXIT, DANGER_UNDERWATER, TESTED |
+
+---
+
+## 2026-11-05 (Thursday)
+
+**Book summary:** 2 open · credit at risk $1,605 · notional $132,000 · top concentration CAT 52%
+
+| # | Ticker | Structure | Strikes | Expiry | Qty | Credit | Mark | uPnL | Capture | DTE | Δ | Regime | v1 Action | v2 Gate | FVRP | Flags |
+|---|--------|-----------|---------|--------|-----|--------|------|------|---------|-----|---|--------|-----------|---------|------|-------|
+| 1 | AMZN | naked_put | 210P | 2026-11-20 | 3 | $1.65 | $0.15 | +$450 | 91% | 15 | -0.01 | CAUTION | NO EDGE | CAUTION | 0.70 | PROFIT_TARGET, TIME_EXIT |
+| 2 | CAT | naked_put | 690P | 2026-11-20 | 1 | $11.10 | $100.83 | -$8,972 | -808% | 15 | -0.90 | CAUTION | NO EDGE | DANGER | 0.89 | TIME_EXIT, TESTED |
+
+---
+
+## 2026-11-04 (Wednesday)
+
+**Book summary:** 2 open · credit at risk $1,605 · notional $132,000 · top concentration CAT 52%
+
+| # | Ticker | Structure | Strikes | Expiry | Qty | Credit | Mark | uPnL | Capture | DTE | Δ | Regime | v1 Action | v2 Gate | FVRP | Flags |
+|---|--------|-----------|---------|--------|-----|--------|------|------|---------|-----|---|--------|-----------|---------|------|-------|
+| 1 | AMZN | naked_put | 210P | 2026-11-20 | 3 | $1.65 | $0.38 | +$382 | 77% | 16 | -0.04 | CAUTION | NO EDGE | DANGER | 0.74 | PROFIT_TARGET, TIME_EXIT |
+| 2 | CAT | naked_put | 690P | 2026-11-20 | 1 | $11.10 | $70.28 | -$5,918 | -533% | 16 | -0.83 | CAUTION | NO EDGE | DANGER | 0.93 | TIME_EXIT, TESTED |
+
+---
+
+## 2026-11-03 (Tuesday)
+
+**Book summary:** 2 open · credit at risk $1,605 · notional $132,000 · top concentration CAT 52%
+
+| # | Ticker | Structure | Strikes | Expiry | Qty | Credit | Mark | uPnL | Capture | DTE | Δ | Regime | v1 Action | v2 Gate | FVRP | Flags |
+|---|--------|-----------|---------|--------|-----|--------|------|------|---------|-----|---|--------|-----------|---------|------|-------|
+| 1 | AMZN | naked_put | 210P | 2026-11-20 | 3 | $1.65 | $0.60 | +$314 | 63% | 17 | -0.05 | CAUTION | NO EDGE | DANGER | 0.76 | PROFIT_TARGET, TIME_EXIT |
+| 2 | CAT | naked_put | 690P | 2026-11-20 | 1 | $11.10 | $79.47 | -$6,838 | -616% | 17 | -0.86 | DANGER | AVOID | DANGER | 0.85 | TIME_EXIT, DANGER_UNDERWATER, TESTED |
+
+---
+
+## 2026-11-02 (Monday)
+
+**Book summary:** 2 open · credit at risk $1,605 · notional $132,000 · top concentration CAT 52%
+
+| # | Ticker | Structure | Strikes | Expiry | Qty | Credit | Mark | uPnL | Capture | DTE | Δ | Regime | v1 Action | v2 Gate | FVRP | Flags |
+|---|--------|-----------|---------|--------|-----|--------|------|------|---------|-----|---|--------|-----------|---------|------|-------|
+| 1 | AMZN | naked_put | 210P | 2026-11-20 | 3 | $1.65 | $0.78 | +$262 | 53% | 18 | -0.07 | CAUTION | NO EDGE | DANGER | 0.69 | PROFIT_TARGET, TIME_EXIT |
+| 2 | CAT | naked_put | 690P | 2026-11-20 | 1 | $11.10 | $72.00 | -$6,090 | -549% | 18 | -0.82 | DANGER | AVOID | DANGER | 0.74 | TIME_EXIT, DANGER_UNDERWATER, TESTED |
+
+**Assessment:** Both marks are live two-sided quotes by `quote_fallback`: AMZN at 0.75/0.80, CAT at 68.05/75.95, both strikes back outside the scan's ATM window and quoted directly. Neither quote is stale. And for the first time since Wednesday the CAT row describes one instant: `underlying_close` $613.62 puts the 690 put $76.38 in the money, the ask is 75.95, the mid 72.00. The ask sits $0.43 under parity, inside intraday noise on a stock moving 1.5% a day, where Friday it sat $12.75 under and Thursday the whole quote belonged to a different stock. The reconciliation I have asked for in two straight entries has happened on the feed. It happened by the quote walking up to the spot, not the spot walking down to the quote, which was the expensive one of the two worlds. Twentieth marked read on the pair, thirteenth in the red, tenth session in a row with no change to the book while flags fire on both legs. TIME_EXIT fires on both for the second day. PROFIT_TARGET fires on AMZN. DANGER_UNDERWATER, which went dark on a label change at 1.76x the credit, comes back on today at 6.49x.
+
+Headline unrealized is −$5,828, from −$4,124 Friday, −$651, −$917, −$2,219, −$2,746, −$1,853, −$388, −$815, −$925, −$1,187, −$698, −$567, +$124, +$565, +$534, +$194, +$558, +$842 on 10-07. Deterioration of $1,704, the second-largest move in the series after Friday's $3,473. Friday I said the headline was understated because the CAT mid was under parity. Today's print is mostly that understatement being paid. The CAT leg alone has lost 3.8x the credit at risk of the entire book.
+
+**CAT 690P ×1: $11.10 credit, mark $72.00, −$6,090, −549% capture, 18 DTE, Δ −0.82.** `underlying_close` $613.62, from $622.75, down $9.13, 1.5%, and $99.76 in three sessions from Wednesday's $713.38. The mid is 72.00 from 52.20, up $19.80 on a $9.13 spot drop. Friday's delta of 0.72 explains about $6.60 of that. The other $13 is not delta and it is not vol, it is Friday's quote being $12.75 below intrinsic and today's being $0.43 below. So the honest read of the two sessions together is: spot −$33.77 since Wednesday's coherent read, put +$50 against a strike it is now $76 through, and the quote spent two days catching up to the stock. There is still no vol story to tell on a put with 95% of its price in intrinsic. The vol row matters only for what it says about rolling: sigma_fwd 0.5521 from 0.5591, vrp_ratio 0.937, implied still under realized, fvrp 0.7438, fvrp_z −2.497 from −3.035, score 19, AVOID, regime DANGER from CAUTION from NORMAL in three sessions, v2 DANGER as it has been every day since entry. Skew 2.08, accel_dn 1.56, term slope 1.198 with `earnings_dte` 87 in the scan row and still null in the mark, twenty-first day. The scanner would not sell CAT premium at any strike today, which is the whole problem with the roll branch of TESTED.
+
+On the flags. TESTED, seventh day, Δ −0.82, spot 11.1% through the strike. TIME_EXIT, second day. DANGER_UNDERWATER fires, because the v1 label is DANGER again. The mark has been over the 1.25x threshold every session since 10-21; the flag has been on, off, off, on across the last four reads purely on the label. Thursday NORMAL at 1.76x, Friday CAUTION at 4.70x, today DANGER at 6.49x. The rule as written says leave a DANGER name when underwater. Both halves are true today. Exit at the ask: (11.10 − 75.95) × 100 = −$6,485. At parity: −$6,528. The spread is 7.90 on a 72 mid, 11%, which on a put this deep is the cost of a market maker's inventory on a stock that fell 14% in a week, and it is $43 of a $6,500 decision. Assignment is the alternative: 100 shares at $690 on a $613.62 stock, $69,000 of notional on a $1,605 book, in a name the scanner labels DANGER with implied under realized. That is not a defend, that is a long-stock position chosen by not deciding.
+
+**AMZN 210P ×3: $1.65 credit, mark $0.78, +$262, 53% capture, 18 DTE, Δ −0.07.** `underlying_close` $245.63. Mid 0.775 from 1.70, the put halved in a session. Delta 0.07 from 0.11. The move is vol, entirely, and it is the crush that did not come Friday arriving Monday: IV percentile 41.2 from 96.3, term slope 0.906 from 2.015, the front-month inversion I flagged Friday as either a sell-off regime or a wrong calendar gone in one session. The calendar was wrong on the surface, right on the scanner, and the wing has now repriced to the post-event world. sigma_fwd 0.4512 from 0.3811, up 18%, so the forward-realized estimate rose while implied collapsed, fvrp 0.6904, fvrp_z −1.725, vrp_ratio 0.989. rv_acceleration 1.393. That last number is why PROFIT_TARGET fires at 53% rather than waiting for 75%: the 50% variant applies when RV accel is over 1.10, and it is. Score 22, NO EDGE, regime CAUTION, v2 DANGER. The strike is 14.5% below spot, about 1.45 sigma on today's sigma_fwd. SPREAD_AWARE_DECAY does not apply on either test: the strike is inside 1.5 sigma, and PROFIT_TARGET is an active gate. Spread 0.05 on 0.775, 6.5%, from 18% Friday, the first narrowing after four widenings. Exit at the ask: (1.65 − 0.80) × 300 = +$255. Remaining premium at the ask $240 over 18 days against $63,000 of notional in a name whose own row says NO EDGE. The 10-02 thesis, score 80, vrp_ratio 1.595, NORMAL, has been fully realized and then some; the entry wanted a vol-rich wing to decay, and it decayed.
+
+Portfolio. Credit at risk $1,605 and notional $132,000 are entry-day numbers and have not described the book for two weeks. By mark, the CAT leg is $7,200 of option value against $233 on AMZN, 97% of the book. Concentration 52% on the header is the credit split; the risk split is one name. Both v1 rows say do not sell premium here, CAUTION and DANGER; v2 has said DANGER on both since the day they were opened. There is no alignment to speak of. The book is one profitable wing the strategy says to take, and one deep-in-the-money naked put the strategy says to leave, carried together for ten sessions.
+
+Management calls, each citing a rule already written:
+
+- CAT: three flags fire. TIME_EXIT at 18 DTE, DANGER_UNDERWATER at 6.49x the credit against a 1.25x threshold, TESTED at Δ −0.82 with spot $76 through the strike. The underwater rule says leave. The TESTED rule says defend or roll; the roll leg sells CAT premium into AVOID, score 19, vrp 0.937, which the strategy does not do. Exit at the ask ≈ −$6,485. The quote and spot are finally one instant, so the one-screen check is a confirmation now, not an investigation. Quote it and act on what you see.
+- AMZN: PROFIT_TARGET fires on the 50% variant, TIME_EXIT fires. Two exit rules on one leg. Take it at 0.80, ≈ +$255. Remaining $240 is not worth 18 days of a 1.45-sigma naked wing in a NO EDGE row.
+- No position has a thesis field. Both have `exit_dte_plan` 21, both passed it Friday, neither moved.
+
+Behavioural. The trader wrote 21 DTE as the exit plan on 10-02 and crossed it Friday on both legs without acting. That is the first hard, self-authored rule in this book to be breached, and it was breached on the same day as the largest drawdown in the series. The pattern across the corpus is now ten sessions of flags firing into an unchanged book, and the shape of it is the one every premium seller knows: the winner is small, visible, and easy to close, the loser is large and the close would make it real, so neither is touched. On AMZN, the profit target has been reachable at a few hundred dollars since mid-October and is being held past two exit rules today. On CAT, the position went from 1.76x to 6.49x the credit across three sessions with the underwater flag blinking on and off on a regime label, and the response was the same as the response at −$388 on 10-23. Separately, carry forward the entry question I have logged since 10-22: `earnings_clear` returned true on both names with `earnings_dte` 24 and a 28-day planned hold, so the print was inside the hold window at entry, and both entries were v1 SELL PREMIUM against v2 DANGER with no `deviation_reason` written. The CAT hole is a 10-02 sizing and gate decision as much as a 10-29 price.
+
+**Watchpoints:**
+- CAT: three flags. Mark 6.49x the credit. Ask 75.95 vs parity 76.38, coherent for the first time since 10-28. Exit at the ask ≈ −$6,485. Assignment is $69,000 of a DANGER name at $690 on a $613.62 stock.
+- CAT roll branch sells into AVOID, score 19, vrp 0.937, fvrp_z −2.497, sigma_fwd 0.5521. The scanner has no strike to offer.
+- DANGER_UNDERWATER on/off/off/on across four sessions on a mark that never fell below 1.25x. Keyed to the v1 label while v2 has read DANGER since entry.
+- AMZN: PROFIT_TARGET (50% variant, rv accel 1.393) and TIME_EXIT both fire. Ask 0.80, realized ≈ +$255, remaining ≈ $240. Spread 6.5%, first narrowing. Strike ~1.45 sigma. Vol-driven: IV pct 96.3 → 41.2, term slope 2.015 → 0.906.
+- Net at the asks ≈ −$6,230 vs headline −$5,828. CAT leg 3.8x the book's credit at risk. Mark-weighted concentration 97% CAT.
+- Band-edge prints: 10-07 CAT 63%, 10-08 AMZN 40%, 10-09 CAT 7%, 10-09 AMZN 23%, 10-15 AMZN 28%, 10-16 AMZN 36%, 10-19 AMZN −0%, 10-20 AMZN 55%, 10-21 CAT −100%, 10-22 both, 10-26 and 10-27 both vol-absorbed, 10-28 both wing-drained, 10-29 CAT incoherent and AMZN wrong-signed, 10-30 CAT under parity. Today: CAT coherent, $19.80 on a $9.13 spot move with $13 of it reconciliation; AMZN halved on a vol crush the surface priced for Friday. First clean pair of rows since 10-28.
+- Fix `mark.earnings_dte` on CAT, twenty-first day. Check whether `earnings_clear` tests the exit plan or the expiry; it passed with the print inside the hold window on both names. Add the timestamp consistency check; it would have flagged Thursday and Friday and cleared today. Check why DANGER_UNDERWATER keys off the v1 label.
+
+The trader decides.
+
+---
+
+## 2026-10-30 (Friday)
+
+**Book summary:** 2 open · credit at risk $1,605 · notional $132,000 · top concentration CAT 52%
+
+| # | Ticker | Structure | Strikes | Expiry | Qty | Credit | Mark | uPnL | Capture | DTE | Δ | Regime | v1 Action | v2 Gate | FVRP | Flags |
+|---|--------|-----------|---------|--------|-----|--------|------|------|---------|-----|---|--------|-----------|---------|------|-------|
+| 1 | AMZN | naked_put | 210P | 2026-11-20 | 3 | $1.65 | $1.70 | -$14 | -3% | 21 | -0.11 | DANGER | AVOID | DANGER | 1.20 | TIME_EXIT |
+| 2 | CAT | naked_put | 690P | 2026-11-20 | 1 | $11.10 | $52.20 | -$4,110 | -370% | 21 | -0.72 | CAUTION | NO EDGE | DANGER | 0.70 | TIME_EXIT, TESTED |
+
+**Assessment:** Both marks are live two-sided quotes. AMZN at 1.54/1.85 by `quote_fallback`, the 210 strike still quoted directly outside the scan's ATM window. CAT at 49.90/54.50 by `scan_chain`, the 690 strike back inside the scanned chain for the first time since Tuesday. Neither quote is stale. But the CAT row has the same problem it had yesterday, in a different place: `underlying_close` $622.75 puts the 690 put $67.25 in the money, and a put cannot be offered at 54.50 when parity is 67.25. The ask sits $12.75 below intrinsic, the bid $17.35 below. Yesterday the quote described a stock near 713 while the spot field said 647. Today the quote describes a stock somewhere in the 640s while the spot field says 623. The quote has caught up most of the way to the spot; it has not caught up all of it. Nineteenth marked read on the pair, twelfth in the red, ninth session in a row with no change to the book while flags fire on both legs. TIME_EXIT fires on both today. This is the session every entry since 10-22 has pointed at.
+
+Headline unrealized is −$4,124, from −$651 Thursday, −$917, −$2,219, −$2,746, −$1,853, −$388, −$815, −$925, −$1,187, −$698, −$567, +$124, +$565, +$534, +$194, +$558, +$842 on 10-07. Deterioration of $3,473 in one session, 2.7x the largest prior move in the series in either direction, and the headline is understated because the CAT mid is below parity at the stated spot. The CAT leg alone has lost 2.6x the credit at risk of the entire book. Both prints happened. AMZN `earnings_dte` 0 → 97, CAT null → 90 in the scan row. Both surfaces say post-event. Neither surface crushed.
+
+**CAT 690P ×1: $11.10 credit, mark $52.20, −$4,110, −370% capture, 21 DTE, Δ −0.72.** `underlying_close` $622.75, from $647.39, down $24.64, 3.8%, and $90.63 in two sessions from Wednesday's $713.38, 12.7%. The mid is 52.20 from 19.55, up $32.65. The delta is 0.72 from 0.35. Yesterday I said the 0.35 described nothing real on a $647 stock; today's 0.72 is at least the right shape for a put that is through its strike. The move is delta, entirely. There is no vol story to tell on a put that is $67 in the money, and the vol row is the wrong-way story anyway: sigma_fwd 0.5591 from 0.3938, up 42% the session after the print, vrp_ratio 0.902, implied now under realized, fvrp 0.6989, fvrp_z −3.035. A three-sigma negative forward VRP means the surface is pricing less movement than the forward-realized estimate expects. Score 17, NO EDGE, regime CAUTION, v2 DANGER. Skew 0.98, accel_dn 1.6198. The scanner would not sell CAT premium today at any strike. Mark is 4.70x the entry credit against a 1.25x threshold. DANGER_UNDERWATER does not fire for the second day, because the regime label is CAUTION, not DANGER. Yesterday it dropped on a label flip at 1.76x. Today it stays off at 4.70x. The rule as written, not rewritten here, but the screen the trader reads shows no underwater flag on a position that is underwater by any definition.
+
+On the reconciliation. The `scan_chain` source means the 690 strike was inside the ATM window on today's chain capture. On 10-28, with spot $713.38 and the strike 3.4% away, it needed `quote_fallback`. Today, with the strike 10.8% away on the stated spot, it did not. Either the window logic widened with sigma or the chain was captured on a spot much nearer 690 than 623. I cannot tell which from here, and I am not substituting a number. Two worlds again, closer together than yesterday's. At the quoted ask the exit is −$4,340. At parity on the stated spot it is −$5,615. The $1,275 between them is the cost of not knowing what the stock was when the chain was pulled. Stock and put on one screen at one time before anything is executed, same instruction as yesterday, with higher stakes on the gap.
+
+**TIME_EXIT fires on CAT today, DTE 21 <= plan 21, and TESTED is on for the sixth day, spot $67.25 through the strike.** Two of the strategy's own rules point at the same session. TIME_EXIT says close; TESTED says defend or roll. On rolling, I will only note what the scan row says about the premium a roll would sell: NO EDGE, vrp 0.902, fvrp_z −3.0. A roll is a new premium sale in a name the scanner says has no premium to sell. On closing, the fill will land nearer parity than the 54.50 ask if the stock is really $622.75, so the trader should carry −$5,600, not −$4,340, as the number to expect. Assignment on $69,000 of notional is the alternative. None of that is a new rule. It is the arithmetic of the two rules that fired.
+
+**AMZN 210P ×3: $1.65 credit, mark $1.70, −$14, −3% capture, 21 DTE, Δ −0.11.** Spot $240.35, from $243.79, down $3.44, 1.4%. Mid 1.695 from 1.00, up $0.695, 69%. Delta 0.1058 from 0.06. At yesterday's delta a $3.44 drop is worth about $0.21 on the put. It gave $0.695. Seven-tenths of the move is vol, and the vol went the wrong way after a print: sigma_fwd 0.3811 from 0.3096, up 23%. IV percentile 96.3 from 94.8, new high, against 73.6 at entry. Term slope 2.015 from 1.976, the front still twice the back with the event supposedly 97 days off. RV acceleration 1.407, new high, accel_dn 1.4445. fvrp 1.1999 from 1.43, fvrp_z 1.105 from the 2.008 peak. Skew 0.65 from 0.8. Score 44, fourteenth day under the 65 bar, AVOID, DANGER on both engines for the sixth day. A surface that gets more expensive after the binary it was pricing is not a surface that expected the binary to be the whole story. The strike is $30.35 below spot, 12.6%, about 1.4 sigma over the remaining life at today's sigma_fwd, down from 1.8 yesterday and 2.1 Wednesday. Spread $0.31 on $1.695, 18%, from 13% and 12%: widening for the fourth session straight. Remaining premium about $510 on $63,000 of notional.
+
+**TIME_EXIT fires on AMZN today, DTE 21 <= plan 21.** EARNINGS_WALL dropped after eight days with the event behind. Exit at the ask 1.85 ≈ −$60, from +$174 yesterday at the ask, from +$156 Wednesday. PROFIT_TARGET was available at 55% on 10-20 and lost 10-23, not taken. SPREAD_AWARE_DECAY does not apply: the strike is inside 1.5 sigma and TIME_EXIT is an active gate. The rule says close. A 0.11-delta put 12.6% out with three weeks left will most likely expire worthless, and that is exactly the argument the 21-DTE rule exists to overrule, because gamma on the way down is now the trader's problem, not theta on the way up. Holding past today without a `deviation_reason` written would be the position's third documented-rule miss after the profit target and the eight-day earnings wall.
+
+**Portfolio.** Credit at risk $1,605 on $132,000 notional, CAT 52%. The concentration figure has been flagged nineteen times and it just did what concentration does: one contract on one name moved 12.7% in two sessions and the book lost 2.6x its total premium. Net at the asks ≈ −$4,400 against the −$4,124 headline; at CAT parity ≈ −$5,675. Regime alignment is nil. AMZN DANGER/AVOID, CAT CAUTION/NO EDGE, v2 DANGER on both, as it was at entry. Neither name passes the entry checklist today and neither would have passed v2 on 10-02. Both entries carry v1 SELL PREMIUM, v2 DANGER, `thesis` null, `deviation_reason` null. If v2 is a gate, both were deviations and neither was written down. Nineteen sessions on, that is still the first fact about this book.
+
+**Behavioural.** What happened to CAT is not a surprise. DANGER_UNDERWATER fired for seven consecutive sessions, 10-22 to 10-28, at 1.76x to 2.7x the credit, with the print dated and visible in the scan row the whole time. On 10-28, the last close before the print, the exit at the ask was −$1,335 and I wrote that it was the best achievable exit in five sessions. Today's is −$4,340 at an ask that is below parity. The difference, roughly $3,000 on a $1,605 book, is the price of holding a single naked put through a known binary event in a DANGER regime while the strategy's own underwater rule was firing daily. On AMZN the pattern is the mirror: a profit target that came and went untouched, then an earnings wall held through for eight days, for a position that is now negative at the time exit. Across both, nine sessions of flags, zero actions, zero written reasons. That is the habit the corpus is recording. Not a bad read on CAT or AMZN. A book that generates exit signals and does not consume them.
+
+**Watchpoints:**
+- CAT: TIME_EXIT and TESTED both fire today. Stock and 690 put on one screen at one time first. Ask 54.50 vs parity 67.25 on the stated spot; exit −$4,340 at the ask, −$5,615 at parity. Expect the second. Assignment on $69,000 is the alternative.
+- CAT 4.70x the credit, no DANGER_UNDERWATER on a CAUTION label, second day. Scan: NO EDGE, score 17, vrp 0.902, fvrp_z −3.035, sigma_fwd 0.5591. A roll sells premium the scanner says has none.
+- AMZN: TIME_EXIT fires today. Ask 1.85, realized ≈ −$60, from +$174. Remaining ≈ $510. Spread 18%, fourth widening. Strike ~1.4 sigma. SPREAD_AWARE_DECAY does not apply.
+- AMZN vol up post-print: sigma_fwd 0.3811 +23%, IV pct 96.3 new high, term slope 2.015 with `earnings_dte` 97. Either the surface is pricing a sell-off regime or the event calendar is wrong. Either way the wing is dearer after the event it was pricing.
+- Net at the asks ≈ −$4,400 vs headline −$4,124. Worst session in the series by 2.7x. CAT leg alone 2.6x the book's credit at risk.
+- Band-edge prints: 10-07 CAT 63%, 10-08 AMZN 40%, 10-09 CAT 7%, 10-09 AMZN 23%, 10-15 AMZN 28%, 10-16 AMZN 36%, 10-19 AMZN −0%, 10-20 AMZN 55%, 10-21 CAT −100%, 10-22 both, 10-26 and 10-27 both vol-absorbed, 10-28 both wing-drained, 10-29 CAT incoherent and AMZN wrong-signed. Today: CAT quote below parity on the stated spot, AMZN vol-driven on a 1.4% spot move after a print. Second entry where the CAT spot and quote are not one instant.
+- Fix `mark.earnings_dte` on CAT, twentieth day. Check whether `earnings_clear` tests the exit plan or the expiry. Add the timestamp consistency check between `underlying_close` and the option quote; today it would have caught a put quoted $12.75 under intrinsic. Check why DANGER_UNDERWATER keys off the v1 label when v2 has said DANGER on both names since entry.
+
+The trader decides.
+
+---
+
 ## 2026-10-29 (Thursday)
 
 **Book summary:** 2 open · credit at risk $1,605 · notional $132,000 · top concentration CAT 52%
